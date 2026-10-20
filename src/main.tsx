@@ -1,8 +1,14 @@
-import { createRoot } from "react-dom/client";
-import "./index.css";
-import { router } from "./routes/routes.tsx";
-import { RouterProvider } from "react-router-dom";
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { App } from '@/app/app';
+import '@fontsource-variable/vazirmatn';
+import '@/styles/globals.css';
 
-createRoot(document.getElementById("root")!).render(
-	<RouterProvider router={router} />
+const root = document.getElementById('root');
+if (!root) throw new Error('Root element was not found.');
+
+createRoot(root).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
 );
