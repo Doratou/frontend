@@ -9,6 +9,7 @@ export function ThemeToggle() {
     <Button
       variant="ghost"
       size="icon"
+      radius="full"
       aria-label="حالت تاریک"
       aria-pressed={dark}
       onClick={() => setTheme(dark ? 'light' : 'dark')}

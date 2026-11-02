@@ -108,6 +108,10 @@
   --text-button-sm--line-height: calc(22 / 14);
   --text-button-sm--font-weight: 500;
   --text-button-sm--letter-spacing: 0;
+  --text-button-xl: 1.3125rem;
+  --text-button-xl--line-height: calc(30 / 21);
+  --text-button-xl--font-weight: 500;
+  --text-button-xl--letter-spacing: 0;
 
   --text-paragraph-lg: 1.125rem;
   --text-paragraph-lg--line-height: calc(32 / 18);
