@@ -26,17 +26,17 @@ VITE_API_WITH_CREDENTIALS=false
 
 ## ابزارها
 
-| بخش              | انتخاب                                                            |
-| ---------------- | ----------------------------------------------------------------- |
-| UI و build       | React 19، TypeScript 6، Vite 8                                    |
-| استایل           | Tailwind CSS 4 با پلاگین Vite و تنظیمات CSS                       |
-| کامپوننت         | ساختار سازگار با shadcn/ui، Radix، Lucide، Sonner                 |
-| مسیرها           | React Router 7 با lazy route                                      |
-| وضعیت سمت کاربر  | Zustand 5؛ اطلاعات نشست فقط در حافظه                              |
-| داده سرور        | TanStack Query 5 و Axios                                          |
-| فرم و اعتبارسنجی | React Hook Form و Zod                                             |
-| کیفیت            | ESLint با type checking و Prettier؛ بدون تست خودکار طبق تصمیم تیم |
-| فارسی            | RTL در HTML و Radix، فونت Vazirmatn محلی، تبدیل ارقام فارسی/عربی  |
+| بخش              | انتخاب                                                                                    |
+| ---------------- | ----------------------------------------------------------------------------------------- |
+| UI و build       | React 19، TypeScript 6، Vite 8                                                            |
+| استایل           | Tailwind CSS 4 با پلاگین Vite و تنظیمات CSS                                               |
+| کامپوننت         | ساختار سازگار با shadcn/ui، Radix، Lucide، Sonner                                         |
+| مسیرها           | React Router 7 با lazy route                                                              |
+| وضعیت سمت کاربر  | Zustand 5؛ اطلاعات نشست فقط در حافظه                                                      |
+| داده سرور        | TanStack Query 5 و Axios                                                                  |
+| فرم و اعتبارسنجی | React Hook Form و Zod                                                                     |
+| کیفیت            | ESLint با type checking و Prettier؛ بدون تست خودکار طبق تصمیم تیم                         |
+| فارسی            | RTL در HTML و Radix، فونت IRANYekan محلی با fallback به Vazirmatn، تبدیل ارقام فارسی/عربی |
 
 نسخه‌های نصب‌شده در `package-lock.json` قفل شده‌اند؛ برای نصب وابستگی‌های پروژه از `npm ci` استفاده کنید.
 
@@ -68,6 +68,8 @@ src/
 صفحه جدید را در `src/app/pages` بسازید و مسیرش را در `src/app/router.tsx` ثبت کنید. کامپوننت‌ها، API، schema و state مخصوص هر قابلیت در `src/features/<feature>` قرار می‌گیرند؛ اجزای مستقل از قابلیت در `src/components` هستند.
 
 پیش‌نمایش کامپوننت‌های مشترک در dev روی `http://localhost:3001/dev/components` است و در production مسیر ندارد.
+
+رنگ‌ها و ۲۵ سبک تایپوگرافی از Design System فیگما منتقل شده‌اند. معماری توکن‌ها، مقایسهٔ منابع، مثال مصرف، وضعیت Dark Theme و قواعد توسعهٔ RTL در [راهنمای استایل‌ها](src/styles/README.md) ثبت شده است.
 
 ## دستورات
 
