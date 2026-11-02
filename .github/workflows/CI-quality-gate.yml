@@ -5,10 +5,12 @@ on:
   push:
     branches:
       - main
+      - develop
       - feat/ci-cd
   pull_request:
     branches:
       - main
+      - develop
 
 permissions:
   contents: read
