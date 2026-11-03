@@ -15,7 +15,7 @@ const buttonVariants = cva(
           'border-[length:var(--button-border-width)] bg-transparent disabled:border-neutral-30 disabled:bg-neutral-10 disabled:text-neutral-50 data-disabled:border-neutral-30 data-disabled:bg-neutral-10 data-disabled:text-neutral-50',
         ghost:
           'bg-transparent hover:bg-foreground/5 active:bg-foreground/10 disabled:opacity-50 data-disabled:opacity-50',
-        link: 'bg-transparent text-primary underline-offset-4 hover:underline focus-visible:underline active:underline active:decoration-2 disabled:opacity-50 data-disabled:opacity-50',
+        link: 'bg-transparent text-primary no-underline hover:text-primary-70 focus-visible:text-primary-70 active:text-primary-80 disabled:opacity-50 data-disabled:opacity-50 dark:hover:text-primary-20 dark:focus-visible:text-primary-20 dark:active:text-primary-10',
       },
       tone: { primary: '', secondary: '', accent: '' },
       size: {
@@ -46,7 +46,7 @@ const buttonVariants = cva(
         variant: 'default',
         tone: 'secondary',
         className:
-          'bg-secondary-60 text-primary-80 hover:bg-secondary-70 hover:text-white active:bg-secondary-80 active:text-white dark:bg-secondary-50 dark:hover:bg-secondary-40 dark:hover:text-primary-80 dark:active:bg-secondary-30 dark:active:text-primary-80',
+          'bg-secondary-60 text-white hover:bg-secondary-70 active:bg-secondary-80 dark:bg-secondary-50 dark:hover:bg-secondary-40 dark:active:bg-secondary-30',
       },
       {
         variant: 'default',
@@ -145,7 +145,7 @@ export function Button({
   variant,
   disabled,
   hoverScale = variant === 'ghost' || variant === 'link' ? 1 : 1.02,
-  pressScale = variant === 'link' ? 1 : 0.97,
+  pressScale = 0.97,
   whileHover,
   whileTap,
   transition,

@@ -35,7 +35,7 @@
 
 aliasهای قبلی `size="default"` و `size="icon"` حفظ شده‌اند؛ icon قدیمی ۴۴ پیکسل است. ارتفاع md/lg/xl برابر ۳۵/۴۲/۵۶ است؛ هدف لمسی را در مصرف موبایل با lg/xl انتخاب کنید. رنگ hover/active با CSS و حرکت دکمه با Motion مدیریت می‌شود. Icon-only باید نام دسترس‌پذیر بگیرد. asChild برای عنصر تعاملی مناسب مثل Link است، نه div؛ handler دارای side effect روی فرزند غیرفعال نگذارید.
 
-`hoverScale` و `pressScale` کل دکمه، شامل متن و آیکون، را scale می‌کنند. پیش‌فرض solid/outline برابر 1.02 و 0.97 است؛ hover برای ghost برابر 1 و هر دو مقدار برای link برابر 1 است. فنر پیش‌فرض stiffness=450 و damping=30 دارد. disabled/loading و prefers-reduced-motion حرکت تعاملی ندارند. whileHover/whileTap/transition نیز props واقعی Motion هستند. کلاس‌های معمول bg-* و border-* روی خود دکمه اعمال می‌شوند.
+`hoverScale` و `pressScale` کل دکمه، شامل متن و آیکون، را scale می‌کنند. پیش‌فرض solid/outline برابر 1.02 و 0.97 است؛ hover برای ghost و link برابر 1 و press آن‌ها 0.97 است. variant متنی link زیرخط و پس‌زمینهٔ تعاملی ندارد؛ رنگ متن در hover/focus و press قوی‌تر می‌شود. فنر پیش‌فرض stiffness=450 و damping=30 دارد. disabled/loading و prefers-reduced-motion حرکت تعاملی ندارند. whileHover/whileTap/transition نیز props واقعی Motion هستند. کلاس‌های معمول bg-* و border-* روی خود دکمه اعمال می‌شوند.
 
 ```tsx
 <Button hoverScale={1.04} pressScale={0.96}>ذخیره</Button>
@@ -83,6 +83,8 @@ label رشته‌ای و الزامی است. props استاندارد input ش�
 | `className` / `containerClassName` | استایل input / ریشهٔ فیلد                                      |
 
 label واقعی جای placeholder را نمی‌گیرد. با placeholder واقعی، label همیشه بالا می‌ماند؛ در حالت عادی placeholder تک‌فاصله فقط تشخیص خالی‌بودن DOM را ممکن می‌کند. Filled، defaultValue، controlled value، RHF setValue/reset و pseudo-classهای autofill از DOM تشخیص داده می‌شوند؛ state موازی value وجود ندارد. قاب نهایی با مستطیل SVG پیوسته و mask بریدگی label رسم می‌شود؛ ResizeObserver فقط اندازهٔ قاب و متن را اندازه می‌گیرد. SVG از accessibility مخفی است و روی سطح شفاف هم پس‌زمینه را نمی‌پوشاند. ورودی‌های دارای UI بومی مثل date/time همیشه label بالا دارند؛ wrapper برای file، hidden، checkbox، radio و range نیست.
+
+رنگ caret از ترکیب ۸۰٪ `--field-border` با ۲۰٪ سفید می‌آید و نسخهٔ روشن‌تر رنگ قاب در وضعیت عادی/خطا/موفقیت و تم است. فضای متنِ ورودی با line-height=1.5 و padding عمودی از ارتفاع فیلد جدا می‌شود؛ input همچنان کل ارتفاع کلیک‌پذیر را حفظ می‌کند. caret بومی مرورگر است و با نشانگر ساختگی جایگزین نشده تا selection، جابه‌جایی با کلیدها و IME حفظ شوند. ضخامت و چشمک‌زدن نهایی به تنظیمات مرورگر/سیستم‌عامل وابسته‌اند؛ CSS استانداردی برای caret-width وجود ندارد و افزایش جزئی ضخامت در این نسخه اجرا نشده است.
 
 خود input برای email/tel/url/password پیش‌فرض LTR است؛ label و قاب جهت صفحه را حفظ می‌کنند. برای متن آزاد در صورت نیاز dir=auto بدهید. text-left جهت داده را عوض نمی‌کند. PasswordField همان props به‌جز type/endAdornment را دارد؛ پیش‌فرض LTR و کنترل چشم ۳۲ پیکسلی با نام، aria-pressed و aria-controls دارد.
 

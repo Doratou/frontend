@@ -1,14 +1,9 @@
 # API احراز هویت
 
-محل درخواست‌ها، DTOها و query/mutationهای مخصوص احراز هویت:
+- `contracts.ts`: schemaهای Zod پاسخ و interface سرویس.
+- `auth-api.ts`: adapter کوکی‌محور بر Axios مشترک؛ session، password، OTP، reset و Google.
+- `auth-error.ts`: کدهای مجاز خطا و نگاشت کنترل‌شده به پیام فارسی و RHF.
+- `session.ts`: query نشست و همگام‌سازی user حداقلی با Zustand موجود.
+- `query-keys.ts`: کلید ثابت نشست؛ بدون credential در query key.
 
-- درخواست و تایید OTP.
-- ورود با ایمیل و رمز عبور.
-- آغاز یا تایید ورود گوگل طبق قرارداد انتخاب‌شده.
-- دریافت نشست فعلی، خروج و تمدید نشست در صورت نیاز قرارداد.
-
-هر عملیات فایل مشخص خود را خواهد داشت؛ مثلاً `request-otp.ts` یا `login-with-password.ts`. فایل می‌تواند request function و hook یا query/mutation مربوط به همان عملیات را کنار هم نگه دارد. فایل `types.ts` داخل این پوشه فقط در صورت نیاز به DTOهای مشترک بین چند عملیات ایجاد می‌شود؛ مدل UI کاربر در `../types.ts` باقی می‌ماند.
-
-درخواست‌ها از `@/lib/api/client` استفاده می‌کنند. هنوز endpoint یا پاسخ واقعی مشخص نشده؛ قبل از پیاده‌سازی، قرارداد درخواست و پاسخ را با بک‌اند نهایی کنید.
-
-`query-keys.ts` کلید `authKeys.session()` را برای query نشست آینده آماده می‌کند. ارسال و تایید OTP و ورود، mutation هستند؛ رمز و کد OTP نباید بخشی از query key یا cache پایدار شوند. از `useQueryClient()` برای دسترسی به client متصل به Provider استفاده کنید.
+[قرارداد پیشنهادی و شرایط فعال‌سازی](../../../../docs/auth-api-contract.md) هنوز با بک‌اند واقعی نهایی نشده است. پیش‌فرض `VITE_AUTH_API_ENABLED=false` است؛ فرم معتبر پیام unavailable می‌دهد و کاربر را به‌صورت جعلی وارد نمی‌کند. هیچ token یا credential در storage پایدار ذخیره نمی‌شود.

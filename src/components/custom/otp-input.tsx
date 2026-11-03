@@ -119,7 +119,7 @@ export function OtpInput({
             <Button
               variant="link"
               size="md"
-              className="h-auto min-h-6 p-0 text-caption text-info"
+              className="h-auto min-h-6 p-0 text-caption text-info hover:text-info-60 focus-visible:text-info-60 active:text-info-60 dark:hover:text-info-10 dark:focus-visible:text-info-10 dark:active:text-info-10"
               disabled={disabled || resendDisabled}
               onClick={onResend}
             >

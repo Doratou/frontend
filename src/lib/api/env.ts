@@ -23,6 +23,10 @@ function isApiBaseUrl(value: string) {
 }
 
 const envSchema = z.object({
+  VITE_AUTH_API_ENABLED: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
   VITE_API_BASE_URL: z
     .string()
     .trim()

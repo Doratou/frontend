@@ -97,11 +97,19 @@
 
   .dorato-floating-control {
     color: var(--foreground);
-    caret-color: var(--field-color);
+    caret-color: color-mix(in srgb, var(--field-border) 80%, white);
+    line-height: 1.5;
+    padding-block: max(0px, calc((var(--field-height) - 1lh) / 2));
   }
 
   .dorato-floating-control:disabled {
     color: var(--muted-foreground);
+  }
+
+  .dorato-floating-field[data-surface='solid']
+    .dorato-floating-control:is(:autofill, :-webkit-autofill) {
+    /* Chrome locks the autofill background, so cover it with the field surface. */
+    box-shadow: inset 0 0 0 100vmax var(--field-surface);
   }
 
   .dorato-label-measure {
@@ -293,7 +301,7 @@
     font-weight: 700;
     line-height: 1.5rem;
     background: transparent;
-    caret-color: var(--primary);
+    caret-color: color-mix(in srgb, var(--primary) 80%, white);
   }
 
   .dorato-otp-row[data-filled] .dorato-otp-slot {
@@ -307,11 +315,13 @@
   .dorato-otp-row[data-status='confirmed'] .dorato-otp-slot {
     border-color: var(--success);
     color: var(--success);
+    caret-color: color-mix(in srgb, var(--success) 80%, white);
   }
 
   .dorato-otp-row[data-status='error'] .dorato-otp-slot {
     border-color: var(--color-danger-40);
     color: var(--destructive);
+    caret-color: color-mix(in srgb, var(--color-danger-40) 80%, white);
   }
 
   .dark .dorato-text-field {
@@ -356,6 +366,7 @@
 
   .dark .dorato-otp-row[data-status='error'] .dorato-otp-slot {
     border-color: var(--destructive);
+    caret-color: color-mix(in srgb, var(--destructive) 80%, white);
   }
 
   @media (prefers-reduced-motion: reduce) {

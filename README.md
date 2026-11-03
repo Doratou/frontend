@@ -73,6 +73,8 @@ src/
 
 پایهٔ کنترل‌ها پس از مقایسهٔ کتابخانه‌ها انتخاب شده است: [گزارش تحقیق](docs/component-foundations.md)، [ADR](docs/adr/0001-component-foundations.md) و [API، مثال و اتصال فرم](src/components/custom/README.md). آیکون‌های Figma نمونه‌اند و پیاده‌سازی از Lucide موجود استفاده می‌کند.
 
+صفحات ورود، ثبت‌نام، کد تأیید و بازیابی رمز از `/login` و `/signup` شروع می‌شوند و همان کنترل‌ها را در AuthLayout مشترک مصرف می‌کنند. [تحقیق و معماری](docs/auth-research.md)، [قرارداد پیشنهادی API](docs/auth-api-contract.md) و [گزارش اجرا و بررسی responsive](docs/auth-implementation.md) جزئیات را دارند. اتصال auth به‌صورت پیش‌فرض غیرفعال است؛ بدون بک‌اند موفقیت ساختگی نمایش داده نمی‌شود.
+
 ## دستورات
 
 | دستور                  | کاربرد                                   |
