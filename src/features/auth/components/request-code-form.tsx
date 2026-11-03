@@ -4,14 +4,13 @@ import { useNavigate } from 'react-router';
 import { TextField } from '@/components/custom/text-field';
 import { LoadingButton } from '@/components/custom/loading-button';
 import { authApi } from '@/features/auth/api/auth-api';
-import {
-  applyAuthFieldErrors,
-  AuthError,
-} from '@/features/auth/api/auth-error';
+import { AuthError } from '@/features/auth/api/auth-error';
 import { requestCodeSchema } from '@/features/auth/schemas';
 import { useAuthFlow } from '@/features/auth/hooks/use-auth-flow';
 import { useAuthMutation } from '@/features/auth/hooks/use-auth-mutation';
 import { useCountdown } from '@/hooks/use-countdown';
+import { formatNumber } from '@/utils/format';
+import { applyAuthFieldErrors } from './auth-form-errors';
 
 export function RequestCodeForm({
   reset,
@@ -33,7 +32,7 @@ export function RequestCodeForm({
   return (
     <form
       noValidate
-      className="auth-form"
+      className="flex min-w-0 flex-col gap-(--auth-form-gap)"
       onSubmit={form.handleSubmit((values) => {
         if (disabled || cooldown > 0) return;
         flow.setIdentifier(values.identifier);
@@ -81,7 +80,9 @@ export function RequestCodeForm({
         disabled={disabled || cooldown > 0}
         loadingText="در حال درخواست کد…"
       >
-        دریافت کد تأیید
+        {cooldown > 0
+          ? `تلاش دوباره پس از ${formatNumber(cooldown)} ثانیه`
+          : 'دریافت کد تأیید'}
       </LoadingButton>
     </form>
   );

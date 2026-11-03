@@ -7,19 +7,17 @@ import { OtpInput } from '@/components/custom/otp-input';
 import { LoadingButton } from '@/components/custom/loading-button';
 import { Button } from '@/components/ui/button';
 import { authApi } from '@/features/auth/api/auth-api';
-import {
-  applyAuthFieldErrors,
-  AuthError,
-} from '@/features/auth/api/auth-error';
+import { AuthError } from '@/features/auth/api/auth-error';
 import type {
   OtpChallenge,
   VerificationResult,
 } from '@/features/auth/api/contracts';
-import { useCompleteSignIn } from '@/features/auth/api/session';
+import { useCompleteSignIn } from '@/features/auth/hooks/use-complete-sign-in';
 import { verificationSchema } from '@/features/auth/schemas';
 import { useAuthFlow } from '@/features/auth/hooks/use-auth-flow';
 import { useAuthMutation } from '@/features/auth/hooks/use-auth-mutation';
 import { useCountdown } from '@/hooks/use-countdown';
+import { applyAuthFieldErrors } from './auth-form-errors';
 
 export function VerifyCodeForm({
   challenge,
@@ -99,7 +97,7 @@ export function VerifyCodeForm({
   return (
     <form
       noValidate
-      className="auth-form"
+      className="flex min-w-0 flex-col gap-(--auth-form-gap)"
       onSubmit={form.handleSubmit(
         ({ code }) => {
           if (disabled || expired || verify.isPending || resend.isPending)
@@ -155,8 +153,8 @@ export function VerifyCodeForm({
             }}
             autoComplete="one-time-code"
             disabled={disabled}
-            status={fieldState.invalid ? 'error' : 'default'}
-            className="mx-auto p-0 [&>label]:sr-only"
+            error={fieldState.error?.message}
+            className="mx-auto p-0 [&_.dorato-field-message]:sr-only [&>label]:sr-only"
             remainingSeconds={remaining}
             resendDisabled={disabled}
             onResend={() => {

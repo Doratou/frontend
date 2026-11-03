@@ -14,7 +14,6 @@ export function AuthSession() {
         client.removeQueries({
           predicate: (query) => query.queryKey[0] !== authKeys.all[0],
         });
-        client.setQueryData(authKeys.session(), state.user);
       }),
     [client],
   );

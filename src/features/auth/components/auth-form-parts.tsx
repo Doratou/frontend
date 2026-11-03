@@ -13,7 +13,7 @@ export function AuthMethods({
   return (
     <nav
       aria-label="روش ورود"
-      className="auth-methods flex gap-1 rounded-sm border border-foreground p-1"
+      className="flex h-(--auth-tabs-height) gap-1 rounded-sm border border-foreground p-1"
     >
       <Button
         asChild
@@ -62,7 +62,7 @@ export function AuthFooter({
   disabled: boolean;
 }) {
   return (
-    <div className="auth-footer">
+    <div className="flex min-w-0 flex-col gap-2 lg:gap-3">
       <div
         aria-hidden="true"
         className="flex items-center gap-3 text-button-md"

@@ -4,12 +4,12 @@ import { PasswordField } from '@/components/custom/password-field';
 import { LoadingButton } from '@/components/custom/loading-button';
 import { toast } from '@/components/custom/toast';
 import { authApi } from '@/features/auth/api/auth-api';
-import { applyAuthFieldErrors } from '@/features/auth/api/auth-error';
 import { useAuthMutation } from '@/features/auth/hooks/use-auth-mutation';
 import {
   changePasswordSchema,
   type ChangePasswordValues,
 } from '@/features/auth/schemas';
+import { applyAuthFieldErrors } from './auth-form-errors';
 
 export function ChangePasswordForm({ disabled }: { disabled: boolean }) {
   const change = useAuthMutation(authApi.changePassword);
@@ -20,7 +20,7 @@ export function ChangePasswordForm({ disabled }: { disabled: boolean }) {
   return (
     <form
       noValidate
-      className="auth-form"
+      className="flex min-w-0 flex-col gap-(--auth-form-gap)"
       onSubmit={form.handleSubmit(({ oldPassword, password }) => {
         if (disabled || change.isPending) return;
         change.mutate(

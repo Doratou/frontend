@@ -17,6 +17,7 @@ dist-ssr
 *.tsbuildinfo
 .npm-cache
 tmp
+.impeccable/*
 
 # Editor directories and files
 .vscode/*

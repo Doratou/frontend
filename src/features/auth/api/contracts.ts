@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import type { AuthTokens, SessionUser } from '@/features/auth/types';
 
+export const authEnvelopeSchema = z.object({
+  success: z.literal(true),
+  data: z.unknown(),
+});
+
 const userDtoSchema = z.object({
   id: z.number().int().positive(),
   name: z.string().nullable(),

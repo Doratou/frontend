@@ -2,7 +2,7 @@
 
 پایهٔ Input، Field و OTP، **Base UI 1.9.0** است. Button بر HTML + Radix Slot + CVA باقی می‌ماند و انیمیشن تعاملی آن با **Motion 14.9.0** اجرا می‌شود. dependencyهای مستقیم افزوده‌شده `@base-ui/react` و `motion` هستند؛ فرم با React Hook Form و Zod موجود مدیریت می‌شود و این دو ارتقا داده نشدند. آیکون‌ها طبق درخواست کاربر از `lucide-react` نصب‌شده می‌آیند؛ آیکون‌های Figma مثال‌اند.
 
-[تحقیق و ماتریس مقایسه](../../../docs/component-foundations.md) · [ADR](../../../docs/adr/0001-component-foundations.md) · [توکن‌ها و RTL](../../styles/README.md)
+[توکن‌ها و RTL](../../styles/README.md)
 
 ## مرز مسئولیت‌ها
 
@@ -78,7 +78,7 @@ import { LoadingButton } from '@/components/custom/loading-button';
 
 LoadingButton همان props به‌جز asChild، به‌علاوهٔ `isLoading` و `loadingText` دارد. هنگام loading آیکون‌های کناری حذف، Spinner جایگزین و کنترل غیرفعال می‌شود؛ متن loading در اندازهٔ icon برای screen reader حفظ می‌شود.
 
-ghost پیش‌فرض شفاف است؛ hover و active از foreground با شفافیت ۵٪ و ۱۰٪ استفاده می‌کنند. چشم رمز و تغییر تم ناحیهٔ گرد دارند. [مقایسهٔ پنج مرجع رسمی و تصمیم ظاهر آیکون‌ها](../../../docs/icon-button-review.md) علت حذف پس‌زمینهٔ زرد را توضیح می‌دهد.
+ghost پیش‌فرض شفاف است؛ hover و active از foreground با شفافیت ۵٪ و ۱۰٪ استفاده می‌کنند. چشم رمز و تغییر تم ناحیهٔ گرد دارند.
 
 ## TextField و PasswordField
 
@@ -231,10 +231,8 @@ Controller از react-hook-form، z از zod و resolver/schema/hook از فای
 - OTP به‌جای Roboto خارجی از IRANYekan با وزن واقعی ۷۰۰ استفاده می‌کند. متن success/error از نقش‌های خوانای success/destructive می‌آید؛ رنگ کم‌کنتراست Success/50 یا Danger/40 کپی نشد.
 - مرز خانه‌های OTP در روشن از Primary/30 به Primary/50 و هنگام ورود از Primary/50 به Primary/60 تغییر کرد؛ مرز confirmed از نقش success می‌آید تا شکل کنترل حداقل کنتراست ۳:۱ داشته باشد. مقادیر اصلی Figma در specification تحقیق حفظ شده‌اند.
 - Focus و reduced-motion افزوده شدند. label در disabledِ دارای مقدار بالا می‌ماند، اما disabled واقعی focus نمی‌شود. وضعیت بیرون قاب تصمیم ترکیب API است؛ property مستقل منتشرشدهٔ Figma نیست.
-- هاله پس از بازخورد بصری کاربر به ۷۵٪ مقدار Figma کاهش یافت: عادی ۲٫۲۵px بیرونی، شناور ۶px مرکزی با ۳px در هر سمت؛ opacity رنگ‌ها مطابق مشخصات باقی است. [مقایسهٔ اختصاصی Floating Input](../../../docs/floating-input-review.md) منبع تصمیم هندسی است.
+- هاله پس از بازخورد بصری کاربر به ۷۵٪ مقدار Figma کاهش یافت: عادی ۲٫۲۵px بیرونی، شناور ۶px مرکزی با ۳px در هر سمت؛ opacity رنگ‌ها مطابق مشخصات باقی است.
 - آیکون وضعیت به درخواست کاربر روشن‌تر و هم‌رنگ قاب است: موفق Secondary/70 و خطا Danger/40؛ رنگ تیره‌تر label برای کنتراست متن حفظ می‌شود.
 - Dark Theme طراحی مستقلی در Figma ندارد؛ نگاشت فعلی برای کنترل‌ها مصرف شد. این تطبیق فنی است، نه تأیید طراحی نهایی Dark.
 
 ## اعتبارسنجی
-
-[گزارش اجرا و محدودیت‌ها](../../../docs/component-validation.md) نتایج build، lint و بررسی دستی را ثبت می‌کند. طبق تصمیم تیم، تست خودکار، ابزار تست و route آزمایشی جدید اضافه نشده است. autofill واقعی، SMS دستگاه و screen reader باید روی محیط هدف بررسی شوند؛ وجود API/CSS گواهی آن رفتارها نیست.

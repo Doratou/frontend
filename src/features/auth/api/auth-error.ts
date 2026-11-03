@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { z } from 'zod';
-import type { FieldPath, FieldValues, UseFormSetError } from 'react-hook-form';
 import { ApiError } from '@/lib/api/error';
 
 const messages = {
@@ -20,6 +19,16 @@ const messages = {
   password_change_unauthorized: 'رمز عبور فعلی یا نشست حساب معتبر نیست.',
   verification_required: 'ابتدا ایمیل یا شماره موبایل را با کد تأیید کنید.',
 } as const;
+
+const statusCodes: Readonly<Partial<Record<number, keyof typeof messages>>> = {
+  400: 'validation_failed',
+  401: 'invalid_credentials',
+  403: 'forbidden',
+  404: 'account_not_found',
+  409: 'account_unavailable',
+  422: 'validation_failed',
+  429: 'rate_limited',
+};
 
 const codeSchema = z.enum(
   Object.keys(messages) as [
@@ -107,30 +116,19 @@ export function toAuthError(error: unknown): Error {
     return new AuthError('session_expired', status);
   if (path.endsWith('/auth/password/change') && status === 401)
     return new AuthError('password_change_unauthorized', status);
-  if (status === 401) return new AuthError('invalid_credentials', status);
-  if (status === 403) return new AuthError('forbidden', status);
-  if (status === 404) return new AuthError('account_not_found', status);
-  if (status === 409) return new AuthError('account_unavailable', status);
-  if (status === 400 || status === 422)
-    return new AuthError('validation_failed', status);
-  if (status === 429)
-    return new AuthError('rate_limited', status, {}, retryAfterSeconds);
-  return new AuthError('unavailable', status);
+  const code =
+    status === undefined
+      ? 'unavailable'
+      : (statusCodes[status] ?? 'unavailable');
+  return new AuthError(
+    code,
+    status,
+    {},
+    status === 429 ? retryAfterSeconds : undefined,
+  );
 }
 
 export function authErrorMessage(error: unknown): string | undefined {
   if (!error || axios.isCancel(error)) return undefined;
   return error instanceof AuthError ? error.message : messages.unavailable;
-}
-
-export function applyAuthFieldErrors<T extends FieldValues>(
-  error: unknown,
-  setError: UseFormSetError<T>,
-  allowed: readonly FieldPath<T>[],
-) {
-  if (!(error instanceof AuthError)) return;
-  for (const field of allowed) {
-    const message = error.fields[field];
-    if (message) setError(field, { type: 'server', message });
-  }
 }

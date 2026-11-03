@@ -47,7 +47,10 @@ export function TextField({
   const hasStatus = fieldStatus !== 'default';
   const StatusIcon = invalid ? TriangleAlert : CircleCheck;
   const statusIcon = hasStatus ? (
-    <StatusIcon aria-hidden="true" className="dorato-status-icon" />
+    <StatusIcon
+      aria-hidden="true"
+      className="dorato-status-icon size-4.25 shrink-0 text-(--field-border)"
+    />
   ) : null;
   const alwaysFloating =
     !['text', 'email', 'tel', 'password', 'search', 'url', 'number'].includes(
@@ -74,7 +77,7 @@ export function TextField({
           {startAdornment && (
             <span
               aria-hidden="true"
-              className="dorato-start-adornment inline-flex shrink-0 items-center justify-center"
+              className="dorato-start-adornment inline-flex aspect-square size-(--field-icon-circle) flex-none items-center justify-center"
               data-circle={iconCircle ? '' : undefined}
             >
               {startAdornment}
@@ -97,7 +100,7 @@ export function TextField({
           />
           {hasStatus && statusIconPosition === 'inside' && statusIcon}
           {endAdornment && (
-            <span className="dorato-end-adornment inline-flex shrink-0 items-center">
+            <span className="-me-2.25 inline-flex shrink-0 items-center">
               {endAdornment}
             </span>
           )}

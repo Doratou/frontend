@@ -52,7 +52,7 @@ const buttonVariants = cva(
         variant: 'default',
         tone: 'accent',
         className:
-          'bg-accent-40 text-primary-80 hover:bg-accent-50 active:bg-accent-70 active:text-neutral-10 dark:active:bg-accent-50 dark:active:text-primary-80',
+          'bg-accent-40 text-white hover:bg-accent-50 active:bg-accent-70 dark:active:bg-accent-50',
       },
       {
         variant: 'outline',
@@ -64,13 +64,13 @@ const buttonVariants = cva(
         variant: 'outline',
         tone: 'secondary',
         className:
-          'border-secondary-70 text-secondary-80 hover:bg-secondary-10 active:bg-secondary-20 dark:border-secondary-30 dark:text-secondary-30 dark:hover:bg-secondary-80 dark:active:bg-secondary-80',
+          'border-secondary-70 text-secondary-60 hover:bg-secondary-10 active:bg-secondary-20 dark:border-secondary-30 dark:text-secondary-30 dark:hover:bg-secondary-80 dark:active:bg-secondary-80',
       },
       {
         variant: 'outline',
         tone: 'accent',
         className:
-          'border-accent-50 text-accent-70 hover:bg-accent-10 active:bg-accent-20 dark:border-accent-30 dark:text-accent-30 dark:hover:bg-accent-80 dark:active:bg-accent-80',
+          'border-accent-50 text-accent-50 hover:bg-accent-10 active:bg-accent-20 dark:border-accent-30 dark:text-accent-30 dark:hover:bg-accent-80 dark:active:bg-accent-80',
       },
     ],
     defaultVariants: {

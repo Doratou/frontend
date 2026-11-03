@@ -5,15 +5,21 @@ import { TextField } from '@/components/custom/text-field';
 import { PasswordField } from '@/components/custom/password-field';
 import { LoadingButton } from '@/components/custom/loading-button';
 import { authApi } from '@/features/auth/api/auth-api';
-import { applyAuthFieldErrors } from '@/features/auth/api/auth-error';
+import { AuthError } from '@/features/auth/api/auth-error';
 import { signUpSchema, type SignUpValues } from '@/features/auth/schemas';
 import { useAuthFlow } from '@/features/auth/hooks/use-auth-flow';
 import { useAuthMutation } from '@/features/auth/hooks/use-auth-mutation';
+import { useCountdown } from '@/hooks/use-countdown';
+import { formatNumber } from '@/utils/format';
+import { applyAuthFieldErrors } from './auth-form-errors';
 
 export function SignupForm({ disabled }: { disabled: boolean }) {
   const flow = useAuthFlow();
   const navigate = useNavigate();
   const signup = useAuthMutation(authApi.requestCode);
+  const cooldown = useCountdown(
+    signup.error instanceof AuthError ? signup.error.retryAt : null,
+  );
   const form = useForm<SignUpValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -25,9 +31,9 @@ export function SignupForm({ disabled }: { disabled: boolean }) {
   return (
     <form
       noValidate
-      className="auth-form"
+      className="flex min-w-0 flex-col gap-(--auth-form-gap)"
       onSubmit={form.handleSubmit((values) => {
-        if (disabled) return;
+        if (disabled || cooldown > 0) return;
         flow.setIdentifier(values.identifier);
         signup.mutate(
           { identifier: values.identifier, purpose: 'signup' },
@@ -65,7 +71,6 @@ export function SignupForm({ disabled }: { disabled: boolean }) {
         error={form.formState.errors.identifier?.message}
         {...form.register('identifier', {
           onBlur: () => flow.setIdentifier(form.getValues('identifier')),
-          onChange: () => signup.reset(),
         })}
       />
       <PasswordField
@@ -79,7 +84,7 @@ export function SignupForm({ disabled }: { disabled: boolean }) {
             : 'رمز عبور باید حداقل ۶ نویسه باشد.'
         }
         error={form.formState.errors.password?.message}
-        {...form.register('password', { onChange: () => signup.reset() })}
+        {...form.register('password')}
       />
       <PasswordField
         label="تکرار رمز عبور"
@@ -87,9 +92,7 @@ export function SignupForm({ disabled }: { disabled: boolean }) {
         autoComplete="new-password"
         disabled={disabled}
         error={form.formState.errors.confirmPassword?.message}
-        {...form.register('confirmPassword', {
-          onChange: () => signup.reset(),
-        })}
+        {...form.register('confirmPassword')}
       />
       <LoadingButton
         type="submit"
@@ -97,10 +100,12 @@ export function SignupForm({ disabled }: { disabled: boolean }) {
         radius="lg"
         className="auth-action w-full text-button-md"
         isLoading={signup.isPending}
-        disabled={disabled}
+        disabled={disabled || cooldown > 0}
         loadingText="در حال ثبت درخواست…"
       >
-        ثبت‌نام
+        {cooldown > 0
+          ? `تلاش دوباره پس از ${formatNumber(cooldown)} ثانیه`
+          : 'ثبت‌نام'}
       </LoadingButton>
     </form>
   );

@@ -2,7 +2,7 @@
 
 مرجع: صفحهٔ [Design system در Figma](https://www.figma.com/design/ykGLJC3Zr0EMcpY564z6BV/Dorato--Main-?node-id=11-3)، فریم‌های [Colors](https://www.figma.com/design/ykGLJC3Zr0EMcpY564z6BV/Dorato--Main-?node-id=15-2) و [Typography](https://www.figma.com/design/ykGLJC3Zr0EMcpY564z6BV/Dorato--Main-?node-id=59-35). استخراج در ۲۰۲۶/۱۱/۰۲.
 
-این گزارش مربوط به مرحلهٔ رنگ و تایپوگرافی است. در مرحلهٔ بعد، Input، Button، OTP و FormField بر همان توکن‌ها ساخته شدند؛ [API و اختلاف‌های طراحی](../components/custom/README.md) و [تحقیق Foundation](../../docs/component-foundations.md) جداگانه ثبت شده‌اند. هندسهٔ کنترل‌ها در components.css و توکن Button/XLarge در typography.css قرار دارد؛ ۲۵ سبک اولیه حفظ شده‌اند.
+این گزارش مربوط به مرحلهٔ رنگ و تایپوگرافی است. Input، Button، OTP و FormField از همان توکن‌ها استفاده می‌کنند. هندسهٔ کنترل‌ها در `components.css` و توکن Button/XLarge در `typography.css` قرار دارد. [راهنمای کامپوننت‌ها](../components/custom/README.md)
 
 ## تصمیم معماری و منابع بررسی‌شده
 

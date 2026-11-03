@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router';
 import { PasswordField } from '@/components/custom/password-field';
 import { LoadingButton } from '@/components/custom/loading-button';
 import { authApi } from '@/features/auth/api/auth-api';
-import { applyAuthFieldErrors } from '@/features/auth/api/auth-error';
 import type { ResetGrant } from '@/features/auth/api/contracts';
 import {
   resetPasswordSchema,
@@ -14,6 +13,7 @@ import { useAuthFlow } from '@/features/auth/hooks/use-auth-flow';
 import { useAuthMutation } from '@/features/auth/hooks/use-auth-mutation';
 import { useCountdown } from '@/hooks/use-countdown';
 import { AuthRecovery } from './auth-form-parts';
+import { applyAuthFieldErrors } from './auth-form-errors';
 
 export function ResetPasswordForm({
   grant,
@@ -34,7 +34,7 @@ export function ResetPasswordForm({
   return (
     <form
       noValidate
-      className="auth-form"
+      className="flex min-w-0 flex-col gap-(--auth-form-gap)"
       onSubmit={form.handleSubmit(({ password }) => {
         if (disabled || remaining === 0) return;
         reset.mutate(

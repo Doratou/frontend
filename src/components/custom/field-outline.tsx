@@ -74,14 +74,14 @@ export function FieldOutline({ label }: { label: string }) {
       <span
         ref={measureRef}
         aria-hidden="true"
-        className="dorato-label-measure pointer-events-none absolute start-0 flex w-max max-w-full overflow-hidden whitespace-nowrap"
+        className="dorato-label-measure pointer-events-none invisible absolute start-0 flex w-max max-w-full overflow-hidden whitespace-nowrap"
       >
         <span className="min-w-0 overflow-hidden">{label}</span>
       </span>
       <svg
         ref={svgRef}
         aria-hidden="true"
-        className="dorato-field-outline pointer-events-none absolute inset-0 size-full"
+        className="pointer-events-none absolute inset-0 size-full overflow-visible"
         viewBox={`0 0 ${width || 1} ${height || 1}`}
         style={
           {

@@ -33,7 +33,7 @@ export function Component() {
   });
 
   return (
-    <div className="auth-layout">
+    <div className="auth-layout relative isolate flex flex-col items-center bg-background">
       <a
         href="#auth-content"
         className="sr-only z-10 bg-card p-3 focus:not-sr-only focus:absolute"
@@ -41,15 +41,19 @@ export function Component() {
         رفتن به فرم
       </a>
       <div className="auth-backdrop" aria-hidden="true" />
-      <Link to="/" className="auth-brand" aria-label="دوراتو، صفحه اصلی">
+      <Link
+        to="/"
+        className="auth-brand flex flex-none items-center no-underline outline-offset-4"
+        aria-label="دوراتو، صفحه اصلی"
+      >
         <img
           src={doratoMark}
           width="136"
           height="136"
-          className="auth-brand-mark dark:brightness-200"
+          className="size-(--auth-brand-size) dark:brightness-200"
           alt=""
         />
-        <span className="auth-brand-name font-extrabold text-primary-70 md:font-black dark:text-primary-30">
+        <span className="text-(length:--auth-wordmark-size) leading-[1.35] font-extrabold text-primary-70 md:font-black dark:text-primary-30">
           دوراتو
         </span>
       </Link>

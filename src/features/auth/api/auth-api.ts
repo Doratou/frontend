@@ -1,5 +1,5 @@
 import { CanceledError } from 'axios';
-import { z } from 'zod';
+import type { z } from 'zod';
 import { apiClient } from '@/lib/api/client';
 import { env } from '@/lib/api/env';
 import { useAuthStore } from '@/features/auth/stores/auth-store';
@@ -7,6 +7,7 @@ import type { AuthTokens } from '@/features/auth/types';
 import { AuthError, toAuthError } from './auth-error';
 import { devAuthApi } from './dev-auth-api';
 import {
+  authEnvelopeSchema,
   authMessageSchema,
   otpDeliverySchema,
   otpVerifiedSchema,
@@ -31,22 +32,32 @@ async function post<T>(
         ? { 'X-Captcha-ID': captcha.id, 'X-Captcha-Code': captcha.code }
         : undefined,
     });
-    const envelope = z
-      .object({ success: z.literal(true), data: z.unknown() })
-      .parse(response.data);
+    const envelope = authEnvelopeSchema.parse(response.data);
     return schema.parse(envelope.data);
   } catch (error) {
     throw toAuthError(error);
   }
 }
 
-function saveSession(data: z.infer<typeof signedInSchema>) {
+async function createSession(
+  path: string,
+  input: unknown,
+  signal?: AbortSignal,
+) {
+  const session = useAuthStore.getState();
+  const data = await post(path, input, signedInSchema, signal);
+  if (signal?.aborted || useAuthStore.getState() !== session)
+    throw new CanceledError(
+      'The authentication session changed during sign-in.',
+    );
   useAuthStore.getState().setSession(data.user, data.tokens);
   return data.user;
 }
 
-let pendingRefresh: { token: string; request: Promise<AuthTokens> } | null =
-  null;
+let pendingRefresh: {
+  tokens: AuthTokens;
+  request: Promise<AuthTokens>;
+} | null = null;
 
 function refreshSession(): Promise<AuthTokens> {
   const tokens = useAuthStore.getState().tokens;
@@ -54,15 +65,14 @@ function refreshSession(): Promise<AuthTokens> {
     useAuthStore.getState().clearSession();
     return Promise.reject(new AuthError('session_expired'));
   }
-  if (pendingRefresh?.token === tokens.refreshToken)
-    return pendingRefresh.request;
+  if (pendingRefresh?.tokens === tokens) return pendingRefresh.request;
   const request = post(
     '/auth/refresh',
     { refresh_token: tokens.refreshToken },
     tokenPairSchema,
   )
     .then((next) => {
-      if (useAuthStore.getState().tokens?.refreshToken !== tokens.refreshToken)
+      if (useAuthStore.getState().tokens !== tokens)
         throw new CanceledError(
           'The authentication session changed during refresh.',
         );
@@ -73,7 +83,7 @@ function refreshSession(): Promise<AuthTokens> {
       if (
         error instanceof AuthError &&
         (error.status === 401 || error.status === 403) &&
-        useAuthStore.getState().tokens?.refreshToken === tokens.refreshToken
+        useAuthStore.getState().tokens === tokens
       )
         useAuthStore.getState().clearSession();
       throw error;
@@ -81,7 +91,7 @@ function refreshSession(): Promise<AuthTokens> {
     .finally(() => {
       if (pendingRefresh?.request === request) pendingRefresh = null;
     });
-  pendingRefresh = { token: tokens.refreshToken, request };
+  pendingRefresh = { tokens, request };
   return request;
 }
 
@@ -98,10 +108,10 @@ const publicPaths = new Set([
 
 export function installAuthHeaders() {
   if (!env.VITE_AUTH_API_ENABLED) return;
+  const root = new URL(env.VITE_API_BASE_URL, window.location.origin);
+  const prefix = root.pathname.replace(/\/$/, '');
   const interceptor = apiClient.interceptors.request.use(async (request) => {
-    const root = new URL(env.VITE_API_BASE_URL, window.location.origin);
     const url = new URL(apiClient.getUri(request), window.location.origin);
-    const prefix = root.pathname.replace(/\/$/, '');
     if (url.origin !== root.origin || !url.pathname.startsWith(`${prefix}/`)) {
       request.headers.delete('Authorization');
       return request;
@@ -115,6 +125,7 @@ export function installAuthHeaders() {
       tokens = await refreshSession();
     if (tokens)
       request.headers.set('Authorization', `Bearer ${tokens.accessToken}`);
+    else request.headers.delete('Authorization');
     return request;
   });
   return () => apiClient.interceptors.request.eject(interceptor);
@@ -123,25 +134,18 @@ export function installAuthHeaders() {
 export const isAuthPreview = import.meta.env.DEV && !env.VITE_AUTH_API_ENABLED;
 
 const backendAuthApi: AuthApi = {
-  async signIn(input, signal) {
-    return saveSession(
-      await post('/auth/login', input, signedInSchema, signal),
-    );
-  },
-  async signUp({ identifier, password, name }, signal) {
-    return saveSession(
-      await post(
-        '/auth/register',
-        {
-          ...(identifier.includes('@')
-            ? { email: identifier }
-            : { phone: identifier }),
-          password,
-          ...(name ? { name } : {}),
-        },
-        signedInSchema,
-        signal,
-      ),
+  signIn: (input, signal) => createSession('/auth/login', input, signal),
+  signUp({ identifier, password, name }, signal) {
+    return createSession(
+      '/auth/register',
+      {
+        ...(identifier.includes('@')
+          ? { email: identifier }
+          : { phone: identifier }),
+        password,
+        ...(name ? { name } : {}),
+      },
+      signal,
     );
   },
   async requestCode({ identifier, purpose, captcha }, signal) {
@@ -164,11 +168,8 @@ const backendAuthApi: AuthApi = {
   async verifyCode(input, signal) {
     await post('/auth/otp/verify', input, otpVerifiedSchema, signal);
   },
-  async signInWithOtp(input, signal) {
-    return saveSession(
-      await post('/auth/login/otp', input, signedInSchema, signal),
-    );
-  },
+  signInWithOtp: (input, signal) =>
+    createSession('/auth/login/otp', input, signal),
   refreshSession,
   async changePassword({ oldPassword, newPassword }, signal) {
     await post(
@@ -188,10 +189,12 @@ const backendAuthApi: AuthApi = {
     );
   },
   async logout(signal) {
+    const user = useAuthStore.getState().user;
     try {
       await post('/auth/logout', undefined, authMessageSchema, signal);
     } finally {
-      useAuthStore.getState().clearSession();
+      if (useAuthStore.getState().user === user)
+        useAuthStore.getState().clearSession();
     }
   },
 };

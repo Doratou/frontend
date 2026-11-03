@@ -69,7 +69,10 @@ function AuthScreen({ view }: { view: AuthView }) {
         ? 'password-reset'
         : 'login';
   return (
-    <section aria-labelledby={`auth-heading-${view}`} className="auth-screen">
+    <section
+      aria-labelledby={`auth-heading-${view}`}
+      className="flex min-w-0 flex-col gap-(--auth-gap)"
+    >
       <h1
         id={`auth-heading-${view}`}
         ref={heading}

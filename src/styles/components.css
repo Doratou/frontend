@@ -31,10 +31,6 @@
     height: 1.875rem;
   }
 
-  .dorato-field-message {
-    margin-block-start: 0.25rem;
-  }
-
   .dorato-text-field {
     --field-height: 2.375rem;
     --field-font-size: 0.6875rem;
@@ -57,7 +53,7 @@
   }
 
   .dorato-text-field[data-status='success'] {
-    --field-color: var(--color-secondary-70);
+    --field-color: var(--color-secondary-80);
     --field-border: var(--color-secondary-70);
     --field-halo: var(--color-secondary-20);
     --field-border-width: 1.25px;
@@ -65,7 +61,7 @@
   }
 
   .dorato-text-field[data-status='error'] {
-    --field-color: var(--color-danger-40);
+    --field-color: var(--color-danger-50);
     --field-border: var(--color-danger-40);
     --field-halo: var(--color-danger-20);
     --field-border-width: 1.25px;
@@ -114,11 +110,6 @@
 
   .dorato-label-measure {
     padding-inline: var(--field-label-offset) 1.75rem;
-    visibility: hidden;
-  }
-
-  .dorato-field-outline {
-    overflow: visible;
   }
 
   .dorato-field-border {
@@ -200,13 +191,6 @@
     max-width: calc(100% - var(--field-label-offset) - 1.75rem);
   }
 
-  .dorato-start-adornment {
-    flex: none;
-    width: var(--field-icon-circle);
-    height: var(--field-icon-circle);
-    aspect-ratio: 1;
-  }
-
   .dorato-start-adornment[data-circle] {
     border: 1px solid var(--field-color);
     border-radius: 50%;
@@ -218,13 +202,6 @@
     width: var(--field-icon-size);
     height: var(--field-icon-size);
     aspect-ratio: 1;
-  }
-
-  .dorato-status-icon {
-    width: 1.0625rem;
-    height: 1.0625rem;
-    flex-shrink: 0;
-    color: var(--field-border);
   }
 
   .dorato-text-field[data-status='success'] .dorato-status-icon {
@@ -281,10 +258,6 @@
     80% {
       transform: translateX(1px);
     }
-  }
-
-  .dorato-end-adornment {
-    margin-inline-end: -0.5625rem;
   }
 
   .dorato-text-field .dorato-field-message {

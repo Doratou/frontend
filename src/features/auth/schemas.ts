@@ -7,18 +7,6 @@ export const passwordLoginSchema = z.object({
   password: z.string().min(1, 'رمز عبور را وارد کنید.'),
 });
 
-export const otpRequestSchema = z.object({
-  phone: z
-    .string()
-    .trim()
-    .transform(toEnglishDigits)
-    .pipe(
-      z
-        .string()
-        .regex(/^09\d{9}$/, 'شماره موبایل را با ۰۹ و در ۱۱ رقم وارد کنید.'),
-    ),
-});
-
 // Code length comes from the auth adapter; Bruno currently returns only expiry.
 export const otpCodeSchema = z
   .string()
@@ -27,7 +15,6 @@ export const otpCodeSchema = z
   .pipe(z.string().regex(/^\d+$/, 'کد عددی را وارد کنید.'));
 
 export type PasswordLoginInput = z.infer<typeof passwordLoginSchema>;
-export type OtpRequestInput = z.input<typeof otpRequestSchema>;
 
 export const accountIdentifierSchema = z
   .string()
@@ -45,42 +32,29 @@ export const signInSchema = z.object({
   password: z.string().min(1, 'رمز عبور را وارد کنید.'),
 });
 
-const newPasswordSchema = z
-  .string()
-  .min(6, 'رمز عبور باید حداقل ۶ نویسه باشد.');
-
-const matchingPasswords = {
-  password: newPasswordSchema,
-  confirmPassword: z.string().min(1, 'تکرار رمز عبور را وارد کنید.'),
-};
-
-export const signUpSchema = z
-  .object({ identifier: accountIdentifierSchema, ...matchingPasswords })
-  .refine((values) => values.password === values.confirmPassword, {
-    path: ['confirmPassword'],
-    message: 'رمز عبور و تکرار آن یکسان نیستند.',
-  });
-
-export const resetPasswordSchema = z
-  .object(matchingPasswords)
-  .refine((values) => values.password === values.confirmPassword, {
-    path: ['confirmPassword'],
-    message: 'رمز عبور و تکرار آن یکسان نیستند.',
-  });
-
-export const requestCodeSchema = z.object({
-  identifier: accountIdentifierSchema,
-});
-
-export const changePasswordSchema = z
+const matchingPasswordsSchema = z
   .object({
-    oldPassword: z.string().min(1, 'رمز عبور فعلی را وارد کنید.'),
-    ...matchingPasswords,
+    password: z.string().min(6, 'رمز عبور باید حداقل ۶ نویسه باشد.'),
+    confirmPassword: z.string().min(1, 'تکرار رمز عبور را وارد کنید.'),
   })
   .refine((values) => values.password === values.confirmPassword, {
     path: ['confirmPassword'],
     message: 'رمز عبور و تکرار آن یکسان نیستند.',
   });
+
+export const signUpSchema = matchingPasswordsSchema.safeExtend({
+  identifier: accountIdentifierSchema,
+});
+
+export const resetPasswordSchema = matchingPasswordsSchema;
+
+export const requestCodeSchema = z.object({
+  identifier: accountIdentifierSchema,
+});
+
+export const changePasswordSchema = matchingPasswordsSchema.safeExtend({
+  oldPassword: z.string().min(1, 'رمز عبور فعلی را وارد کنید.'),
+});
 
 export const verificationSchema = (length: number) =>
   z.object({

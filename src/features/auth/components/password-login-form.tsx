@@ -6,11 +6,11 @@ import { PasswordField } from '@/components/custom/password-field';
 import { LoadingButton } from '@/components/custom/loading-button';
 import { Button } from '@/components/ui/button';
 import { authApi } from '@/features/auth/api/auth-api';
-import { applyAuthFieldErrors } from '@/features/auth/api/auth-error';
-import { useCompleteSignIn } from '@/features/auth/api/session';
+import { useCompleteSignIn } from '@/features/auth/hooks/use-complete-sign-in';
 import { signInSchema, type SignInValues } from '@/features/auth/schemas';
 import { useAuthFlow } from '@/features/auth/hooks/use-auth-flow';
 import { useAuthMutation } from '@/features/auth/hooks/use-auth-mutation';
+import { applyAuthFieldErrors } from './auth-form-errors';
 
 export function PasswordLoginForm({ disabled }: { disabled: boolean }) {
   const flow = useAuthFlow();
@@ -30,7 +30,7 @@ export function PasswordLoginForm({ disabled }: { disabled: boolean }) {
   return (
     <form
       noValidate
-      className="auth-form"
+      className="flex min-w-0 flex-col gap-(--auth-form-gap)"
       onSubmit={form.handleSubmit((values) => {
         if (disabled) return;
         flow.setIdentifier(values.identifier);
