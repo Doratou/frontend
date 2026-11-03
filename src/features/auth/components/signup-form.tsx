@@ -9,7 +9,6 @@ import { applyAuthFieldErrors } from '@/features/auth/api/auth-error';
 import { signUpSchema, type SignUpValues } from '@/features/auth/schemas';
 import { useAuthFlow } from '@/features/auth/hooks/use-auth-flow';
 import { useAuthMutation } from '@/features/auth/hooks/use-auth-mutation';
-import { AuthNotice } from './auth-form-parts';
 
 export function SignupForm({ disabled }: { disabled: boolean }) {
   const flow = useAuthFlow();
@@ -88,7 +87,6 @@ export function SignupForm({ disabled }: { disabled: boolean }) {
           onChange: () => signup.reset(),
         })}
       />
-      <AuthNotice error={signup.error} />
       <LoadingButton
         type="submit"
         size="lg"

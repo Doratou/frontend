@@ -1,6 +1,8 @@
+import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate } from 'react-router';
+import { toast } from '@/components/custom/toast';
 import { OtpInput } from '@/components/custom/otp-input';
 import { LoadingButton } from '@/components/custom/loading-button';
 import { Button } from '@/components/ui/button';
@@ -15,7 +17,6 @@ import { verificationSchema } from '@/features/auth/schemas';
 import { useAuthFlow } from '@/features/auth/hooks/use-auth-flow';
 import { useAuthMutation } from '@/features/auth/hooks/use-auth-mutation';
 import { useCountdown } from '@/hooks/use-countdown';
-import { AuthNotice } from './auth-form-parts';
 
 export function VerifyCodeForm({
   challenge,
@@ -40,6 +41,7 @@ export function VerifyCodeForm({
   );
   const resend = useAuthMutation(authApi.resendCode);
   const expires = useCountdown(challenge.expiresAt);
+  const expired = expires === 0;
   const retryAt =
     resend.error instanceof AuthError ? resend.error.retryAt : null;
   const remaining = useCountdown(Math.max(challenge.resendAt, retryAt ?? 0));
@@ -47,6 +49,13 @@ export function VerifyCodeForm({
     resolver: zodResolver(verificationSchema(challenge.codeLength)),
     defaultValues: { code: '' },
   });
+  useEffect(() => {
+    if (expired)
+      toast.error('اعتبار کد تمام شده است', {
+        description: 'کد تازه‌ای درخواست کنید.',
+        id: `otp-expired-${challenge.challengeId}`,
+      });
+  }, [expired, challenge.challengeId]);
   const editPath =
     challenge.purpose === 'signup'
       ? '/signup'
@@ -57,25 +66,34 @@ export function VerifyCodeForm({
     <form
       noValidate
       className="auth-form"
-      onSubmit={form.handleSubmit(({ code }) => {
-        if (disabled || expires === 0) return;
-        verify.mutate(
-          { challengeId: challenge.challengeId, code },
-          {
-            onSuccess: (result) => {
-              form.reset();
-              flow.setChallenge(null);
-              if (result.type === 'authenticated') complete(result.user);
-              else {
-                flow.setResetGrant(result.grant);
-                void navigate('/reset-password', { replace: true });
-              }
+      onSubmit={form.handleSubmit(
+        ({ code }) => {
+          if (disabled || expired || verify.isPending || resend.isPending)
+            return;
+          verify.mutate(
+            { challengeId: challenge.challengeId, code },
+            {
+              onSuccess: (result) => {
+                form.reset();
+                flow.setChallenge(null);
+                if (result.type === 'authenticated') complete(result.user);
+                else {
+                  flow.setResetGrant(result.grant);
+                  void navigate('/reset-password', { replace: true });
+                }
+              },
+              onError: (error) =>
+                applyAuthFieldErrors(error, form.setError, ['code']),
             },
-            onError: (error) =>
-              applyAuthFieldErrors(error, form.setError, ['code']),
-          },
-        );
-      })}
+          );
+        },
+        ({ code }) => {
+          if (code?.message)
+            toast.error('کد تأیید را بررسی کنید', {
+              description: code.message,
+            });
+        },
+      )}
     >
       <p className="text-paragraph-sm text-muted-foreground">
         کد تأیید برای{' '}
@@ -89,6 +107,7 @@ export function VerifyCodeForm({
         control={form.control}
         render={({ field, fieldState }) => (
           <OtpInput
+            autoSubmit
             label="کد تأیید"
             length={challenge.codeLength}
             value={field.value}
@@ -101,7 +120,7 @@ export function VerifyCodeForm({
             }}
             autoComplete="one-time-code"
             disabled={disabled}
-            error={fieldState.error?.message}
+            status={fieldState.invalid ? 'error' : 'default'}
             className="mx-auto p-0 [&>label]:sr-only"
             remainingSeconds={remaining}
             resendDisabled={disabled}
@@ -112,8 +131,8 @@ export function VerifyCodeForm({
                 {
                   onSuccess: (next) => {
                     if (next.purpose !== challenge.purpose) {
-                      form.setError('root', {
-                        message: 'پاسخ معتبر دریافت نشد. دوباره کد بگیرید.',
+                      toast.error('ارسال مجدد انجام نشد', {
+                        description: 'پاسخ معتبر دریافت نشد. دوباره کد بگیرید.',
                       });
                       return;
                     }
@@ -127,11 +146,6 @@ export function VerifyCodeForm({
           />
         )}
       />
-      {expires === 0 && (
-        <p role="alert" className="text-caption text-destructive">
-          اعتبار کد تمام شده است. کد تازه‌ای درخواست کنید.
-        </p>
-      )}
       <div className="text-center text-caption md:text-label-md">
         اطلاعات تماس اشتباه است؟{' '}
         <Button
@@ -143,19 +157,13 @@ export function VerifyCodeForm({
           <Link to={editPath}>ویرایش کنید</Link>
         </Button>
       </div>
-      <AuthNotice error={verify.error ?? resend.error} />
-      {form.formState.errors.root?.message && (
-        <p role="alert" className="text-paragraph-sm text-destructive">
-          {form.formState.errors.root.message}
-        </p>
-      )}
       <LoadingButton
         type="submit"
         size="lg"
         radius="lg"
         className="auth-action w-full text-button-md"
         isLoading={verify.isPending || resend.isPending}
-        disabled={disabled || expires === 0}
+        disabled={disabled || expired}
         loadingText={
           resend.isPending ? 'در حال ارسال مجدد…' : 'در حال بررسی کد…'
         }

@@ -4,6 +4,7 @@ import { apiClient } from '@/lib/api/client';
 import { env } from '@/lib/api/env';
 import { ApiError } from '@/lib/api/error';
 import { AuthError, toAuthError } from './auth-error';
+import { devAuthApi } from './dev-auth-api';
 import {
   challengeResponseSchema,
   sessionSchema,
@@ -55,7 +56,9 @@ async function post<T>(
   }
 }
 
-export const authApi: AuthApi = {
+export const isAuthPreview = import.meta.env.DEV && !env.VITE_AUTH_API_ENABLED;
+
+const backendAuthApi: AuthApi = {
   async getSession(signal) {
     if (!env.VITE_AUTH_API_ENABLED) return null;
     try {
@@ -143,3 +146,5 @@ export const authApi: AuthApi = {
     );
   },
 };
+
+export const authApi: AuthApi = isAuthPreview ? devAuthApi : backendAuthApi;

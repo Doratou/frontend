@@ -18,6 +18,7 @@ export type OtpInputProps = Pick<
   | 'required'
   | 'mask'
   | 'autoComplete'
+  | 'autoSubmit'
   | 'onValueChange'
   | 'onValueComplete'
   | 'onValueInvalid'
@@ -27,7 +28,7 @@ export type OtpInputProps = Pick<
   length: number;
   error?: string;
   description?: string;
-  status?: 'default' | 'confirmed';
+  status?: 'default' | 'confirmed' | 'error';
   remainingSeconds?: number;
   onResend?: () => void;
   resendDisabled?: boolean;
@@ -69,6 +70,7 @@ export function OtpInput({
       label={label}
       description={description}
       error={error}
+      invalid={status === 'error'}
       disabled={disabled}
       className={cn('dorato-otp-field w-full max-w-86 p-4', className)}
     >
@@ -119,7 +121,7 @@ export function OtpInput({
             <Button
               variant="link"
               size="md"
-              className="h-auto min-h-6 p-0 text-caption text-info hover:text-info-60 focus-visible:text-info-60 active:text-info-60 dark:hover:text-info-10 dark:focus-visible:text-info-10 dark:active:text-info-10"
+              className="h-auto min-h-6 p-0 text-caption"
               disabled={disabled || resendDisabled}
               onClick={onResend}
             >

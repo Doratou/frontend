@@ -40,7 +40,8 @@ export class AuthError extends ApiError {
   ) {
     super(messages[code], status);
     this.name = 'AuthError';
-    this.fields = fields;
+    this.fields =
+      code === 'invalid_code' ? { code: messages[code], ...fields } : fields;
     this.retryAt =
       retryAfterSeconds === undefined
         ? null

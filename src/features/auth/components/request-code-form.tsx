@@ -12,7 +12,6 @@ import { requestCodeSchema } from '@/features/auth/schemas';
 import { useAuthFlow } from '@/features/auth/hooks/use-auth-flow';
 import { useAuthMutation } from '@/features/auth/hooks/use-auth-mutation';
 import { useCountdown } from '@/hooks/use-countdown';
-import { AuthNotice } from './auth-form-parts';
 
 export function RequestCodeForm({
   reset,
@@ -72,7 +71,6 @@ export function RequestCodeForm({
           onBlur: () => flow.setIdentifier(form.getValues('identifier')),
         })}
       />
-      <AuthNotice error={request.error} />
       <LoadingButton
         type="submit"
         size="lg"

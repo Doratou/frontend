@@ -11,7 +11,6 @@ import { useCompleteSignIn } from '@/features/auth/api/session';
 import { signInSchema, type SignInValues } from '@/features/auth/schemas';
 import { useAuthFlow } from '@/features/auth/hooks/use-auth-flow';
 import { useAuthMutation } from '@/features/auth/hooks/use-auth-mutation';
-import { AuthNotice } from './auth-form-parts';
 
 export function PasswordLoginForm({ disabled }: { disabled: boolean }) {
   const flow = useAuthFlow();
@@ -81,14 +80,11 @@ export function PasswordLoginForm({ disabled }: { disabled: boolean }) {
       >
         <Link to="/forgot-password">رمز عبور خود را فراموش کردید؟</Link>
       </Button>
-      <AuthNotice
-        error={login.error}
-        message={
-          passwordReset
-            ? 'رمز عبور تغییر کرد. اکنون وارد حساب شوید.'
-            : undefined
-        }
-      />
+      {passwordReset && (
+        <p role="status" className="text-caption text-success">
+          رمز عبور تغییر کرد. اکنون وارد حساب شوید.
+        </p>
+      )}
       <LoadingButton
         type="submit"
         size="lg"

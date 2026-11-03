@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from 'react-router';
 import { ArrowRight, Check, Mail, Plus, UsersRound, X } from 'lucide-react';
 import { z } from 'zod';
+import { toast } from '@/components/custom/toast';
 import { TextField } from '@/components/custom/text-field';
 import { PasswordField } from '@/components/custom/password-field';
 import { OtpInput } from '@/components/custom/otp-input';
@@ -25,6 +26,34 @@ import { formatNumber } from '@/utils/format';
 const previewOtpSchema = z.object({
   code: otpCodeSchema.pipe(z.string().length(5, 'کد نمونه باید ۵ رقم باشد.')),
 });
+
+const toastExamples = [
+  {
+    variant: 'success',
+    label: 'موفقیت',
+    title: 'تغییرات ذخیره شد',
+    description: 'تنظیمات نمونه با موفقیت ذخیره شدند.',
+  },
+  {
+    variant: 'info',
+    label: 'اطلاع',
+    title: 'اطلاعات تازه در دسترس است',
+    description:
+      'این یک پیام اطلاع‌رسانی نمونه است؛ جزئیات تازه را می‌توان اینجا نمایش داد.',
+  },
+  {
+    variant: 'warning',
+    label: 'هشدار',
+    title: 'پیش از ادامه بررسی کنید',
+    description: 'این نمونه برای نمایش هشدارهای قابل پیگیری است.',
+  },
+  {
+    variant: 'error',
+    label: 'خطا',
+    title: 'عملیات انجام نشد',
+    description: 'عملیات نمونه انجام نشد؛ دوباره تلاش کنید.',
+  },
+] as const;
 
 export function Component() {
   const [deadline, setDeadline] = useState<number | null>(null);
@@ -66,6 +95,24 @@ export function Component() {
         </Button>
       </header>
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <section className="space-y-5 rounded-2xl border bg-card p-6">
+          <h2 className="text-xl font-bold">اعلان‌ها (CustomToast)</h2>
+          <p className="text-paragraph-sm text-muted-foreground">
+            هر دکمه یک اعلان نمونه با آیکون متحرک نمایش می‌دهد.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            {toastExamples.map(({ variant, label, title, description }) => (
+              <Button
+                key={variant}
+                variant="outline"
+                className="min-h-11"
+                onClick={() => toast[variant](title, { description })}
+              >
+                نمایش {label}
+              </Button>
+            ))}
+          </div>
+        </section>
         <section className="space-y-5 rounded-2xl border bg-card p-6">
           <h2 className="text-xl font-bold">دکمه‌ها · رنگ، اندازه و ترکیب</h2>
           {(['primary', 'secondary', 'accent'] as const).map((tone) => (

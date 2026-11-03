@@ -13,7 +13,7 @@ import {
 import { useAuthFlow } from '@/features/auth/hooks/use-auth-flow';
 import { useAuthMutation } from '@/features/auth/hooks/use-auth-mutation';
 import { useCountdown } from '@/hooks/use-countdown';
-import { AuthNotice, AuthRecovery } from './auth-form-parts';
+import { AuthRecovery } from './auth-form-parts';
 
 export function ResetPasswordForm({
   grant,
@@ -74,11 +74,9 @@ export function ResetPasswordForm({
         fieldSize="lg"
         autoComplete="new-password"
         disabled={disabled}
-        description="رمز عبور باید بین ۸ تا ۱۲۸ نویسه باشد."
         error={form.formState.errors.confirmPassword?.message}
         {...form.register('confirmPassword', { onChange: () => reset.reset() })}
       />
-      <AuthNotice error={reset.error} />
       <LoadingButton
         type="submit"
         size="lg"

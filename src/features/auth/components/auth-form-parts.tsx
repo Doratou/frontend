@@ -4,27 +4,7 @@ import googleIcon from '@/assets/auth/google.png';
 import { Button } from '@/components/ui/button';
 import { LoadingButton } from '@/components/custom/loading-button';
 import { authApi } from '@/features/auth/api/auth-api';
-import { authErrorMessage } from '@/features/auth/api/auth-error';
 import { useAuthMutation } from '@/features/auth/hooks/use-auth-mutation';
-
-export function AuthNotice({
-  error,
-  message,
-}: {
-  error?: unknown;
-  message?: string;
-}) {
-  const failure = authErrorMessage(error);
-  if (!failure && !message) return null;
-  return (
-    <p
-      role={failure ? 'alert' : 'status'}
-      className={`text-caption ${failure ? 'text-destructive' : 'text-success'}`}
-    >
-      {failure ?? message}
-    </p>
-  );
-}
 
 export function AuthMethods({
   active,
@@ -114,7 +94,6 @@ export function AuthFooter({
       >
         ورود با حساب گوگل
       </LoadingButton>
-      <AuthNotice error={google.error} />
       <p className="text-center text-caption">
         {signup ? 'حساب کاربری دارید؟' : 'حساب کاربری ندارید؟'}{' '}
         <Button

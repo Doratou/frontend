@@ -16,9 +16,27 @@
 | `otp-input.tsx`                                            | خانه‌های OTP، normalization و نمایش زمان/ارسال مجدد      |
 | `loading-button.tsx`                                       | جلوگیری از کلیک مجدد و `aria-busy` هنگام عملیات          |
 | `theme-toggle.tsx`                                         | تغییر تم موجود                                           |
+| `custom-toast.tsx`                                         | ظاهر و آیکون‌های متحرک اعلان‌ها بر Sonner                |
 | `page-loading.tsx` / `empty-state.tsx` / `error-state.tsx` | وضعیت‌های مشترک موجود                                    |
 
 این پوشه به featureها وابسته نیست. schema، خطای سرور، deadline و API در feature می‌مانند. Switch، Checkbox و Radio طبق پاسخ کاربر خارج از تسک‌اند. پیش‌نمایش موجود `/dev/components` مثال‌های اجرایی دارد و در production route ندارد.
+
+## CustomToast
+
+`CustomToast` یک‌بار در AppProviders نصب است و اعلان‌ها را بالای صفحه و وسط نمایش می‌دهد. چهار متد پروژه بر صف و کنترل‌های Sonner بنا شده‌اند:
+
+```tsx
+import { toast } from '@/components/custom/toast';
+
+toast.success('تغییرات ذخیره شد', {
+  description: 'تنظیمات با موفقیت به‌روزرسانی شدند.',
+});
+toast.error('عملیات انجام نشد', { description: 'دوباره تلاش کنید.' });
+toast.info('اطلاعات تازه در دسترس است');
+toast.warning('پیش از ادامه بررسی کنید');
+```
+
+نوار زمان پس از ۵ ثانیه تمام و اعلان بسته می‌شود؛ `duration` قابل تغییر است و `Infinity` اعلان را نگه می‌دارد. زمان و نوار با hover، فوکوس داخل اعلان‌ها یا پنهان‌شدن صفحه مکث می‌کنند. گزینه‌های `id`، `onDismiss` و `onAutoClose` قابل استفاده‌اند؛ `toast.dismiss(id)` بستن برنامه‌ای را انجام می‌دهد. آیکون وسط عنوان و توضیح قرار می‌گیرد و دکمهٔ بستن ناحیهٔ ۴۴ پیکسلی دارد. حرکت وضعیت‌ها کوتاه است و `prefers-reduced-motion` رعایت می‌شود. چهار نمونهٔ قابل کلیک در `/dev/components` وجود دارد. خطاهای OTP در Toast نمایش داده می‌شوند؛ `status="error"` روی OtpInput کادر قرمز و `aria-invalid` را بدون تکرار متن داخل فرم فعال می‌کند.
 
 ## Button و LoadingButton
 
@@ -158,10 +176,11 @@ label و length الزامی‌اند؛ length عدد صحیح مثبت از پ�
 | `value` / `defaultValue`          | controlled / uncontrolled                                                                                             |
 | `onValueChange(value, details)`   | مقدار normalized ASCII؛ adapter به field.onChange                                                                     |
 | `onValueComplete(value, details)` | تکمیل خانه‌ها؛ به معنی تأیید سرور یا submit خودکار نیست                                                               |
+| `autoSubmit`                      | درخواست submit فرم پس از تکمیل تایپ یا paste؛ پیش‌فرض false، در صفحه‌های تأیید auth فعال است                          |
 | `ref`                             | اولین خانه برای focus خطای RHF                                                                                        |
 | `onBlur`                          | خروج از کل گروه، نه جابه‌جایی داخلی                                                                                   |
 | `error` / `description`           | پیام‌های متصل به کنترل                                                                                                |
-| `status`                          | default یا confirmed؛ خطا اولویت دارد                                                                                 |
+| `status`                          | default، confirmed یا error؛ prop خطا اولویت دارد                                                                     |
 | `remainingSeconds`                | زمان مصرف‌کننده؛ بدون timer داخلی                                                                                     |
 | `onResend` / `resendDisabled`     | درخواست ارسال مجدد در feature؛ محدودیت واقعی سمت سرور                                                                 |
 | سایر props                        | id/name/form/required/disabled/readOnly/mask/autoComplete/autoFocus/onValueInvalid/className؛ autofocus پیش‌فرض false |
