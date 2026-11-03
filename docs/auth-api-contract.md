@@ -1,84 +1,67 @@
-# قرارداد پیشنهادی احراز هویت
+# اتصال احراز هویت به Bruno
 
-این قرارداد پیشنهاد فرانت‌اند است؛ بک‌اند متناظر در این مخزن وجود ندارد. `VITE_AUTH_API_ENABLED=false` پیش‌فرض است: bootstrap کاربر خالی می‌دهد و ارسال فرم معتبر، پیام در دسترس نبودن سرویس نشان می‌دهد. هیچ نشست، OTP یا موفقیت ساختگی تولید نمی‌شود.
+منبع قرارداد: فایل‌های `Bruno/bruno/Auth`، شمارهٔ 01 تا 10. همهٔ مسیرهای زیر نسبت به `VITE_API_BASE_URL` هستند. پیش‌فرض فعلی `https://api.example.invalid/api/v1` آدرس جایگزین و عمداً غیرقابل اتصال است؛ برای اتصال واقعی فقط آدرس را در `.env.local` تغییر و Vite را دوباره اجرا کنید:
 
-پس از توافق و پیاده‌سازی بک‌اند، `VITE_AUTH_API_ENABLED=true` و `VITE_API_BASE_URL` را تنظیم و dev server را مجدداً اجرا کنید. آدرس‌های جدول نسبت به base URL هستند؛ برای نمونه `/api/auth/session`. درخواست‌های این adapter همیشه `withCredentials: true` دارند؛ گزینهٔ عمومی `VITE_API_WITH_CREDENTIALS` جای فعال‌سازی auth را نمی‌گیرد. متغیرهای Vite عمومی‌اند و محل secret نیستند.
+```dotenv
+VITE_API_BASE_URL=https://YOUR_BACKEND/api/v1
+VITE_AUTH_API_ENABLED=true
+VITE_API_WITH_CREDENTIALS=false
+VITE_AUTH_OTP_LENGTH=5
+```
 
-## HTTP
+مقادیر `VITE_*` عمومی‌اند. `false` برای `VITE_AUTH_API_ENABLED` فقط در dev، adapter نمونهٔ بدون شبکه را فعال می‌کند. این حالت در production اجازهٔ ورود نمونه نمی‌دهد.
 
-| روش و مسیر                  | ورودی JSON                                           | پاسخ موفق JSON                                               |
-| --------------------------- | ---------------------------------------------------- | ------------------------------------------------------------ |
-| GET `/auth/session`         | ندارد؛ AbortSignal پشتیبانی می‌شود                   | `{user: User \| null}`؛ 401 نیز نشست خالی است                |
-| GET `/auth/csrf`            | ندارد                                                | `{csrfToken: string}`                                        |
-| POST `/auth/login`          | `{identifier, password}`                             | `{user: User}` و Set-Cookie نشست                             |
-| POST `/auth/signup`         | `{identifier, password}`                             | `Challenge` با purpose برابر signup؛ حساب تا تأیید فعال نشود |
-| POST `/auth/otp/request`    | `{identifier, purpose: 'login' \| 'password-reset'}` | `Challenge` هم‌منظور با درخواست                              |
-| POST `/auth/otp/resend`     | `{challengeId}`                                      | `Challenge` تازه با همان purpose                             |
-| POST `/auth/otp/verify`     | `{challengeId, code}`                                | یکی از دو نتیجهٔ تأیید پایین                                 |
-| POST `/auth/password/reset` | `{resetToken, password}`                             | `{success: true}`؛ ورود خودکار انجام نمی‌شود                 |
-| POST `/auth/google/start`   | `{returnTo: '/'}`                                    | `{authorizationUrl: string}` روی origin گوگل                 |
-| POST `/auth/logout`         | `{}`                                                 | `{success: true}` و ابطال cookie در سرور                     |
+## Endpointها
 
-موفقیت‌ها JSON با HTTP 200 یا 201 هستند؛ 204 برای adapter فعلی مناسب نیست. schema پاسخ در `contracts.ts` اعتبارسنجی می‌شود. endpointها و نگاشت DTO فقط در `auth-api.ts` قرار دارند؛ تغییر سرویس نباید کنترل‌های عمومی را تغییر دهد. نوع `AuthApi` قرارداد قابل جایگزینی آن است.
+| روش و مسیر                   | ورودی JSON                                                        | `data` پاسخ موفق                 |
+| ---------------------------- | ----------------------------------------------------------------- | -------------------------------- |
+| POST `/auth/otp/send`        | `{identifier}`؛ ایمیل یا موبایل                                   | `{expires_in_seconds, message}`  |
+| POST `/auth/otp/verify`      | `{identifier, code}`                                              | `{status: "verified", message}`  |
+| POST `/auth/register`        | `{email?, phone?, name?, password}`؛ یکی از ایمیل/موبایل لازم است | `{user, ...TokenPair}`؛ HTTP 201 |
+| POST `/auth/login`           | `{identifier, password}`                                          | `{user, ...TokenPair}`           |
+| POST `/auth/login/otp`       | `{identifier}`                                                    | `{user, ...TokenPair}`           |
+| POST `/auth/refresh`         | `{refresh_token}`                                                 | `TokenPair` جدید                 |
+| POST `/auth/password/change` | `{old_password, new_password}`؛ Bearer لازم است                   | `{message}`                      |
+| POST `/auth/password/reset`  | `{identifier, new_password}`                                      | `{message}`                      |
+| POST `/auth/logout`          | بدون body؛ Bearer لازم است                                        | `{message}`                      |
+
+تمام موفقیت‌ها envelope به شکل `{success: true, data: ...}` دارند. `contracts.ts` envelope، user و توکن‌ها را قبل از ثبت نشست اعتبارسنجی می‌کند. فیلدهای مورد استفادهٔ user عبارت‌اند از `id` عددی، `name/email/phone` قابل null و `system_role` برابر `user` یا `admin`؛ شناسه برای مدل داخلی به string تبدیل می‌شود.
 
 ```ts
-type User = {
-  id: string;
-  displayName: string;
-  systemRole: 'user' | 'admin';
+type TokenPair = {
+  access_token: string;
+  access_token_expires_at: string; // ISO timestamp
+  refresh_token: string;
+  refresh_token_expires_at: string; // ISO timestamp
 };
-
-type Challenge = {
-  challengeId: string;
-  purpose: 'login' | 'signup' | 'password-reset';
-  maskedDestination: string; // مقصد ماسک‌شده
-  codeLength: number; // عدد صحیح ۴ تا ۸
-  expiresInSeconds: number; // ۱ تا ۸۶۴۰۰
-  resendAfterSeconds: number; // ۰ تا ۸۶۴۰۰
-};
-
-type Verification =
-  | { type: 'authenticated'; user: User }
-  | {
-      type: 'password-reset';
-      grant: { resetToken: string; expiresInSeconds: number };
-    };
 ```
 
-در login/signup، پاسخ تأیید باید authenticated باشد و سرور cookie را تنظیم کند. در password-reset، فقط grant کوتاه‌عمر با مهلت ۱ تا ۳۶۰۰ ثانیه برمی‌گردد. این grant یک‌بارمصرف و متصل به کاربر، challenge و منظور بازیابی است؛ اجازهٔ ورود یا عملیات دیگر نمی‌دهد. ورود با کد نباید grant بازیابی دریافت کند و بالعکس. فرانت‌اند ناسازگاری purpose را رد می‌کند؛ کنترل قطعی با سرور است.
+## ترتیب جریان‌ها
 
-deadline نمایشی از پاسخ و `Date.now()` ساخته می‌شود؛ تغییر ساعت دستگاه یا دست‌کاری UI اعتبار کد را تغییر نمی‌دهد. طول ۵ رقم در طرح نمونه است. پرشدن خانه‌ها نه submit خودکار است و نه تأیید موفق. resend باید کد قبلی را باطل کند و محدودیت سمت سرور داشته باشد. شناسهٔ challenge نباید خود OTP باشد یا اطلاعات کاربر را افشا کند.
+- ورود با رمز: `login` ← دریافت user و توکن‌ها.
+- ورود با کد: `otp/send` ← ورود خودکار پس از پرشدن خانه‌ها: `otp/verify` سپس `login/otp`.
+- ثبت‌نام: دریافت شناسه و رمز، `otp/send`، سپس `otp/verify` و `register`. رمز فقط در حافظهٔ فرم/جریان می‌ماند و در درخواست ارسال کد فرستاده نمی‌شود. پس از موفقیت پاک می‌شود. اگر ساخت حساب پس از تأیید با خطای موقت روبه‌رو شود، تلاش دوباره همان کد را بی‌دلیل مجدداً مصرف نمی‌کند.
+- بازیابی: `otp/send`، `otp/verify`، سپس `password/reset` با شناسه و رمز جدید؛ پس از ذخیره به ورود بازمی‌گردد.
+- تغییر رمز: پس از ورود، از سربرگ صفحهٔ اصلی به `/change-password` بروید. رمز فعلی، رمز جدید و تأیید محلی دریافت می‌شود. خروج نیز از همان سربرگ در دسترس است.
 
-## خطا
+طبق Bruno، تأیید شناسه ۱۵ دقیقه در Redis معتبر می‌ماند. grant بازیابی صرفاً deadline محلی است؛ سرور مرجع قطعی اعتبار است. password حداقل ۶ نویسه دارد و trim نمی‌شود؛ تأیید رمز به سرور ارسال نمی‌شود. شماره‌های فارسی/عربی به انگلیسی تبدیل می‌شوند.
 
-پاسخ 400/401/403/409/410/422/429/5xx می‌تواند شکل زیر را داشته باشد:
+پاسخ ارسال OTP طول کد یا cooldown ارسال مجدد ندارد. طول از `VITE_AUTH_OTP_LENGTH` با پیش‌فرض ۵ (مطابق مثال Bruno) می‌آید. ارسال مجدد همان `otp/send` است. محدودیت واقعی با سرور است؛ UI هدر `Retry-After` در پاسخ 429 را رعایت می‌کند. بک‌اند با CORS باید این هدر را expose کند. مقدار `purpose` و challenge فقط وضعیت محلی‌اند و به سرور ارسال نمی‌شوند.
 
-```json
-{
-  "code": "validation_failed",
-  "fieldErrors": { "identifier": "invalid_identifier" },
-  "retryAfterSeconds": 60
-}
-```
+## نشست و خطا
 
-کدهای قابل قبول: `invalid_credentials`، `invalid_code`، `challenge_expired`، `rate_limited`، `invalid_identifier`، `weak_password`، `account_unavailable`، `reset_expired`، `validation_failed` و `unavailable`. زمان تلاش مجدد عدد صحیح ۰ تا ۸۶۴۰۰ است. نام فیلد فقط از allowlist همان فرم به RHF منتقل می‌شود. متن خام سرور، HTML، stack trace یا response حساس نمایش/ثبت نمی‌شود؛ کدها به متن فارسی مشخص نگاشت می‌شوند. پاسخ ناشناخته به خطای عمومی می‌رود. 401 بدون بدنهٔ معتبر، خطای عمومی اعتبارنامه و 429 خطای محدودیت تلاش است.
+توکن‌ها در Zustand و فقط در حافظه‌اند؛ هیچ رمز، OTP یا توکنی در localStorage، sessionStorage، URL یا log ذخیره نمی‌شود. **با reload یا بازکردن تب جدید باید دوباره وارد شد.** Bruno مسیر session یا cookie قابل استفادهٔ HttpOnly معرفی نکرده است. برای ماندگاری ورود باید قرارداد نگهداری نشست جداگانه مشخص شود.
 
-سرور برای حساب ناموجود، شمارهٔ ثبت‌شده و رمز اشتباه نباید اطلاعات قابل شمارش حساب بدهد. پاسخ درخواست بازیابی باید عمومی باشد؛ تفاوت ارسال واقعی به صاحب حساب در سرور می‌ماند. نرخ تلاش، cooldown و قفل‌کردن موقت را سرور اعمال می‌کند؛ UI تنها راهنماست. تغییر ساعت، reload و تب تازه نباید محدودیت را دور بزنند.
+`AuthSession` یک interceptor روی Axios مشترک نصب می‌کند: فقط درخواست‌های محافظت‌شدهٔ همان origin و prefix تنظیم‌شده Bearer می‌گیرند. مسیرهای عمومی auth و URLهای خارج از آن محدوده توکن نمی‌گیرند. اگر access token تا ۵ ثانیهٔ دیگر منقضی شود، پیش از درخواست، `refresh` با refresh token فعلی اجرا می‌شود. درخواست‌های هم‌زمان یک refresh مشترک دارند و هر دو توکن rotate می‌شوند. پاسخ قدیمی پس از تغییر نشست نمی‌تواند توکن را برگرداند. 401/403 refresh نشست را پاک می‌کند؛ خطای شبکه توکن معتبر موجود را پاک نمی‌کند.
 
-## نشست، CSRF و OAuth
+درخواست‌ها پس از 401 خودکار تکرار نمی‌شوند: برای نمونه 401 تغییر رمز می‌تواند رمز فعلی اشتباه باشد، نه انقضای access token. retry mutation خاموش است. خروج حتی هنگام خطای سرور نشست محلی را پاک می‌کند؛ ابطال سمت سرور فقط با پاسخ موفق تضمین می‌شود. تغییر هویت cache داده‌های غیر-auth را پاک می‌کند.
 
-- cookie نشست در production باید `HttpOnly` و `Secure` باشد؛ SameSite و Path/Domain با استقرار واقعی تعیین شوند. برای استقرار هم‌سایت، SameSite=Lax و cookie بدون Domain انتخاب اولیه‌اند. session ID در ورود rotate و در خروج/تغییر رمز طبق سیاست محصول باطل شود. نشست به JavaScript برگردانده نمی‌شود.
-- قبل از هر POST، adapter از GET `/auth/csrf` توکن می‌گیرد و در `X-CSRF-Token` می‌فرستد. CSRF باید به cookie/session ناشناس یا کاربر متصل و سمت سرور اعتبارسنجی شود. گرفتن توکن هم‌زمان نباید توکن معتبر درخواست دیگر را فوراً باطل کند. Origin/Referer و روش HTTP نیز در بک‌اند کنترل شوند.
-- origin متفاوت نیاز به CORS با allowlist دقیق، credentials و اجازهٔ headerهای CSRF دارد؛ wildcard مناسب نیست. reverse proxy هم‌سایت ساده‌تر است. HTTPS و جلوگیری از ثبت password/code/token در log مسئولیت استقرار و بک‌اند است.
-- Google start باید state، nonce و PKCE و callback مجاز را در سرور بسازد. adapter فقط URL با origin `https://accounts.google.com` را می‌پذیرد. callback سرور پس از اعتبارسنجی cookie را تنظیم و به مسیر مجاز `/` برمی‌گرداند؛ هیچ OAuth secret یا access token در URL فرانت‌اند قرار نمی‌گیرد. مقصد دلخواه از query کاربر پذیرفته نمی‌شود.
-- سیاست اولیهٔ رمز ثبت‌نام/بازیابی ۸ تا ۱۲۸ نویسه است، بر اساس حداقلِ طرح؛ قبل از اتصال با بک‌اند نهایی شود. رمز trim نمی‌شود و ورود، قانون حداقلِ ثبت‌نام را تحمیل نمی‌کند. تأیید رمز فقط validation محلی است و ارسال نمی‌شود. identifier ایمیل معتبر یا شمارهٔ ۱۱رقمی ایران با 09 است؛ ارقام فارسی/عربی شماره و OTP تبدیل می‌شوند.
+Bruno قالب بدنهٔ خطاها را مشخص نکرده است. نگاشت بر اساس status و عملیات است: 401 تأیید OTP خطای کد، 404 آن انقضای کد، 409 ثبت‌نام تداخل حساب، 429 محدودیت تلاش و بقیه پیام فارسی کنترل‌شده. خطاهای OTP با toast و حاشیهٔ قرمز نمایش داده می‌شوند. متن خام پاسخ سرور نمایش داده نمی‌شود. اگر بدنهٔ شناخته‌شدهٔ `{code, fieldErrors?, retryAfterSeconds?}` وجود داشته باشد، تنها کدها و فیلدهای مجاز پذیرفته می‌شوند.
 
-## مسئولیت state و محدودیت فعلی
+## موارد خارج از قرارداد
 
-RHF مقادیر و خطاها را نگه می‌دارد. TanStack Query نشست را با کلید `['auth','session']` می‌گیرد؛ mutationها retry خودکار ندارند و پس از بی‌مشاهده‌شدن با `gcTime: 0` جمع می‌شوند. شناسه، رمز و کد در query key نیستند. AbortSignal خروج از فرم، درخواست را لغو می‌کند؛ این تضمین نمی‌کند عملیاتی که سرور شروع کرده لغو شده باشد.
+کپچا فعلاً طبق تأیید تیم غیرفعال است؛ UI ندارد. adapter در ارسال OTP و بازیابی، پارامتر اختیاری `captcha: {id, code}` را به `X-Captcha-ID` و `X-Captcha-Code` تبدیل می‌کند. هنگام فعال‌سازی باید دریافت تصویر و تازه‌سازی challenge به UI اضافه شود.
 
-Zustand موجود فقط user حداقلی و status حافظه‌ای را دریافت می‌کند؛ persist جدید نداریم. تغییر هویت، cache غیر-auth را پاک می‌کند. bootstrap و بازگشت به تب پس از stale شدن، نشست را دوباره می‌خوانند. status برابر unknown به معنی داشتن اجازه نیست؛ خطای ارتباط bootstrap نباید در مسیر خصوصی آینده به دسترسی تبدیل شود. صفحهٔ خصوصی واقعی در دامنهٔ فعلی وجود ندارد؛ guard آینده باید unknown/loading/error را صریح و authorization را در سرور کنترل کند.
+ورود گوگل در Bruno endpoint ندارد و دکمهٔ موجود غیرفعال است. هیچ درخواست ساختگی به `/auth/session`، `/auth/csrf`، `/auth/signup`، `/auth/otp/request` یا `/auth/google/start` ارسال نمی‌شود.
 
-challenge و grant در AuthLayout هستند؛ refresh صفحهٔ تأیید عمداً recovery نشان می‌دهد. رمز با تعویض فرم پاک می‌شود و شناسه فقط تا خروج از layout حفظ می‌شود. credential در localStorage، sessionStorage، Zustand persist، URL یا console ذخیره نمی‌شود. mutation cache حافظه‌ای موقت است و جای vault نیست؛ DevTools و ثبت telemetry نباید payload آن را منتشر کنند.
-
-ارسال SMS/email، OAuth واقعی، Set-Cookie، CSRF/CORS، timeout واقعی و نتیجهٔ موفق backend در این مرحله تست‌پذیر نیستند. اتصال production نیازمند اجرای این قرارداد و بررسی یکپارچه با سرور است.
+`npm run check:auth` قرارداد HTTP، اعتبارسنجی پاسخ، Bearer، refresh هم‌زمان و خطاها را با transport نمونه و بدون شبکه بررسی می‌کند. ارسال واقعی SMS/email، CORS و اتصال به سرور تا تعیین base URL آزمایش نشده‌اند.

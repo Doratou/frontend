@@ -38,7 +38,7 @@ export function ResetPasswordForm({
       onSubmit={form.handleSubmit(({ password }) => {
         if (disabled || remaining === 0) return;
         reset.mutate(
-          { password, resetToken: grant.resetToken },
+          { password, identifier: grant.identifier },
           {
             onSuccess: () => {
               form.reset();

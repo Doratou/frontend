@@ -8,4 +8,4 @@
 
 درخواست‌های محصول مثل ورود، دریافت اکیپ و ثبت هزینه در این پوشه قرار نمی‌گیرند؛ محل آن‌ها `features/<feature>/api` است. تمام آن درخواست‌ها باید `apiClient` را از `@/lib/api/client` مصرف کنند.
 
-تنظیمات cache و retry مربوط به TanStack Query در `../query-client.ts` است. تنظیم هویت درخواست و refresh نشست بعد از توافق قرارداد بک‌اند به این زیرساخت اضافه می‌شود.
+تنظیمات cache و retry مربوط به TanStack Query در `../query-client.ts` است. `AuthSession` در قابلیت auth، interceptor مربوط به Bearer و refresh توکن را روی همین client نصب می‌کند؛ زیرساخت عمومی به قابلیت auth وابسته نیست.

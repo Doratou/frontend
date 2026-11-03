@@ -25,14 +25,16 @@ function isApiBaseUrl(value: string) {
 const envSchema = z.object({
   VITE_AUTH_API_ENABLED: z
     .enum(['true', 'false'])
-    .default('false')
+    .default('true')
     .transform((value) => value === 'true'),
   VITE_API_BASE_URL: z
     .string()
     .trim()
     .min(1)
     .refine(isApiBaseUrl)
-    .default('/api'),
+    .default('https://api.example.invalid/api/v1'),
+  // Bruno's OTP examples use 5 digits; its send response does not expose length.
+  VITE_AUTH_OTP_LENGTH: z.coerce.number().int().min(4).max(8).default(5),
   VITE_API_WITH_CREDENTIALS: z
     .enum(['true', 'false'])
     .default('false')

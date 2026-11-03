@@ -13,7 +13,7 @@ import { useAuthMutation } from '@/features/auth/hooks/use-auth-mutation';
 export function SignupForm({ disabled }: { disabled: boolean }) {
   const flow = useAuthFlow();
   const navigate = useNavigate();
-  const signup = useAuthMutation(authApi.signUp);
+  const signup = useAuthMutation(authApi.requestCode);
   const form = useForm<SignUpValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -30,9 +30,13 @@ export function SignupForm({ disabled }: { disabled: boolean }) {
         if (disabled) return;
         flow.setIdentifier(values.identifier);
         signup.mutate(
-          { identifier: values.identifier, password: values.password },
+          { identifier: values.identifier, purpose: 'signup' },
           {
             onSuccess: (challenge) => {
+              flow.setRegistration({
+                identifier: values.identifier,
+                password: values.password,
+              });
               flow.setChallenge(challenge);
               form.reset();
               void navigate('/signup/verify');
@@ -72,7 +76,7 @@ export function SignupForm({ disabled }: { disabled: boolean }) {
         description={
           form.formState.errors.password
             ? undefined
-            : 'رمز عبور باید حداقل ۸ نویسه باشد.'
+            : 'رمز عبور باید حداقل ۶ نویسه باشد.'
         }
         error={form.formState.errors.password?.message}
         {...form.register('password', { onChange: () => signup.reset() })}

@@ -37,6 +37,7 @@ export function RequestCodeForm({
       onSubmit={form.handleSubmit((values) => {
         if (disabled || cooldown > 0) return;
         flow.setIdentifier(values.identifier);
+        flow.setRegistration(null);
         request.mutate(
           { ...values, purpose: reset ? 'password-reset' : 'login' },
           {

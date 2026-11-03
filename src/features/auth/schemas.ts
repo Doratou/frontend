@@ -19,7 +19,7 @@ export const otpRequestSchema = z.object({
     ),
 });
 
-// Code length, expiry and resend limits must come from the OTP challenge response.
+// Code length comes from the auth adapter; Bruno currently returns only expiry.
 export const otpCodeSchema = z
   .string()
   .trim()
@@ -47,8 +47,7 @@ export const signInSchema = z.object({
 
 const newPasswordSchema = z
   .string()
-  .min(8, 'رمز عبور باید حداقل ۸ نویسه باشد.')
-  .max(128, 'رمز عبور باید حداکثر ۱۲۸ نویسه باشد.');
+  .min(6, 'رمز عبور باید حداقل ۶ نویسه باشد.');
 
 const matchingPasswords = {
   password: newPasswordSchema,
@@ -73,6 +72,16 @@ export const requestCodeSchema = z.object({
   identifier: accountIdentifierSchema,
 });
 
+export const changePasswordSchema = z
+  .object({
+    oldPassword: z.string().min(1, 'رمز عبور فعلی را وارد کنید.'),
+    ...matchingPasswords,
+  })
+  .refine((values) => values.password === values.confirmPassword, {
+    path: ['confirmPassword'],
+    message: 'رمز عبور و تکرار آن یکسان نیستند.',
+  });
+
 export const verificationSchema = (length: number) =>
   z.object({
     code: otpCodeSchema.pipe(
@@ -83,3 +92,4 @@ export const verificationSchema = (length: number) =>
 export type SignInValues = z.infer<typeof signInSchema>;
 export type SignUpValues = z.infer<typeof signUpSchema>;
 export type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
+export type ChangePasswordValues = z.infer<typeof changePasswordSchema>;

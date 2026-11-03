@@ -1,10 +1,7 @@
+import { env } from '@/lib/api/env';
+import { useAuthStore } from '@/features/auth/stores/auth-store';
 import { AuthError } from './auth-error';
-import type {
-  AuthApi,
-  CodePurpose,
-  OtpChallenge,
-  ResetGrant,
-} from './contracts';
+import type { AuthApi, OtpChallenge } from './contracts';
 
 const previewUser = {
   id: 'preview-user',
@@ -14,74 +11,75 @@ const previewUser = {
 
 // shortcut: preview state resets on reload; remove this adapter when backend integration is ready.
 let currentChallenge: OtpChallenge | null = null;
-let resetGrant: ResetGrant | null = null;
-let challengeSequence = 0;
+let verifiedIdentifier: { identifier: string; expiresAt: number } | null = null;
 
-function createChallenge(
-  identifier: string,
-  purpose: CodePurpose,
-): OtpChallenge {
-  const now = Date.now();
-  currentChallenge = {
-    challengeId: `preview-${++challengeSequence}`,
-    purpose,
-    maskedDestination: identifier,
-    codeLength: 5,
-    expiresInSeconds: 300,
-    resendAfterSeconds: 10,
-    expiresAt: now + 300_000,
-    resendAt: now + 10_000,
-  };
-  return currentChallenge;
-}
-
-function getChallenge(challengeId: string) {
-  if (!currentChallenge || currentChallenge.challengeId !== challengeId)
-    throw new AuthError('challenge_expired');
-  return currentChallenge;
+function requireVerification(identifier: string) {
+  if (
+    verifiedIdentifier?.identifier !== identifier ||
+    verifiedIdentifier.expiresAt <= Date.now()
+  )
+    throw new AuthError('verification_required');
 }
 
 export const devAuthApi: AuthApi = {
-  getSession: () => Promise.resolve(null),
   signIn: () => Promise.resolve(previewUser),
-  signUp: ({ identifier }) =>
-    Promise.resolve(createChallenge(identifier, 'signup')),
-  requestCode: ({ identifier, purpose }) =>
-    Promise.resolve(createChallenge(identifier, purpose)),
-  resendCode({ challengeId }) {
-    const previous = getChallenge(challengeId);
-    if (Date.now() < previous.resendAt)
-      throw new AuthError('rate_limited', 429, {}, 10);
-    return Promise.resolve(
-      createChallenge(previous.maskedDestination, previous.purpose),
-    );
+  signUp({ identifier }) {
+    requireVerification(identifier);
+    verifiedIdentifier = null;
+    return Promise.resolve(previewUser);
   },
-  verifyCode({ challengeId, code }) {
-    const challenge = getChallenge(challengeId);
-    if (Date.now() >= challenge.expiresAt)
-      throw new AuthError('challenge_expired');
-    if (code !== '12345') throw new AuthError('invalid_code');
-    currentChallenge = null;
-    if (challenge.purpose === 'password-reset') {
-      resetGrant = {
-        resetToken: `preview-reset-${challengeId}`,
-        expiresInSeconds: 600,
-        expiresAt: Date.now() + 600_000,
-      };
-      return Promise.resolve({ type: 'password-reset', grant: resetGrant });
-    }
-    return Promise.resolve({ type: 'authenticated', user: previewUser });
-  },
-  resetPassword({ resetToken }) {
+  requestCode({ identifier, purpose }) {
     if (
-      !resetGrant ||
-      resetGrant.resetToken !== resetToken ||
-      Date.now() >= resetGrant.expiresAt
+      currentChallenge?.identifier === identifier &&
+      currentChallenge.resendAt > Date.now()
     )
-      throw new AuthError('reset_expired');
-    resetGrant = null;
+      throw new AuthError('rate_limited', 429, {}, 10);
+    currentChallenge = {
+      identifier,
+      purpose,
+      codeLength: env.VITE_AUTH_OTP_LENGTH,
+      expiresAt: Date.now() + 180_000,
+      resendAt: Date.now() + 10_000,
+    };
+    return Promise.resolve(currentChallenge);
+  },
+  verifyCode({ identifier, code }) {
+    if (
+      currentChallenge?.identifier !== identifier ||
+      currentChallenge.expiresAt <= Date.now()
+    )
+      throw new AuthError('challenge_expired');
+    if (code !== '12345678'.slice(0, env.VITE_AUTH_OTP_LENGTH))
+      throw new AuthError('invalid_code');
+    verifiedIdentifier = { identifier, expiresAt: Date.now() + 15 * 60_000 };
+    currentChallenge = null;
     return Promise.resolve();
   },
-  startGoogle: () => Promise.reject(new AuthError('unavailable')),
-  logout: () => Promise.resolve(),
+  signInWithOtp({ identifier }) {
+    requireVerification(identifier);
+    verifiedIdentifier = null;
+    return Promise.resolve(previewUser);
+  },
+  refreshSession: () =>
+    Promise.resolve({
+      accessToken: 'preview-access-token',
+      accessTokenExpiresAt: Date.now() + 3_600_000,
+      refreshToken: 'preview-refresh-token',
+      refreshTokenExpiresAt: Date.now() + 86_400_000,
+    }),
+  changePassword() {
+    if (!useAuthStore.getState().user) throw new AuthError('session_expired');
+    return Promise.resolve();
+  },
+  resetPassword({ identifier }) {
+    requireVerification(identifier);
+    verifiedIdentifier = null;
+    return Promise.resolve();
+  },
+  logout() {
+    currentChallenge = null;
+    verifiedIdentifier = null;
+    useAuthStore.getState().clearSession();
+    return Promise.resolve();
+  },
 };

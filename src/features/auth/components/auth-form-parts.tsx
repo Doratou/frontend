@@ -2,9 +2,6 @@ import { Link } from 'react-router';
 import { KeyRound, MessageSquareText } from 'lucide-react';
 import googleIcon from '@/assets/auth/google.png';
 import { Button } from '@/components/ui/button';
-import { LoadingButton } from '@/components/custom/loading-button';
-import { authApi } from '@/features/auth/api/auth-api';
-import { useAuthMutation } from '@/features/auth/hooks/use-auth-mutation';
 
 export function AuthMethods({
   active,
@@ -64,9 +61,6 @@ export function AuthFooter({
   signup: boolean;
   disabled: boolean;
 }) {
-  const google = useAuthMutation((_: void, signal) =>
-    authApi.startGoogle(signal),
-  );
   return (
     <div className="auth-footer">
       <div
@@ -77,23 +71,16 @@ export function AuthFooter({
         یا
         <span className="h-px flex-1 bg-primary-50" />
       </div>
-      <LoadingButton
+      <Button
         variant="outline"
         size="lg"
         radius="lg"
         className="auth-action w-full text-button-md"
         startIcon={<img src={googleIcon} width="24" height="24" alt="" />}
-        isLoading={google.isPending}
-        disabled={disabled}
-        loadingText="در حال انتقال…"
-        onClick={() =>
-          google.mutate(undefined, {
-            onSuccess: (url) => window.location.assign(url),
-          })
-        }
+        disabled
       >
         ورود با حساب گوگل
-      </LoadingButton>
+      </Button>
       <p className="text-center text-caption">
         {signup ? 'حساب کاربری دارید؟' : 'حساب کاربری ندارید؟'}{' '}
         <Button

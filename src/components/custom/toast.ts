@@ -31,10 +31,10 @@ function showToast(
 }
 
 export const toast = {
-  success: (title, options) => showToast('success', title, options),
-  info: (title, options) => showToast('info', title, options),
-  warning: (title, options) => showToast('warning', title, options),
-  error: (title, options) => showToast('error', title, options),
+  success: (title, options = {}) => showToast('success', title, options),
+  info: (title, options = {}) => showToast('info', title, options),
+  warning: (title, options = {}) => showToast('warning', title, options),
+  error: (title, options = {}) => showToast('error', title, options),
   dismiss: sonnerToast.dismiss,
 } satisfies Pick<
   typeof sonnerToast,

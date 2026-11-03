@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useNavigate } from 'react-router';
@@ -11,7 +11,10 @@ import {
   applyAuthFieldErrors,
   AuthError,
 } from '@/features/auth/api/auth-error';
-import type { OtpChallenge } from '@/features/auth/api/contracts';
+import type {
+  OtpChallenge,
+  VerificationResult,
+} from '@/features/auth/api/contracts';
 import { useCompleteSignIn } from '@/features/auth/api/session';
 import { verificationSchema } from '@/features/auth/schemas';
 import { useAuthFlow } from '@/features/auth/hooks/use-auth-flow';
@@ -28,18 +31,49 @@ export function VerifyCodeForm({
   const flow = useAuthFlow();
   const complete = useCompleteSignIn();
   const navigate = useNavigate();
+  const verified = useRef<{ challenge: OtpChallenge; code: string } | null>(
+    null,
+  );
   const verify = useAuthMutation(
-    async (input: { challengeId: string; code: string }, signal) => {
-      const result = await authApi.verifyCode(input, signal);
+    async ({ code }: { code: string }, signal): Promise<VerificationResult> => {
       if (
-        (challenge.purpose === 'password-reset') !==
-        (result.type === 'password-reset')
+        challenge.purpose === 'signup' &&
+        flow.registration?.identifier !== challenge.identifier
       )
-        throw new AuthError('unavailable');
-      return result;
+        throw new AuthError('verification_required');
+      if (
+        verified.current?.challenge !== challenge ||
+        verified.current.code !== code
+      ) {
+        await authApi.verifyCode(
+          { identifier: challenge.identifier, code },
+          signal,
+        );
+        verified.current = { challenge, code };
+      }
+      if (challenge.purpose === 'login')
+        return {
+          type: 'authenticated',
+          user: await authApi.signInWithOtp(
+            { identifier: challenge.identifier },
+            signal,
+          ),
+        };
+      if (challenge.purpose === 'signup' && flow.registration)
+        return {
+          type: 'authenticated',
+          user: await authApi.signUp(flow.registration, signal),
+        };
+      return {
+        type: 'password-reset',
+        grant: {
+          identifier: challenge.identifier,
+          expiresAt: Date.now() + 15 * 60_000,
+        },
+      };
     },
   );
-  const resend = useAuthMutation(authApi.resendCode);
+  const resend = useAuthMutation(authApi.requestCode);
   const expires = useCountdown(challenge.expiresAt);
   const expired = expires === 0;
   const retryAt =
@@ -53,9 +87,9 @@ export function VerifyCodeForm({
     if (expired)
       toast.error('اعتبار کد تمام شده است', {
         description: 'کد تازه‌ای درخواست کنید.',
-        id: `otp-expired-${challenge.challengeId}`,
+        id: `otp-expired-${challenge.purpose}-${challenge.expiresAt}`,
       });
-  }, [expired, challenge.challengeId]);
+  }, [expired, challenge.purpose, challenge.expiresAt]);
   const editPath =
     challenge.purpose === 'signup'
       ? '/signup'
@@ -71,11 +105,12 @@ export function VerifyCodeForm({
           if (disabled || expired || verify.isPending || resend.isPending)
             return;
           verify.mutate(
-            { challengeId: challenge.challengeId, code },
+            { code },
             {
               onSuccess: (result) => {
                 form.reset();
                 flow.setChallenge(null);
+                flow.setRegistration(null);
                 if (result.type === 'authenticated') complete(result.user);
                 else {
                   flow.setResetGrant(result.grant);
@@ -98,7 +133,7 @@ export function VerifyCodeForm({
       <p className="text-paragraph-sm text-muted-foreground">
         کد تأیید برای{' '}
         <bdi dir="ltr" className="font-medium break-all text-foreground">
-          {challenge.maskedDestination}
+          {challenge.identifier}
         </bdi>{' '}
         ارسال شد. آن را وارد کنید.
       </p>
@@ -127,7 +162,10 @@ export function VerifyCodeForm({
             onResend={() => {
               if (disabled || remaining > 0) return;
               resend.mutate(
-                { challengeId: challenge.challengeId },
+                {
+                  identifier: challenge.identifier,
+                  purpose: challenge.purpose,
+                },
                 {
                   onSuccess: (next) => {
                     if (next.purpose !== challenge.purpose) {

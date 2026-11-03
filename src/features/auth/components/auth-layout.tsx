@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { Link, useLocation, useMatches, useOutlet } from 'react-router';
 import doratoMark from '@/assets/auth/dorato-mark.png';
-import type { OtpChallenge, ResetGrant } from '@/features/auth/api/contracts';
+import type {
+  OtpChallenge,
+  RegistrationInput,
+  ResetGrant,
+} from '@/features/auth/api/contracts';
 import type { AuthView } from '@/features/auth/config';
 import { AuthTransition } from './auth-transition';
 import './auth.css';
@@ -12,6 +16,9 @@ export function Component() {
   const isLogin = location.pathname.startsWith('/login');
   const [identifier, setIdentifier] = useState('');
   const [challenge, setChallenge] = useState<OtpChallenge | null>(null);
+  const [registration, setRegistration] = useState<RegistrationInput | null>(
+    null,
+  );
   const [resetGrant, setResetGrant] = useState<ResetGrant | null>(null);
   const outlet = useOutlet({
     view,
@@ -19,6 +26,8 @@ export function Component() {
     setIdentifier,
     challenge,
     setChallenge,
+    registration,
+    setRegistration,
     resetGrant,
     setResetGrant,
   });

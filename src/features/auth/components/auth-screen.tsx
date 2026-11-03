@@ -13,6 +13,7 @@ import { SignupForm } from './signup-form';
 import { RequestCodeForm } from './request-code-form';
 import { VerifyCodeForm } from './verify-code-form';
 import { ResetPasswordForm } from './reset-password-form';
+import { ChangePasswordForm } from './change-password-form';
 import { AuthTransition } from './auth-transition';
 
 const titles: Record<AuthView, string> = {
@@ -24,6 +25,7 @@ const titles: Record<AuthView, string> = {
   'request-reset': 'بازیابی رمز عبور',
   'verify-reset': 'تأیید هویت',
   'reset-password': 'تغییر رمز عبور',
+  'change-password': 'تغییر رمز عبور',
 };
 
 export function Component() {
@@ -54,7 +56,11 @@ function AuthScreen({ view }: { view: AuthView }) {
     };
   }, [view]);
 
-  if (status === 'authenticated') return <Navigate to="/" replace />;
+  const isChange = view === 'change-password';
+  if (isChange && status !== 'authenticated')
+    return <Navigate to="/login" replace />;
+  if (!isChange && status === 'authenticated')
+    return <Navigate to="/" replace />;
 
   const purpose =
     view === 'verify-signup'
@@ -97,7 +103,9 @@ function AuthScreen({ view }: { view: AuthView }) {
         <RequestCodeForm reset={isReset} disabled={busy} />
       )}
       {(view === 'verify-signup' || view === 'verify-reset') &&
-        (flow.challenge?.purpose === purpose ? (
+        (flow.challenge?.purpose === purpose &&
+        (!isSignup ||
+          flow.registration?.identifier === flow.challenge.identifier) ? (
           <VerifyCodeForm challenge={flow.challenge} disabled={busy} />
         ) : (
           <AuthRecovery signup={isSignup} reset={isReset} />
@@ -108,7 +116,8 @@ function AuthScreen({ view }: { view: AuthView }) {
         ) : (
           <AuthRecovery reset />
         ))}
-      {isReset ? (
+      {isChange && <ChangePasswordForm disabled={busy} />}
+      {isReset || isChange ? (
         <div className="text-center">
           <Button
             asChild
@@ -117,7 +126,9 @@ function AuthScreen({ view }: { view: AuthView }) {
             startIcon={<ChevronRight />}
             className="min-h-11 text-button-md"
           >
-            <Link to="/login">بازگشت به ورود</Link>
+            <Link to={isChange ? '/' : '/login'}>
+              {isChange ? 'بازگشت به صفحه اصلی' : 'بازگشت به ورود'}
+            </Link>
           </Button>
         </div>
       ) : (

@@ -7,6 +7,7 @@ export const authViews = [
   { path: '/forgot-password', view: 'request-reset' },
   { path: '/forgot-password/verify', view: 'verify-reset' },
   { path: '/reset-password', view: 'reset-password' },
+  { path: '/change-password', view: 'change-password' },
 ] as const;
 
 export type AuthView = (typeof authViews)[number]['view'];

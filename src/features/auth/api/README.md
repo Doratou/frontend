@@ -1,10 +1,12 @@
 # API احراز هویت
 
-- `contracts.ts`: schemaهای Zod پاسخ و interface سرویس.
-- `auth-api.ts`: adapter کوکی‌محور بر Axios مشترک؛ session، password، OTP، reset و Google.
-- `dev-auth-api.ts`: دادهٔ نمونهٔ موقت فقط در dev با auth خاموش؛ کد `12345`، بدون درخواست شبکه یا ذخیرهٔ پایدار.
-- `auth-error.ts`: کدهای مجاز خطا و نگاشت کنترل‌شده به پیام فارسی و RHF.
-- `session.ts`: query نشست و همگام‌سازی user حداقلی با Zustand موجود.
+- `contracts.ts`: قراردادهای Bruno، اعتبارسنجی پاسخ و نگاشت DTO به user و توکن داخلی.
+- `auth-api.ts`: endpointهای واقعی، Bearer و refresh مشترک؛ آدرس پایه از env.
+- `dev-auth-api.ts`: adapter نمونه فقط در dev با `VITE_AUTH_API_ENABLED=false`؛ کد پیش‌فرض `12345`، بدون شبکه یا ذخیرهٔ پایدار.
+- `auth-error.ts`: نگاشت status هر عملیات و خطاهای مجاز به پیام فارسی و RHF؛ رعایت `Retry-After`.
+- `session.ts`: تکمیل ورود و همگام‌سازی cache نشست؛ bootstrap شبکه‌ای ندارد.
 - `query-keys.ts`: کلید ثابت نشست؛ بدون credential در query key.
 
-[قرارداد پیشنهادی و شرایط فعال‌سازی](../../../../docs/auth-api-contract.md) هنوز با بک‌اند واقعی نهایی نشده است. پیش‌فرض `VITE_AUTH_API_ENABLED=false` است؛ در dev پیش‌نمایش نمونه فعال می‌شود و در production سرویس unavailable می‌ماند. `VITE_AUTH_API_ENABLED=true` همیشه adapter واقعی را انتخاب می‌کند. هیچ token یا credential در storage پایدار ذخیره نمی‌شود.
+پیش‌فرض adapter واقعی با آدرس جایگزین `https://api.example.invalid/api/v1` است. برای اتصال، base URL را در `.env.local` تنظیم کنید. توکن‌ها فقط در حافظه‌اند؛ reload نیازمند ورود دوباره است. کپچا فعلاً غیرفعال و گوگل فاقد endpoint است.
+
+[قرارداد، تنظیمات و ترتیب جریان‌ها](../../../../docs/auth-api-contract.md)
