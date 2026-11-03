@@ -29,7 +29,7 @@
     width: min(100%, 28rem);
     aspect-ratio: 852 / 400;
     margin-inline: auto;
-    background: url('../../../assets/auth/mobile-background.png') center top /
+    background: url('../../../assets/auth/mobile-background.webp') center top /
       100% auto no-repeat;
     mask-image: linear-gradient(black 85%, transparent);
     pointer-events: none;
@@ -40,7 +40,7 @@
     width: min(100%, 28rem);
     aspect-ratio: 852 / 380;
     margin-block-start: auto;
-    background: url('../../../assets/auth/mobile-background.png') center
+    background: url('../../../assets/auth/mobile-background.webp') center
       bottom / 100% auto no-repeat;
     mask-image: linear-gradient(transparent, black 10%);
     pointer-events: none;
@@ -138,7 +138,7 @@
       width: auto;
       height: 100lvh;
       aspect-ratio: auto;
-      background: url('../../../assets/auth/desktop-background.png') center /
+      background: url('../../../assets/auth/desktop-background.webp') center /
         cover no-repeat;
       mask-image: none;
     }
