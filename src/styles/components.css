@@ -1,0 +1,371 @@
+@layer components {
+  .dorato-button {
+    --button-border-width: 1px;
+    --button-radius-sm: 0.1875rem;
+    --button-radius-md: 0.3125rem;
+    --button-radius-lg: 0.625rem;
+  }
+
+  .dorato-button:is(
+    [data-size='lg'],
+    [data-size='xl'],
+    [data-size='icon-lg'],
+    [data-size='icon-xl'],
+    [data-size='icon']
+  ) {
+    --button-border-width: 1.2px;
+    --button-radius-sm: 0.225rem;
+    --button-radius-md: 0.375rem;
+    --button-radius-lg: 0.75rem;
+  }
+
+  .dorato-button svg {
+    display: block;
+    width: 1.5rem;
+    height: 1.5rem;
+    aspect-ratio: 1;
+  }
+
+  .dorato-button:is([data-size='xl'], [data-size='icon-xl']) svg {
+    width: 1.875rem;
+    height: 1.875rem;
+  }
+
+  .dorato-field-message {
+    margin-block-start: 0.25rem;
+  }
+
+  .dorato-text-field {
+    --field-height: 2.375rem;
+    --field-font-size: 0.6875rem;
+    --field-icon-size: 0.875rem;
+    --field-icon-circle: 1.5rem;
+    --field-surface: var(--color-white);
+    --field-color: var(--color-primary-60);
+    --field-border: var(--field-color);
+    --field-halo: var(--color-primary-20);
+    --field-border-width: 1.5px;
+    --field-halo-width: 2.25px;
+    --field-halo-opacity: 0.32;
+  }
+
+  .dorato-text-field[data-size='lg'] {
+    --field-height: 3rem;
+    --field-font-size: 0.875rem;
+    --field-icon-size: 1rem;
+    --field-icon-circle: 1.625rem;
+  }
+
+  .dorato-text-field[data-status='success'] {
+    --field-color: var(--color-secondary-70);
+    --field-border: var(--color-secondary-70);
+    --field-halo: var(--color-secondary-20);
+    --field-border-width: 1.25px;
+    --field-halo-opacity: 0.28;
+  }
+
+  .dorato-text-field[data-status='error'] {
+    --field-color: var(--color-danger-40);
+    --field-border: var(--color-danger-40);
+    --field-halo: var(--color-danger-20);
+    --field-border-width: 1.25px;
+    --field-halo-opacity: 0.28;
+  }
+
+  .dorato-text-field[data-disabled] {
+    --field-surface: var(--color-neutral-10);
+    --field-color: var(--color-neutral-60);
+    --field-border: var(--color-neutral-20);
+    --field-halo: var(--color-neutral-20);
+    --field-border-width: 1.25px;
+    --field-halo-opacity: 0.2;
+  }
+
+  .dorato-floating-field {
+    --field-label-offset: 1.75rem;
+    height: var(--field-height);
+    border-radius: 0.5rem;
+    color: var(--field-color);
+    font-size: var(--field-font-size);
+    font-weight: 700;
+    line-height: 1.375rem;
+  }
+
+  .dorato-floating-field[data-surface='solid'] {
+    background: var(--field-surface);
+  }
+
+  .dorato-floating-control {
+    color: var(--foreground);
+    caret-color: var(--field-color);
+  }
+
+  .dorato-floating-control:disabled {
+    color: var(--muted-foreground);
+  }
+
+  .dorato-label-measure {
+    padding-inline: var(--field-label-offset) 1.75rem;
+    visibility: hidden;
+  }
+
+  .dorato-field-outline {
+    overflow: visible;
+  }
+
+  .dorato-field-border {
+    stroke: var(--field-border);
+    stroke-width: calc(
+      var(--field-border-width) * var(--field-stroke-scale, 2)
+    );
+    clip-path: var(--field-border-clip, var(--field-border-clip-default));
+  }
+
+  .dorato-field-halo {
+    stroke: var(--field-halo);
+    stroke-width: calc(var(--field-halo-width) * var(--field-stroke-scale, 2));
+    opacity: var(--field-halo-opacity);
+    mask: var(--field-halo-mask, var(--field-halo-mask-default));
+  }
+
+  .dorato-field-notch {
+    display: var(--field-notch-display, none);
+  }
+
+  .dorato-floating-label {
+    inset-inline-start: 0.75rem;
+    top: 50%;
+    max-width: calc(100% - 1.5rem);
+    transform: translateY(-50%);
+    color: var(--field-color);
+    transition:
+      top 160ms ease-out,
+      inset-inline-start 160ms ease-out;
+  }
+
+  .dorato-floating-field[data-has-start] {
+    --field-label-offset: calc(1.25rem + var(--field-icon-circle));
+  }
+
+  .dorato-floating-field[data-has-start] .dorato-floating-label {
+    inset-inline-start: var(--field-label-offset);
+    max-width: calc(100% - var(--field-label-offset) - 0.75rem);
+  }
+
+  /* DOM selectors also cover RHF setValue and autofill without mirroring value in React state. */
+  .dorato-floating-field:is(
+    [data-float],
+    :focus-within,
+    :has(input:not(:placeholder-shown)),
+    :has(input:autofill),
+    :has(input:-webkit-autofill)
+  ) {
+    --field-stroke-scale: 1;
+    --field-halo-mask: none;
+    --field-border-clip: none;
+    --field-notch-display: block;
+    /* User refinement: 75% of Figma's 8px centered halo. */
+    --field-halo-width: 6px;
+  }
+
+  .dorato-text-field[data-status='default']:not([data-disabled])
+    .dorato-floating-field:is(
+      [data-float],
+      :focus-within,
+      :has(input:not(:placeholder-shown)),
+      :has(input:autofill),
+      :has(input:-webkit-autofill)
+    ) {
+    --field-halo-opacity: 0.4;
+  }
+
+  .dorato-floating-field:is(
+      [data-float],
+      :focus-within,
+      :has(input:not(:placeholder-shown)),
+      :has(input:autofill),
+      :has(input:-webkit-autofill)
+    )
+    .dorato-floating-label {
+    top: 0;
+    inset-inline-start: var(--field-label-offset);
+    max-width: calc(100% - var(--field-label-offset) - 1.75rem);
+  }
+
+  .dorato-start-adornment {
+    flex: none;
+    width: var(--field-icon-circle);
+    height: var(--field-icon-circle);
+    aspect-ratio: 1;
+  }
+
+  .dorato-start-adornment[data-circle] {
+    border: 1px solid var(--field-color);
+    border-radius: 50%;
+  }
+
+  .dorato-start-adornment svg {
+    display: block;
+    flex: none;
+    width: var(--field-icon-size);
+    height: var(--field-icon-size);
+    aspect-ratio: 1;
+  }
+
+  .dorato-status-icon {
+    width: 1.0625rem;
+    height: 1.0625rem;
+    flex-shrink: 0;
+    color: var(--field-border);
+  }
+
+  .dorato-text-field[data-status='success'] .dorato-status-icon {
+    animation: dorato-success-enter 240ms ease-out both;
+  }
+
+  .dorato-text-field[data-status='success'] .dorato-status-icon path {
+    stroke-dasharray: 12;
+    animation: dorato-check-draw 200ms 80ms ease-out both;
+  }
+
+  .dorato-text-field[data-status='error'] .dorato-field-row {
+    animation: dorato-error-shake 320ms ease-out;
+  }
+
+  @keyframes dorato-success-enter {
+    0% {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    70% {
+      opacity: 1;
+      transform: scale(1.08);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes dorato-check-draw {
+    from {
+      stroke-dashoffset: 12;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @keyframes dorato-error-shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    20% {
+      transform: translateX(-3px);
+    }
+    40% {
+      transform: translateX(3px);
+    }
+    60% {
+      transform: translateX(-2px);
+    }
+    80% {
+      transform: translateX(1px);
+    }
+  }
+
+  .dorato-end-adornment {
+    margin-inline-end: -0.5625rem;
+  }
+
+  .dorato-text-field .dorato-field-message {
+    margin-inline: 0.75rem;
+  }
+
+  .dorato-otp-slot {
+    width: 3.5rem;
+    max-width: 3.5rem;
+    height: 3.5rem;
+    border-color: var(--color-primary-50);
+    color: var(--foreground);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.5rem;
+    background: transparent;
+    caret-color: var(--primary);
+  }
+
+  .dorato-otp-row[data-filled] .dorato-otp-slot {
+    border-color: var(--color-primary-60);
+  }
+
+  .dorato-otp-slot:focus {
+    border-color: var(--primary);
+  }
+
+  .dorato-otp-row[data-status='confirmed'] .dorato-otp-slot {
+    border-color: var(--success);
+    color: var(--success);
+  }
+
+  .dorato-otp-row[data-status='error'] .dorato-otp-slot {
+    border-color: var(--color-danger-40);
+    color: var(--destructive);
+  }
+
+  .dark .dorato-text-field {
+    --field-surface: var(--card);
+    --field-color: var(--color-primary-30);
+    --field-halo: var(--color-primary-70);
+  }
+
+  .dark .dorato-text-field[data-status='success'] {
+    --field-color: var(--color-secondary-30);
+    --field-border: var(--color-secondary-30);
+    --field-halo: var(--color-secondary-80);
+  }
+
+  .dark .dorato-text-field[data-status='error'] {
+    --field-color: var(--destructive);
+    --field-border: var(--destructive);
+    --field-halo: var(--color-danger-60);
+  }
+
+  .dark .dorato-text-field[data-disabled] {
+    --field-color: var(--muted-foreground);
+    --field-border: var(--input);
+    --field-halo: var(--muted);
+  }
+
+  .dark .dorato-otp-slot {
+    border-color: var(--color-primary-30);
+  }
+
+  .dark .dorato-otp-row[data-filled] .dorato-otp-slot {
+    border-color: var(--color-primary-40);
+  }
+
+  .dark .dorato-otp-slot:focus {
+    border-color: var(--primary);
+  }
+
+  .dark .dorato-otp-row[data-status='confirmed'] .dorato-otp-slot {
+    border-color: var(--success);
+  }
+
+  .dark .dorato-otp-row[data-status='error'] .dorato-otp-slot {
+    border-color: var(--destructive);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dorato-field-row,
+    .dorato-status-icon,
+    .dorato-status-icon path {
+      animation: none !important;
+    }
+    .dorato-floating-label {
+      transition: none;
+    }
+  }
+}
