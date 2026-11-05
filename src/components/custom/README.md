@@ -2,7 +2,7 @@
 
 پایهٔ Input، Field و OTP، **Base UI 1.9.0** است. Button بر HTML + Radix Slot + CVA باقی می‌ماند و انیمیشن تعاملی آن با **Motion 14.9.0** اجرا می‌شود. dependencyهای مستقیم افزوده‌شده `@base-ui/react` و `motion` هستند؛ فرم با React Hook Form و Zod موجود مدیریت می‌شود و این دو ارتقا داده نشدند. آیکون‌ها طبق درخواست کاربر از `lucide-react` نصب‌شده می‌آیند؛ آیکون‌های Figma مثال‌اند.
 
-[تحقیق و ماتریس مقایسه](../../../docs/component-foundations.md) · [ADR](../../../docs/adr/0001-component-foundations.md) · [توکن‌ها و RTL](../../styles/README.md)
+[توکن‌ها و RTL](../../styles/README.md)
 
 ## مرز مسئولیت‌ها
 
@@ -16,9 +16,27 @@
 | `otp-input.tsx`                                            | خانه‌های OTP، normalization و نمایش زمان/ارسال مجدد      |
 | `loading-button.tsx`                                       | جلوگیری از کلیک مجدد و `aria-busy` هنگام عملیات          |
 | `theme-toggle.tsx`                                         | تغییر تم موجود                                           |
+| `custom-toast.tsx`                                         | ظاهر و آیکون‌های متحرک اعلان‌ها بر Sonner                |
 | `page-loading.tsx` / `empty-state.tsx` / `error-state.tsx` | وضعیت‌های مشترک موجود                                    |
 
 این پوشه به featureها وابسته نیست. schema، خطای سرور، deadline و API در feature می‌مانند. Switch، Checkbox و Radio طبق پاسخ کاربر خارج از تسک‌اند. پیش‌نمایش موجود `/dev/components` مثال‌های اجرایی دارد و در production route ندارد.
+
+## CustomToast
+
+`CustomToast` یک‌بار در AppProviders نصب است و اعلان‌ها را بالای صفحه و وسط نمایش می‌دهد. چهار متد پروژه بر صف و کنترل‌های Sonner بنا شده‌اند:
+
+```tsx
+import { toast } from '@/components/custom/toast';
+
+toast.success('تغییرات ذخیره شد', {
+  description: 'تنظیمات با موفقیت به‌روزرسانی شدند.',
+});
+toast.error('عملیات انجام نشد', { description: 'دوباره تلاش کنید.' });
+toast.info('اطلاعات تازه در دسترس است');
+toast.warning('پیش از ادامه بررسی کنید');
+```
+
+نوار زمان پس از ۵ ثانیه تمام و اعلان بسته می‌شود؛ `duration` قابل تغییر است و `Infinity` اعلان را نگه می‌دارد. زمان و نوار با hover، فوکوس داخل اعلان‌ها یا پنهان‌شدن صفحه مکث می‌کنند. گزینه‌های `id`، `onDismiss` و `onAutoClose` قابل استفاده‌اند؛ `toast.dismiss(id)` بستن برنامه‌ای را انجام می‌دهد. آیکون وسط عنوان و توضیح قرار می‌گیرد و دکمهٔ بستن ناحیهٔ ۴۴ پیکسلی دارد. حرکت وضعیت‌ها کوتاه است و `prefers-reduced-motion` رعایت می‌شود. چهار نمونهٔ قابل کلیک در `/dev/components` وجود دارد. خطاهای OTP در Toast نمایش داده می‌شوند؛ `status="error"` روی OtpInput کادر قرمز و `aria-invalid` را بدون تکرار متن داخل فرم فعال می‌کند.
 
 ## Button و LoadingButton
 
@@ -35,7 +53,7 @@
 
 aliasهای قبلی `size="default"` و `size="icon"` حفظ شده‌اند؛ icon قدیمی ۴۴ پیکسل است. ارتفاع md/lg/xl برابر ۳۵/۴۲/۵۶ است؛ هدف لمسی را در مصرف موبایل با lg/xl انتخاب کنید. رنگ hover/active با CSS و حرکت دکمه با Motion مدیریت می‌شود. Icon-only باید نام دسترس‌پذیر بگیرد. asChild برای عنصر تعاملی مناسب مثل Link است، نه div؛ handler دارای side effect روی فرزند غیرفعال نگذارید.
 
-`hoverScale` و `pressScale` کل دکمه، شامل متن و آیکون، را scale می‌کنند. پیش‌فرض solid/outline برابر 1.02 و 0.97 است؛ hover برای ghost برابر 1 و هر دو مقدار برای link برابر 1 است. فنر پیش‌فرض stiffness=450 و damping=30 دارد. disabled/loading و prefers-reduced-motion حرکت تعاملی ندارند. whileHover/whileTap/transition نیز props واقعی Motion هستند. کلاس‌های معمول bg-* و border-* روی خود دکمه اعمال می‌شوند.
+`hoverScale` و `pressScale` کل دکمه، شامل متن و آیکون، را scale می‌کنند. پیش‌فرض solid/outline برابر 1.02 و 0.97 است؛ hover برای ghost و link برابر 1 و press آن‌ها 0.97 است. variant متنی link زیرخط و پس‌زمینهٔ تعاملی ندارد؛ رنگ متن در hover/focus و press قوی‌تر می‌شود. فنر پیش‌فرض stiffness=450 و damping=30 دارد. disabled/loading و prefers-reduced-motion حرکت تعاملی ندارند. whileHover/whileTap/transition نیز props واقعی Motion هستند. کلاس‌های معمول bg-* و border-* روی خود دکمه اعمال می‌شوند.
 
 ```tsx
 <Button hoverScale={1.04} pressScale={0.96}>ذخیره</Button>
@@ -60,7 +78,7 @@ import { LoadingButton } from '@/components/custom/loading-button';
 
 LoadingButton همان props به‌جز asChild، به‌علاوهٔ `isLoading` و `loadingText` دارد. هنگام loading آیکون‌های کناری حذف، Spinner جایگزین و کنترل غیرفعال می‌شود؛ متن loading در اندازهٔ icon برای screen reader حفظ می‌شود.
 
-ghost پیش‌فرض شفاف است؛ hover و active از foreground با شفافیت ۵٪ و ۱۰٪ استفاده می‌کنند. چشم رمز و تغییر تم ناحیهٔ گرد دارند. [مقایسهٔ پنج مرجع رسمی و تصمیم ظاهر آیکون‌ها](../../../docs/icon-button-review.md) علت حذف پس‌زمینهٔ زرد را توضیح می‌دهد.
+ghost پیش‌فرض شفاف است؛ hover و active از foreground با شفافیت ۵٪ و ۱۰٪ استفاده می‌کنند. چشم رمز و تغییر تم ناحیهٔ گرد دارند.
 
 ## TextField و PasswordField
 
@@ -83,6 +101,8 @@ label رشته‌ای و الزامی است. props استاندارد input ش�
 | `className` / `containerClassName` | استایل input / ریشهٔ فیلد                                      |
 
 label واقعی جای placeholder را نمی‌گیرد. با placeholder واقعی، label همیشه بالا می‌ماند؛ در حالت عادی placeholder تک‌فاصله فقط تشخیص خالی‌بودن DOM را ممکن می‌کند. Filled، defaultValue، controlled value، RHF setValue/reset و pseudo-classهای autofill از DOM تشخیص داده می‌شوند؛ state موازی value وجود ندارد. قاب نهایی با مستطیل SVG پیوسته و mask بریدگی label رسم می‌شود؛ ResizeObserver فقط اندازهٔ قاب و متن را اندازه می‌گیرد. SVG از accessibility مخفی است و روی سطح شفاف هم پس‌زمینه را نمی‌پوشاند. ورودی‌های دارای UI بومی مثل date/time همیشه label بالا دارند؛ wrapper برای file، hidden، checkbox، radio و range نیست.
+
+رنگ caret از ترکیب ۸۰٪ `--field-border` با ۲۰٪ سفید می‌آید و نسخهٔ روشن‌تر رنگ قاب در وضعیت عادی/خطا/موفقیت و تم است. فضای متنِ ورودی با line-height=1.5 و padding عمودی از ارتفاع فیلد جدا می‌شود؛ input همچنان کل ارتفاع کلیک‌پذیر را حفظ می‌کند. caret بومی مرورگر است و با نشانگر ساختگی جایگزین نشده تا selection، جابه‌جایی با کلیدها و IME حفظ شوند. ضخامت و چشمک‌زدن نهایی به تنظیمات مرورگر/سیستم‌عامل وابسته‌اند؛ CSS استانداردی برای caret-width وجود ندارد و افزایش جزئی ضخامت در این نسخه اجرا نشده است.
 
 خود input برای email/tel/url/password پیش‌فرض LTR است؛ label و قاب جهت صفحه را حفظ می‌کنند. برای متن آزاد در صورت نیاز dir=auto بدهید. text-left جهت داده را عوض نمی‌کند. PasswordField همان props به‌جز type/endAdornment را دارد؛ پیش‌فرض LTR و کنترل چشم ۳۲ پیکسلی با نام، aria-pressed و aria-controls دارد.
 
@@ -156,10 +176,11 @@ label و length الزامی‌اند؛ length عدد صحیح مثبت از پ�
 | `value` / `defaultValue`          | controlled / uncontrolled                                                                                             |
 | `onValueChange(value, details)`   | مقدار normalized ASCII؛ adapter به field.onChange                                                                     |
 | `onValueComplete(value, details)` | تکمیل خانه‌ها؛ به معنی تأیید سرور یا submit خودکار نیست                                                               |
+| `autoSubmit`                      | درخواست submit فرم پس از تکمیل تایپ یا paste؛ پیش‌فرض false، در صفحه‌های تأیید auth فعال است                          |
 | `ref`                             | اولین خانه برای focus خطای RHF                                                                                        |
 | `onBlur`                          | خروج از کل گروه، نه جابه‌جایی داخلی                                                                                   |
 | `error` / `description`           | پیام‌های متصل به کنترل                                                                                                |
-| `status`                          | default یا confirmed؛ خطا اولویت دارد                                                                                 |
+| `status`                          | default، confirmed یا error؛ prop خطا اولویت دارد                                                                     |
 | `remainingSeconds`                | زمان مصرف‌کننده؛ بدون timer داخلی                                                                                     |
 | `onResend` / `resendDisabled`     | درخواست ارسال مجدد در feature؛ محدودیت واقعی سمت سرور                                                                 |
 | سایر props                        | id/name/form/required/disabled/readOnly/mask/autoComplete/autoFocus/onValueInvalid/className؛ autofocus پیش‌فرض false |
@@ -210,10 +231,8 @@ Controller از react-hook-form، z از zod و resolver/schema/hook از فای
 - OTP به‌جای Roboto خارجی از IRANYekan با وزن واقعی ۷۰۰ استفاده می‌کند. متن success/error از نقش‌های خوانای success/destructive می‌آید؛ رنگ کم‌کنتراست Success/50 یا Danger/40 کپی نشد.
 - مرز خانه‌های OTP در روشن از Primary/30 به Primary/50 و هنگام ورود از Primary/50 به Primary/60 تغییر کرد؛ مرز confirmed از نقش success می‌آید تا شکل کنترل حداقل کنتراست ۳:۱ داشته باشد. مقادیر اصلی Figma در specification تحقیق حفظ شده‌اند.
 - Focus و reduced-motion افزوده شدند. label در disabledِ دارای مقدار بالا می‌ماند، اما disabled واقعی focus نمی‌شود. وضعیت بیرون قاب تصمیم ترکیب API است؛ property مستقل منتشرشدهٔ Figma نیست.
-- هاله پس از بازخورد بصری کاربر به ۷۵٪ مقدار Figma کاهش یافت: عادی ۲٫۲۵px بیرونی، شناور ۶px مرکزی با ۳px در هر سمت؛ opacity رنگ‌ها مطابق مشخصات باقی است. [مقایسهٔ اختصاصی Floating Input](../../../docs/floating-input-review.md) منبع تصمیم هندسی است.
+- هاله پس از بازخورد بصری کاربر به ۷۵٪ مقدار Figma کاهش یافت: عادی ۲٫۲۵px بیرونی، شناور ۶px مرکزی با ۳px در هر سمت؛ opacity رنگ‌ها مطابق مشخصات باقی است.
 - آیکون وضعیت به درخواست کاربر روشن‌تر و هم‌رنگ قاب است: موفق Secondary/70 و خطا Danger/40؛ رنگ تیره‌تر label برای کنتراست متن حفظ می‌شود.
 - Dark Theme طراحی مستقلی در Figma ندارد؛ نگاشت فعلی برای کنترل‌ها مصرف شد. این تطبیق فنی است، نه تأیید طراحی نهایی Dark.
 
 ## اعتبارسنجی
-
-[گزارش اجرا و محدودیت‌ها](../../../docs/component-validation.md) نتایج build، lint و بررسی دستی را ثبت می‌کند. طبق تصمیم تیم، تست خودکار، ابزار تست و route آزمایشی جدید اضافه نشده است. autofill واقعی، SMS دستگاه و screen reader باید روی محیط هدف بررسی شوند؛ وجود API/CSS گواهی آن رفتارها نیست.

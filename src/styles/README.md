@@ -2,7 +2,7 @@
 
 مرجع: صفحهٔ [Design system در Figma](https://www.figma.com/design/ykGLJC3Zr0EMcpY564z6BV/Dorato--Main-?node-id=11-3)، فریم‌های [Colors](https://www.figma.com/design/ykGLJC3Zr0EMcpY564z6BV/Dorato--Main-?node-id=15-2) و [Typography](https://www.figma.com/design/ykGLJC3Zr0EMcpY564z6BV/Dorato--Main-?node-id=59-35). استخراج در ۲۰۲۶/۱۱/۰۲.
 
-این گزارش مربوط به مرحلهٔ رنگ و تایپوگرافی است. در مرحلهٔ بعد، Input، Button، OTP و FormField بر همان توکن‌ها ساخته شدند؛ [API و اختلاف‌های طراحی](../components/custom/README.md) و [تحقیق Foundation](../../docs/component-foundations.md) جداگانه ثبت شده‌اند. هندسهٔ کنترل‌ها در components.css و توکن Button/XLarge در typography.css قرار دارد؛ ۲۵ سبک اولیه حفظ شده‌اند.
+این گزارش مربوط به مرحلهٔ رنگ و تایپوگرافی است. Input، Button، OTP و FormField از همان توکن‌ها استفاده می‌کنند. هندسهٔ کنترل‌ها در `components.css` و توکن Button/XLarge در `typography.css` قرار دارد. [راهنمای کامپوننت‌ها](../components/custom/README.md)
 
 ## تصمیم معماری و منابع بررسی‌شده
 
@@ -100,7 +100,7 @@ Tailwind اجرای variantهای `dark:` را بر عهده دارد و به‌
 
 فیگما breakpoint مشخصی برای تغییر Heading Mobile تعیین نکرده است؛ در مثال از `sm` موجود Tailwind استفاده شده و انتخاب آن با صفحه است. `text-label-sm` دقیقاً مطابق Figma ثبت شده، اما ۸ پیکسل برای اطلاعات ضروری، متن فرم یا بدنه مناسب نیست. اندازهٔ body پیش‌فرض `Paragraph/Medium` است. کلاس‌های استاندارد فعلی مثل `text-sm` برای سازگاری حفظ شده‌اند؛ مهاجرت کامل صفحات به Text Styleها جزو این مرحله نیست.
 
-فونت‌های `src/assets/fonts/iranyekan` از فایل‌های محلی پروژهٔ نمونه منتقل شدند: `light.ttf` با وزن 300، `Qs_Iranyekan.ttf` با وزن 400 (در مقصد `regular.ttf`)، `medium.ttf` با وزن 500 و `bold.ttf` با وزن 700. همه `font-display: swap` دارند؛ Vazirmatn نصب‌شده fallback است. وزن مصنوعی مرورگر غیرفعال است؛ وزن‌هایی مثل 800 که فعلاً در صفحات قدیمی هستند به نزدیک‌ترین فایل واقعی موجود می‌رسند. فایل مجوز مستقلی در پوشهٔ منبع وجود نداشت؛ حق انتشار فونت باید مطابق مجوز تیم بررسی شود.
+فونت‌های محلی `src/assets/fonts/iranyekan` از پروژهٔ نمونه منتقل شدند و در قالب WOFF2 با وزن‌های ۳۰۰، ۴۰۰، ۵۰۰، ۷۰۰، ۸۰۰ و ۹۰۰ بارگیری می‌شوند. همه `font-display: swap` دارند و Vazirmatn نصب‌شده فونت جایگزین است. وزن مصنوعی مرورگر غیرفعال است. فایل مجوز مستقلی در پوشهٔ منبع وجود نداشت؛ حق انتشار فونت باید مطابق مجوز تیم بررسی شود.
 
 ## زیرساخت RTL و مبنای تحقیق
 

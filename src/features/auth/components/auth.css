@@ -1,0 +1,208 @@
+@layer components {
+  .auth-layout {
+    --auth-surface: var(--color-white);
+    --auth-card-shadow: 0 21px 24px 4px
+      color-mix(in srgb, var(--color-black) 24%, transparent);
+    --auth-gap: 0.5rem;
+    --auth-form-gap: 0.5rem;
+    --auth-action-height: 2.75rem;
+    --auth-tabs-height: 3rem;
+    --auth-brand-size: clamp(4rem, 18vw, 5rem);
+    --auth-wordmark-size: clamp(1.75rem, 8vw, 2.25rem);
+    --auth-inline-space: max(
+      1rem,
+      env(safe-area-inset-left),
+      env(safe-area-inset-right)
+    );
+    min-height: 100svh;
+    min-height: 100dvh;
+    gap: 0.75rem;
+    padding-block: calc(1rem + env(safe-area-inset-top))
+      max(0.5rem, env(safe-area-inset-bottom));
+  }
+
+  .auth-backdrop {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: 0;
+    z-index: -1;
+    width: min(100%, 28rem);
+    aspect-ratio: 852 / 400;
+    margin-inline: auto;
+    background: url('../../../assets/auth/mobile-background.webp') center top /
+      100% auto no-repeat;
+    mask-image: linear-gradient(black 85%, transparent);
+    pointer-events: none;
+  }
+
+  .auth-mobile-art {
+    flex: none;
+    width: min(100%, 28rem);
+    aspect-ratio: 852 / 380;
+    margin-block-start: auto;
+    background: url('../../../assets/auth/mobile-background.webp') center
+      bottom / 100% auto no-repeat;
+    mask-image: linear-gradient(transparent, black 10%);
+    pointer-events: none;
+  }
+
+  .auth-brand {
+    flex-direction: column;
+    margin-block-start: auto;
+  }
+
+  .auth-card {
+    flex: none;
+    width: calc(100% - 2 * var(--auth-inline-space));
+    min-width: 0;
+    max-width: 25rem;
+    padding-inline: 0.25rem;
+  }
+
+  .auth-heading {
+    font-size: var(--text-heading-3);
+    line-height: 1.5;
+  }
+
+  .auth-action {
+    height: var(--auth-action-height);
+    min-height: 2.75rem;
+  }
+
+  .auth-card .dorato-floating-control {
+    font-size: 1rem;
+  }
+
+  .dark .auth-layout {
+    --auth-surface: var(--card);
+  }
+
+  .dark .auth-backdrop,
+  .dark .auth-mobile-art {
+    opacity: 0.2;
+  }
+
+  .auth-card .dorato-otp-slot {
+    max-width: 3.5rem;
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  @media (width < 64rem) {
+    .auth-card .dorato-text-field[data-size='lg'] {
+      --field-height: 2.75rem;
+    }
+  }
+
+  @media (width < 64rem) and (max-height: 44rem) {
+    .auth-layout {
+      --auth-brand-size: 3rem;
+      --auth-wordmark-size: 1.75rem;
+      gap: 0.5rem;
+      padding-block-start: calc(0.5rem + env(safe-area-inset-top));
+    }
+
+    .auth-brand {
+      flex-direction: row;
+      gap: 0.5rem;
+    }
+
+    .auth-heading {
+      font-size: var(--text-heading-4);
+    }
+
+    .auth-backdrop {
+      display: none;
+    }
+
+    .auth-mobile-art {
+      width: clamp(8rem, calc((100svh - 29rem) * 1.2), 28rem);
+      max-width: 100%;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .auth-layout {
+      --auth-gap: 1rem;
+      --auth-form-gap: 1rem;
+      gap: 1.5rem;
+      --auth-brand-size: 6.5625rem;
+      --auth-wordmark-size: 2.875rem;
+      padding: calc(clamp(0.5rem, 2svh, 1.5rem) + env(safe-area-inset-top))
+        var(--auth-inline-space) calc(1rem + env(safe-area-inset-bottom));
+    }
+
+    .auth-backdrop {
+      position: fixed;
+      inset: 0;
+      width: auto;
+      height: 100lvh;
+      aspect-ratio: auto;
+      background: url('../../../assets/auth/desktop-background.webp') center /
+        cover no-repeat;
+      mask-image: none;
+    }
+
+    .auth-mobile-art {
+      display: none;
+    }
+
+    .auth-brand {
+      margin-block-start: 0.75rem;
+    }
+
+    .auth-card {
+      max-width: 34rem;
+      width: 100%;
+      padding: 1.25rem 3rem;
+      border-radius: 1rem;
+      background: var(--auth-surface);
+      box-shadow: var(--auth-card-shadow);
+    }
+
+    .auth-heading {
+      font-size: var(--text-heading-1);
+      line-height: 1.5;
+    }
+  }
+
+  @media (min-width: 64rem) and (min-height: 60rem) {
+    .auth-layout {
+      --auth-form-gap: 1.25rem;
+      --auth-action-height: 3.5rem;
+      --auth-tabs-height: 3.5rem;
+      --auth-brand-size: 10rem;
+      --auth-wordmark-size: 3.5625rem;
+      padding-block: 2rem;
+    }
+
+    .auth-card {
+      max-width: 38rem;
+      padding: 1.5rem 4.25rem;
+    }
+
+    .auth-heading {
+      font-size: var(--text-display-3);
+    }
+  }
+
+  @media (min-width: 64rem) and (max-height: 53rem) {
+    .auth-layout {
+      --auth-gap: 0.75rem;
+      --auth-form-gap: 0.75rem;
+      --auth-brand-size: 5rem;
+      --auth-wordmark-size: 2.375rem;
+      gap: 1.25rem;
+      padding-block: calc(0.75rem + env(safe-area-inset-top))
+        calc(0.75rem + env(safe-area-inset-bottom));
+    }
+
+    .auth-card {
+      padding-block: 1rem;
+    }
+
+    .auth-heading {
+      font-size: var(--text-heading-3);
+    }
+  }
+}

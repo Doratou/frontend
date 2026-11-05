@@ -33,7 +33,7 @@ export function FormField({
       )}
       {children}
       {description && (
-        <Field.Description className="dorato-field-message text-caption text-muted-foreground">
+        <Field.Description className="dorato-field-message mt-1 text-caption text-muted-foreground">
           {description}
         </Field.Description>
       )}
@@ -41,7 +41,7 @@ export function FormField({
         <Field.Error
           match
           role="alert"
-          className="dorato-field-message text-caption text-destructive"
+          className="dorato-field-message mt-1 text-caption text-destructive"
         >
           {error}
         </Field.Error>

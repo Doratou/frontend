@@ -1,7 +1,11 @@
+import { preload } from 'react-dom';
 import { createBrowserRouter, type RouteObject } from 'react-router';
+import desktopAuthBackground from '@/assets/auth/desktop-background.webp';
+import mobileAuthBackground from '@/assets/auth/mobile-background.webp';
 import { PublicLayout } from '@/app/layouts/public-layout';
 import { RouteError } from '@/app/pages/route-error';
 import { PageLoading } from '@/components/custom/page-loading';
+import { authViews } from '@/features/auth/config';
 
 export const routes: RouteObject[] = [
   {
@@ -11,7 +15,6 @@ export const routes: RouteObject[] = [
     HydrateFallback: PageLoading,
     children: [
       { index: true, lazy: () => import('@/app/pages/home') },
-      { path: '/login', lazy: () => import('@/app/pages/login') },
       ...(import.meta.env.DEV
         ? [
             {
@@ -22,6 +25,24 @@ export const routes: RouteObject[] = [
         : []),
       { path: '*', lazy: () => import('@/app/pages/not-found') },
     ],
+  },
+  {
+    lazy: () => {
+      preload(
+        window.matchMedia('(min-width: 64rem)').matches
+          ? desktopAuthBackground
+          : mobileAuthBackground,
+        { as: 'image', fetchPriority: 'high' },
+      );
+      return import('@/features/auth/components/auth-layout');
+    },
+    ErrorBoundary: RouteError,
+    HydrateFallback: PageLoading,
+    children: authViews.map(({ path, view }) => ({
+      path,
+      handle: view,
+      lazy: () => import('@/features/auth/components/auth-screen'),
+    })),
   },
 ];
 

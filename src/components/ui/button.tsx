@@ -15,7 +15,7 @@ const buttonVariants = cva(
           'border-[length:var(--button-border-width)] bg-transparent disabled:border-neutral-30 disabled:bg-neutral-10 disabled:text-neutral-50 data-disabled:border-neutral-30 data-disabled:bg-neutral-10 data-disabled:text-neutral-50',
         ghost:
           'bg-transparent hover:bg-foreground/5 active:bg-foreground/10 disabled:opacity-50 data-disabled:opacity-50',
-        link: 'bg-transparent text-primary underline-offset-4 hover:underline focus-visible:underline active:underline active:decoration-2 disabled:opacity-50 data-disabled:opacity-50',
+        link: 'bg-transparent text-primary no-underline hover:text-primary-70 focus-visible:text-primary-70 active:text-primary-80 disabled:opacity-50 data-disabled:opacity-50 dark:hover:text-primary-20 dark:focus-visible:text-primary-20 dark:active:text-primary-10',
       },
       tone: { primary: '', secondary: '', accent: '' },
       size: {
@@ -46,13 +46,13 @@ const buttonVariants = cva(
         variant: 'default',
         tone: 'secondary',
         className:
-          'bg-secondary-60 text-primary-80 hover:bg-secondary-70 hover:text-white active:bg-secondary-80 active:text-white dark:bg-secondary-50 dark:hover:bg-secondary-40 dark:hover:text-primary-80 dark:active:bg-secondary-30 dark:active:text-primary-80',
+          'bg-secondary-60 text-white hover:bg-secondary-70 active:bg-secondary-80 dark:bg-secondary-50 dark:hover:bg-secondary-40 dark:active:bg-secondary-30',
       },
       {
         variant: 'default',
         tone: 'accent',
         className:
-          'bg-accent-40 text-primary-80 hover:bg-accent-50 active:bg-accent-70 active:text-neutral-10 dark:active:bg-accent-50 dark:active:text-primary-80',
+          'bg-accent-40 text-white hover:bg-accent-50 active:bg-accent-70 dark:active:bg-accent-50',
       },
       {
         variant: 'outline',
@@ -64,13 +64,13 @@ const buttonVariants = cva(
         variant: 'outline',
         tone: 'secondary',
         className:
-          'border-secondary-70 text-secondary-80 hover:bg-secondary-10 active:bg-secondary-20 dark:border-secondary-30 dark:text-secondary-30 dark:hover:bg-secondary-80 dark:active:bg-secondary-80',
+          'border-secondary-70 text-secondary-60 hover:bg-secondary-10 active:bg-secondary-20 dark:border-secondary-30 dark:text-secondary-30 dark:hover:bg-secondary-80 dark:active:bg-secondary-80',
       },
       {
         variant: 'outline',
         tone: 'accent',
         className:
-          'border-accent-50 text-accent-70 hover:bg-accent-10 active:bg-accent-20 dark:border-accent-30 dark:text-accent-30 dark:hover:bg-accent-80 dark:active:bg-accent-80',
+          'border-accent-50 text-accent-50 hover:bg-accent-10 active:bg-accent-20 dark:border-accent-30 dark:text-accent-30 dark:hover:bg-accent-80 dark:active:bg-accent-80',
       },
     ],
     defaultVariants: {
@@ -145,7 +145,7 @@ export function Button({
   variant,
   disabled,
   hoverScale = variant === 'ghost' || variant === 'link' ? 1 : 1.02,
-  pressScale = variant === 'link' ? 1 : 0.97,
+  pressScale = 0.97,
   whileHover,
   whileTap,
   transition,
