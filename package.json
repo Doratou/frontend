@@ -8,6 +8,9 @@
     "npm": ">=11 <12"
   },
   "packageManager": "npm@11.19.0",
+  "overrides": {
+    "follow-redirects": "^1.16.2"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
