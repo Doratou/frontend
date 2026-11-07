@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router';
 import { PasswordField } from '@/components/custom/password-field';
 import { LoadingButton } from '@/components/custom/loading-button';
+import { toast } from '@/components/custom/toast';
 import { authApi } from '@/features/auth/api/auth-api';
 import type { ResetGrant } from '@/features/auth/api/contracts';
 import {
@@ -44,10 +45,10 @@ export function ResetPasswordForm({
               form.reset();
               flow.setResetGrant(null);
               flow.setChallenge(null);
-              void navigate('/login', {
-                replace: true,
-                state: { authNotice: 'password-reset' },
+              toast.success('رمز عبور تغییر کرد', {
+                description: 'اکنون وارد حساب شوید.',
               });
+              void navigate('/login', { replace: true });
             },
             onError: (error) =>
               applyAuthFieldErrors(error, form.setError, [

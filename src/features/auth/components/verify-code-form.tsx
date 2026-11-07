@@ -109,8 +109,11 @@ export function VerifyCodeForm({
                 form.reset();
                 flow.setChallenge(null);
                 flow.setRegistration(null);
-                if (result.type === 'authenticated') complete(result.user);
-                else {
+                if (result.type === 'authenticated') {
+                  if (challenge.purpose === 'signup')
+                    toast.success('حساب شما ساخته شد');
+                  complete(result.user);
+                } else {
                   flow.setResetGrant(result.grant);
                   void navigate('/reset-password', { replace: true });
                 }
@@ -175,6 +178,7 @@ export function VerifyCodeForm({
                     flow.setChallenge(next);
                     form.reset({ code: '' });
                     verify.reset();
+                    toast.success('کد تأیید دوباره ارسال شد');
                   },
                 },
               );
