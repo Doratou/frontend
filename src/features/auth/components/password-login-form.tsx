@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link, useLocation } from 'react-router';
+import { Link } from 'react-router';
 import { TextField } from '@/components/custom/text-field';
 import { PasswordField } from '@/components/custom/password-field';
 import { LoadingButton } from '@/components/custom/loading-button';
@@ -14,13 +14,6 @@ import { applyAuthFieldErrors } from './auth-form-errors';
 
 export function PasswordLoginForm({ disabled }: { disabled: boolean }) {
   const flow = useAuthFlow();
-  const location = useLocation();
-  const locationState: unknown = location.state;
-  const passwordReset =
-    !!locationState &&
-    typeof locationState === 'object' &&
-    'authNotice' in locationState &&
-    locationState.authNotice === 'password-reset';
   const complete = useCompleteSignIn();
   const login = useAuthMutation(authApi.signIn);
   const form = useForm<SignInValues>({
@@ -80,11 +73,6 @@ export function PasswordLoginForm({ disabled }: { disabled: boolean }) {
       >
         <Link to="/forgot-password">رمز عبور خود را فراموش کردید؟</Link>
       </Button>
-      {passwordReset && (
-        <p role="status" className="text-caption text-success">
-          رمز عبور تغییر کرد. اکنون وارد حساب شوید.
-        </p>
-      )}
       <LoadingButton
         type="submit"
         size="lg"
