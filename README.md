@@ -84,17 +84,16 @@ src/
 
 ## دستورات
 
-| دستور                  | کاربرد                                            |
-| ---------------------- | ------------------------------------------------- |
-| `npm run dev`          | اجرای توسعه                                       |
-| `npm run typecheck`    | بررسی TypeScript                                  |
-| `npm run check:auth`   | بررسی قرارداد auth با transport نمونه و بدون شبکه |
-| `npm run lint`         | ESLint و مرز importها، بدون warning مجاز          |
-| `npm run format`       | فرمت کد و مرتب‌کردن کلاس‌های Tailwind             |
-| `npm run format:check` | بررسی فرمت بدون تغییر فایل                        |
-| `npm run build`        | بررسی TypeScript و ساخت `dist/`                   |
-| `npm run preview`      | نمایش build محلی                                  |
-| `npm run check`        | بررسی فرمت، lint، TypeScript و build              |
+| دستور                  | کاربرد                                   |
+| ---------------------- | ---------------------------------------- |
+| `npm run dev`          | اجرای توسعه                              |
+| `npm run typecheck`    | بررسی TypeScript                         |
+| `npm run lint`         | ESLint و مرز importها، بدون warning مجاز |
+| `npm run format`       | فرمت کد و مرتب‌کردن کلاس‌های Tailwind    |
+| `npm run format:check` | بررسی فرمت بدون تغییر فایل               |
+| `npm run build`        | بررسی TypeScript و ساخت `dist/`          |
+| `npm run preview`      | نمایش build محلی                         |
+| `npm run check`        | بررسی فرمت، lint، TypeScript و build     |
 
 برای افزودن کامپوننت موردنیاز از CLI رسمی استفاده کنید؛ از نصب کل کتابخانه از قبل خودداری کنید:
 

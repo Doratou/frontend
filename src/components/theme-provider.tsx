@@ -21,7 +21,7 @@ function readPreference(): Theme {
   } catch {
     /* The theme still works when browser storage is disabled. */
   }
-  return 'system';
+  return 'light';
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -29,6 +29,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const systemDark = useSyncExternalStore(
     subscribe,
     () => window.matchMedia(systemThemeQuery).matches,
+    () => false,
   );
   const resolvedTheme =
     theme === 'system' ? (systemDark ? 'dark' : 'light') : theme;
