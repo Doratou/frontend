@@ -22,6 +22,7 @@ import { useCountdown } from '@/hooks/use-countdown';
 import { ApiError } from '@/lib/api/error';
 import { formatDateTime } from '@/utils/date';
 import { formatNumber } from '@/utils/format';
+import { FieldEnhancementsPreview } from '@/app/pages/dev/field-enhancements-preview';
 
 const previewOtpSchema = z.object({
   code: otpCodeSchema.pipe(z.string().length(5, 'کد نمونه باید ۵ رقم باشد.')),
@@ -87,14 +88,15 @@ export function Component() {
       <header className="space-y-3">
         <h1 className="text-3xl font-bold">پیش‌نمایش کامپوننت‌ها</h1>
         <p className="text-sm leading-7 text-muted-foreground">
-          فقط محیط توسعه؛ از داده نمونه استفاده کنید. این صفحه هیچ درخواست API
-          ارسال نمی‌کند.
+          فقط محیط توسعه؛ از داده نمونه استفاده کنید. مناسبت‌های تقویم از منبع
+          عمومی دریافت می‌شوند؛ اطلاعات فرم به سرور ارسال نمی‌شود.
         </p>
         <Button variant="outline" startIcon={<ArrowRight />} asChild>
           <Link to="/">بازگشت به خانه</Link>
         </Button>
       </header>
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <FieldEnhancementsPreview />
         <section className="space-y-5 rounded-2xl border bg-card p-6">
           <h2 className="text-xl font-bold">اعلان‌ها (CustomToast)</h2>
           <p className="text-paragraph-sm text-muted-foreground">
