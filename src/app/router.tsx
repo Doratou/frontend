@@ -66,7 +66,7 @@ export const routes: RouteObject[] = [
     children: [
       {
         path: 'poll',
-        element: <p>نظرسنجی</p>,
+        element: <p>sdafasdfkjsbdfjkasbdfjkasbdfajksbd</p>,
       },
       {
         path: 'notification',
