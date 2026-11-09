@@ -6,7 +6,7 @@ import { PublicLayout } from '@/app/layouts/public-layout';
 import { RouteError } from '@/app/pages/route-error';
 import { PageLoading } from '@/components/custom/page-loading';
 import { authViews } from '@/features/auth/config';
-import { DashboardLayout } from './layouts/AppLayout/AppLayout';
+import { DashboardLayout } from './layouts/AppLayout';
 
 export const routes: RouteObject[] = [
   {
@@ -46,15 +46,15 @@ export const routes: RouteObject[] = [
     })),
   },
   {
-    path: '/dev/sidebar',
+    path: '/home',
     element: <DashboardLayout />,
     children: [
       {
-        index: true,
-        element: <p>سلام</p>
-      }
-    ]
-  }
+        path: 'notification',
+        element: <p>نوتیفیکیشن</p>,
+      },
+    ],
+  },
 ];
 
 export const router = createBrowserRouter(routes);

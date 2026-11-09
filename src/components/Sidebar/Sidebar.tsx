@@ -9,7 +9,6 @@ import {
 } from './sidebar.config';
 import {
   getBackground,
-  getEkeepsMask,
   getLogo,
   type SidebarPage,
   type SidebarMode,
@@ -47,135 +46,17 @@ const BackgroundLayers: React.FC<BackgroundLayersProps> = ({
     isActive ? 'opacity-100' : 'opacity-0'
   }`;
 
-  if (page === 'homepage') {
-    return (
-      <div
-        className={`${wrapperTransitionClasses} h-full`}
-        style={{ width: `${width}px` }}
-        aria-hidden="true"
-      >
-        <img
-          src={bgSrc}
-          alt=""
-          draggable={false}
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover select-none"
-        />
-      </div>
-    );
-  }
-
-  const maskSrc = getEkeepsMask(mode);
-  const partBottomHeight = isOpen ? 396 : 400;
-  const partBottomChildTop = isOpen ? -628 : -624;
-  const maskPosY = isOpen ? 628 : 624;
-  const ext1Top = isOpen ? 934 : 938;
-  const ext2Top = isOpen ? 966 : 970;
-  const ext2Height = isOpen ? 26 : 22;
-  const fadeTop = isOpen ? 896 : 900;
-  const fadeHeight = isOpen ? 96 : 92;
-
-  const maskStyles: React.CSSProperties = {
-    top: `${partBottomChildTop}px`,
-    width: `${width}px`,
-    height: '1024px',
-    maskImage: `url(${maskSrc})`,
-    WebkitMaskImage: `url(${maskSrc})`,
-    maskMode: 'alpha',
-    maskRepeat: 'no-repeat',
-    WebkitMaskRepeat: 'no-repeat',
-    maskSize: `${width}px ${partBottomHeight}px`,
-    WebkitMaskSize: `${width}px ${partBottomHeight}px`,
-    maskPosition: `0px ${maskPosY}px`,
-    WebkitMaskPosition: `0px ${maskPosY}px`,
-  };
-
   return (
     <div
-      className={`${wrapperTransitionClasses} h-[992px]`}
+      className={`${wrapperTransitionClasses} h-full`}
       style={{ width: `${width}px` }}
       aria-hidden="true"
     >
-      {/* 1. part-top */}
-      <div
-        className="absolute top-0 left-0 h-[618px] overflow-hidden"
-        style={{ width: `${width}px` }}
-      >
-        <div
-          className="absolute top-0 left-0 h-[1024px]"
-          style={{ width: `${width}px` }}
-        >
-          <img
-            src={bgSrc}
-            alt=""
-            draggable={false}
-            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-          />
-        </div>
-      </div>
-
-      {/* 2. part-bottom */}
-      <div
-        className="absolute top-[538px] left-0 overflow-hidden"
-        style={{ width: `${width}px`, height: `${partBottomHeight}px` }}
-      >
-        <div className="absolute left-0" style={maskStyles}>
-          <img
-            src={bgSrc}
-            alt=""
-            draggable={false}
-            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-          />
-        </div>
-      </div>
-
-      {/* 3. ext-1 */}
-      <div
-        className="absolute left-0 h-[32px] overflow-hidden"
-        style={{ top: `${ext1Top}px`, width: `${width}px` }}
-      >
-        <div
-          className="absolute top-0 left-0 h-[1024px] -scale-y-100"
-          style={{ width: `${width}px` }}
-        >
-          <img
-            src={bgSrc}
-            alt=""
-            draggable={false}
-            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-          />
-        </div>
-      </div>
-
-      {/* 4. ext-2 */}
-      <div
-        className="absolute left-0 overflow-hidden"
-        style={{
-          top: `${ext2Top}px`,
-          width: `${width}px`,
-          height: `${ext2Height}px`,
-        }}
-      >
-        <div
-          className="absolute -top-[992px] left-0 h-[1024px]"
-          style={{ width: `${width}px` }}
-        >
-          <img
-            src={bgSrc}
-            alt=""
-            draggable={false}
-            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-          />
-        </div>
-      </div>
-
-      {/* 5. Ekeeps bg-fade */}
-      <div
-        className="pointer-events-none absolute left-0 z-1 bg-[linear-gradient(180deg,rgba(235,255,253,0)_0%,rgba(235,255,253,0.413)_25%,rgba(235,255,253,0.615)_60%,rgba(235,255,253,0.675)_100%)]"
-        style={{
-          top: `${fadeTop}px`,
-          height: `${fadeHeight}px`,
-          width: `${width}px`,
-        }}
+      <img
+        src={bgSrc}
+        alt=""
+        draggable={false}
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover select-none"
       />
     </div>
   );
@@ -243,6 +124,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             {/* Header */}
             <div className="flex w-full flex-row items-center justify-between">
+              <p></p>
+
               {/* Brand (Physical Right) */}
               <div className="flex flex-row items-center gap-[10px] pr-[8px]">
                 <div className="relative flex h-[52px] w-[48px] shrink-0 items-center justify-center">
@@ -273,7 +156,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {/* Navigation List (Open) */}
             <nav
               aria-label="منوی اصلی"
-              className="flex w-full flex-col gap-[6px]"
+              className="mt-6 flex w-full flex-col gap-[6px]"
             >
               {navItems.map((item) => {
                 const isActive = item.id === activeItemId;
@@ -369,7 +252,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {/* Navigation List (Closed) */}
             <nav
               aria-label="منوی اصلی"
-              className="flex flex-col items-center gap-[6px]"
+              className="mt-4 flex flex-col items-center gap-[6px]"
             >
               {navItems.map((item) => {
                 const isActive = item.id === activeItemId;
