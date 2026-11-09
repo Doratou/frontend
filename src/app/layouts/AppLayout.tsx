@@ -26,7 +26,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       {/* Main area: grows smoothly when sidebar collapses */}
       <main className="flex min-w-0 flex-1 flex-col gap-[10px]">
         <header className="h-[70px] shrink-0 rounded-[16px] bg-primary-30 p-[10px]" />
-        <div className="flex-1 overflow-auto rounded-[32px] p-[10px] outline-1 outline-primary-60/30 outline-dashed">
+        <div className="flex-1 overflow-auto rounded-[32px] p-[10px]">
           {children ?? <Outlet />}
         </div>
       </main>

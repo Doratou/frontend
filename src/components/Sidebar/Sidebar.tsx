@@ -137,6 +137,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             {/* Header */}
             <div className="flex w-full flex-row items-center justify-between">
+              <p></p>
               {/* Brand (Physical Right) */}
               <div className="flex flex-row items-center gap-[10px] pr-[8px]">
                 <div className="relative flex h-[52px] w-[48px] shrink-0 items-center justify-center">
