@@ -22,14 +22,21 @@ const TRANSPARENT_PNG_PLACEHOLDER =
  * import logoClosedEkeeps from '../../assets/sidebar/logo-closed-ekeeps.png';
  */
 
+import bgHomeOpen from '../../assets/sidebar/home-open.svg';
+import bgHomeClose from '../../assets/sidebar/home-close.svg';
+import bgEkeepOpen from '../../assets/sidebar/ekeep-open.svg';
+import bgEkeepClose from '../../assets/sidebar/ekeep-close.svg';
+import logoSidebarOpen from '../../assets/sidebar/logo-sidebar-open.svg';
+import logoSidebarClose from '../../assets/sidebar/logo-sidebar-close.svg';
+
 const BACKGROUNDS: Record<SidebarPage, Record<SidebarMode, string>> = {
   homepage: {
-    open: TRANSPARENT_PNG_PLACEHOLDER, // bg-homepage-open.png (350×992)
-    closed: TRANSPARENT_PNG_PLACEHOLDER, // bg-homepage-closed.png (100×992)
+    open: bgHomeOpen, // bg-homepage-open.png (350×992)
+    closed: bgHomeClose, // bg-homepage-closed.png (100×992)
   },
   ekeeps: {
-    open: TRANSPARENT_PNG_PLACEHOLDER, // bg-ekeeps-open.png (350×1024)
-    closed: TRANSPARENT_PNG_PLACEHOLDER, // bg-ekeeps-closed.png (100×1024)
+    open: bgEkeepOpen, // bg-ekeeps-open.png (350×1024)
+    closed: bgEkeepClose, // bg-ekeeps-closed.png (100×1024)
   },
 };
 
@@ -39,10 +46,10 @@ const EKEEPS_MASKS: Record<SidebarMode, string> = {
 };
 
 const LOGOS = {
-  open: TRANSPARENT_PNG_PLACEHOLDER, // logo-open.png (80×85)
+  open: logoSidebarOpen, // logo-open.png (80×85)
   closed: {
-    homepage: TRANSPARENT_PNG_PLACEHOLDER, // logo-closed-homepage.png (60×64)
-    ekeeps: TRANSPARENT_PNG_PLACEHOLDER, // logo-closed-ekeeps.png (60×64)
+    homepage: logoSidebarClose, // logo-closed-homepage.png (60×64)
+    ekeeps: logoSidebarClose, // logo-closed-ekeeps.png (60×64)
   },
 };
 

@@ -20,7 +20,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
     >
       {/* Sidebar container: hidden below 1024px (lg), visible on desktop */}
       <div className="hidden h-full shrink-0 lg:block">
-        <Sidebar page="ekeeps" {...sidebarProps} />
+        <Sidebar page="homepage" {...sidebarProps} />
       </div>
 
       {/* Main area: grows smoothly when sidebar collapses */}
