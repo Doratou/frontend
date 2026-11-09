@@ -31,7 +31,7 @@ export const SIDEBAR_NAV_ITEMS: Record<SidebarPage, SidebarNavItem[]> = {
     {
       id: 'dashboard',
       label: FIRST_HOMEPAGE_ITEM_LABEL,
-      href: '#dashboard',
+      href: '/home/',
       icon: LayoutGrid,
     },
     { id: 'crews', label: 'اکیپ‌ها', href: '/home/crews', icon: Users },
@@ -41,19 +41,19 @@ export const SIDEBAR_NAV_ITEMS: Record<SidebarPage, SidebarNavItem[]> = {
     { id: 'profile', label: 'پروفایل', href: '/home/profile', icon: User },
   ],
   ekeeps: [
-    { id: 'dashboard', label: 'داشبورد', href: '/home/dashboard', icon: LayoutGrid },
-    { id: 'notification', label: 'اعلانات', href: '/home/notification', icon: Bell },
-    { id: 'coins', label: 'هزینه‌ها و دنگ', href: '/home/coins', icon: Coins },
+    { id: 'dashboard', label: 'داشبورد', href: '/group/', icon: LayoutGrid },
+    { id: 'notification', label: 'اعلانات', href: '/group/notification', icon: Bell },
+    { id: 'coins', label: 'هزینه‌ها و دنگ', href: '/group/coins', icon: Coins },
     {
       id: 'checklist',
       label: 'چک‌لیست',
-      href: '/home/checklist',
+      href: '/group/checklist',
       icon: CheckSquare,
     },
-    { id: 'poll', label: 'نظرسنجی', href: '/home/poll', icon: BarChart2 },
-    { id: 'gift', label: 'قرعه‌کشی', href: '/home/gift', icon: Gift },
-    { id: 'gallery', label: 'گالری', href: '/home/gallery', icon: ImageIcon },
-    { id: 'assistant', label: 'همیار', href: '/home/assistant', icon: Sparkles },
+    { id: 'poll', label: 'نظرسنجی', href: '/group/poll', icon: BarChart2 },
+    { id: 'gift', label: 'قرعه‌کشی', href: '/group/gift', icon: Gift },
+    { id: 'gallery', label: 'گالری', href: '/group/gallery', icon: ImageIcon },
+    { id: 'assistant', label: 'همیار', href: '/group/assistant', icon: Sparkles },
   ],
 };
 

@@ -1,6 +1,6 @@
 // src/components/Sidebar/Sidebar.tsx
 import React, { useState } from 'react';
-import { NavLink } from 'react-router';
+import { NavLink, useLocation } from 'react-router';
 import { PanelRightClose, ArrowLeft, Home } from 'lucide-react';
 import {
   SIDEBAR_NAV_ITEMS,
@@ -22,7 +22,6 @@ export interface SidebarProps {
   collapsed?: boolean;
   defaultCollapsed?: boolean;
   onCollapsedChange?: (collapsed: boolean) => void;
-  activeItemId?: string;
   backHref?: string;
   className?: string;
 }
@@ -67,12 +66,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   collapsed: controlledCollapsed,
   defaultCollapsed = false,
   onCollapsedChange,
-  activeItemId = 'dashboard',
   backHref = '#',
   className = '',
 }) => {
   const [uncontrolledCollapsed, setUncontrolledCollapsed] =
     useState<boolean>(defaultCollapsed);
+
+  const location = useLocation();
 
   const isControlled = controlledCollapsed !== undefined;
   const isCollapsed = isControlled
@@ -90,6 +90,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const navItems = SIDEBAR_NAV_ITEMS[page];
   const openLogoSrc = getLogo(page, 'open');
   const closedLogoSrc = getLogo(page, 'closed');
+
+  const checkIsItemActive = (
+    href: string,
+    navLinkIsActive: boolean,
+  ): boolean => {
+    if (href.startsWith('#')) {
+      if (location.hash) {
+        return location.hash === href;
+      }
+      return href === '#dashboard';
+    }
+    return navLinkIsActive;
+  };
 
   const activeContentClasses =
     'opacity-100 visible transition-[opacity,visibility] duration-250 ease-out delay-150 motion-reduce:transition-none';
@@ -124,8 +137,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             {/* Header */}
             <div className="flex w-full flex-row items-center justify-between">
-              <p></p>
-
               {/* Brand (Physical Right) */}
               <div className="flex flex-row items-center gap-[10px] pr-[8px]">
                 <div className="relative flex h-[52px] w-[48px] shrink-0 items-center justify-center">
@@ -159,38 +170,54 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className="mt-6 flex w-full flex-col gap-[6px]"
             >
               {navItems.map((item) => {
-                const isActive = item.id === activeItemId;
                 const IconComponent = item.icon;
 
                 return (
                   <NavLink
                     key={item.id}
                     to={item.href}
-                    aria-current={isActive ? 'page' : undefined}
-                    className={`${theme.focusOutlineClass} relative flex h-[42px] w-full items-center gap-[10px] rounded-[12px] px-[14px] py-[9px] no-underline transition-colors duration-150 motion-reduce:transition-none ${
-                      isActive
-                        ? theme.activeItemClass
-                        : `bg-transparent ${theme.inactiveItemHoverClass}`
-                    }`}
+                    end
+                    className={({ isActive: navLinkIsActive }) => {
+                      const isActive = checkIsItemActive(
+                        item.href,
+                        navLinkIsActive,
+                      );
+                      return `${theme.focusOutlineClass} relative flex h-[42px] w-full items-center gap-[10px] rounded-[12px] px-[14px] py-[9px] no-underline transition-colors duration-150 motion-reduce:transition-none ${
+                        isActive
+                          ? theme.activeItemClass
+                          : `bg-transparent ${theme.inactiveItemHoverClass}`
+                      }`;
+                    }}
                   >
-                    {/* Active Bar Indicator */}
-                    {isActive && (
-                      <span
-                        aria-hidden="true"
-                        className={`absolute top-1/2 right-[2px] h-[22px] w-[3.5px] -translate-y-1/2 rounded-[2px] ${theme.activeIndicatorClass}`}
-                      />
-                    )}
+                    {({ isActive: navLinkIsActive }) => {
+                      const isActive = checkIsItemActive(
+                        item.href,
+                        navLinkIsActive,
+                      );
 
-                    {/* Icon 18x18 */}
-                    <IconComponent
-                      className="pointer-events-none h-[18px] w-[18px] shrink-0 text-primary-80"
-                      strokeWidth={1.75}
-                    />
+                      return (
+                        <>
+                          {/* Active Bar Indicator */}
+                          {isActive && (
+                            <span
+                              aria-hidden="true"
+                              className={`absolute top-1/2 right-[2px] h-[22px] w-[3.5px] -translate-y-1/2 rounded-[2px] ${theme.activeIndicatorClass}`}
+                            />
+                          )}
 
-                    {/* Label: 14px */}
-                    <span className="min-w-0 flex-1 truncate text-right text-[14px] leading-[22px] font-medium tracking-normal text-primary-80">
-                      {item.label}
-                    </span>
+                          {/* Icon 18x18 */}
+                          <IconComponent
+                            className="pointer-events-none h-[18px] w-[18px] shrink-0 text-primary-80"
+                            strokeWidth={1.75}
+                          />
+
+                          {/* Label: 14px */}
+                          <span className="min-w-0 flex-1 truncate text-right text-[14px] leading-[22px] font-medium tracking-normal text-primary-80">
+                            {item.label}
+                          </span>
+                        </>
+                      );
+                    }}
                   </NavLink>
                 );
               })}
@@ -255,7 +282,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className="mt-4 flex flex-col items-center gap-[6px]"
             >
               {navItems.map((item) => {
-                const isActive = item.id === activeItemId;
                 const IconComponent = item.icon;
 
                 return (
@@ -264,12 +290,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     to={item.href}
                     aria-label={item.label}
                     title={item.label}
-                    aria-current={isActive ? 'page' : undefined}
-                    className={`${theme.focusOutlineClass} flex h-[44px] w-[44px] items-center justify-center rounded-[14px] border-[1.5px] no-underline transition-all duration-150 motion-reduce:transition-none ${
-                      isActive
-                        ? `${theme.activeItemClass} ${theme.activeClosedBorderClass} shadow-[0_2px_3px_0_rgba(0,0,0,0.10)]`
-                        : `border-transparent bg-transparent ${theme.inactiveItemHoverClass}`
-                    }`}
+                    className={({ isActive: navLinkIsActive }) => {
+                      const isActive = checkIsItemActive(
+                        item.href,
+                        navLinkIsActive,
+                      );
+                      return `${theme.focusOutlineClass} flex h-[44px] w-[44px] items-center justify-center rounded-[14px] border-[1.5px] no-underline transition-all duration-150 motion-reduce:transition-none ${
+                        isActive
+                          ? `${theme.activeItemClass} ${theme.activeClosedBorderClass} shadow-[0_2px_3px_0_rgba(0,0,0,0.10)]`
+                          : `border-transparent bg-transparent ${theme.inactiveItemHoverClass}`
+                      }`;
+                    }}
                   >
                     <IconComponent
                       className="pointer-events-none h-[18px] w-[18px] text-primary-80"
