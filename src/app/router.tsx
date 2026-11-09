@@ -6,6 +6,7 @@ import { PublicLayout } from '@/app/layouts/public-layout';
 import { RouteError } from '@/app/pages/route-error';
 import { PageLoading } from '@/components/custom/page-loading';
 import { authViews } from '@/features/auth/config';
+import { DashboardLayout } from './layouts/AppLayout/AppLayout';
 
 export const routes: RouteObject[] = [
   {
@@ -44,6 +45,16 @@ export const routes: RouteObject[] = [
       lazy: () => import('@/features/auth/components/auth-screen'),
     })),
   },
+  {
+    path: '/dev/sidebar',
+    element: <DashboardLayout />,
+    children: [
+      {
+        index: true,
+        element: <p>سلام</p>
+      }
+    ]
+  }
 ];
 
 export const router = createBrowserRouter(routes);
