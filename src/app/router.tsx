@@ -65,6 +65,10 @@ export const routes: RouteObject[] = [
     element: <GroupLayout />,
     children: [
       {
+        index: true,
+        lazy: () => import('@/app/pages/group/dashboard'),
+      },
+      {
         path: 'poll',
         element: <p>sdafasdfkjsbdfjkasbdfjkasbdfajksbd</p>,
       },

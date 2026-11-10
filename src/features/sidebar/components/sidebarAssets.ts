@@ -1,6 +1,6 @@
 // src/components/Sidebar/sidebarAssets.ts
 
-export type SidebarPage = 'homepage' | 'ekeeps';
+export type SidebarPage = 'homepage' | 'group';
 export type SidebarMode = 'open' | 'closed';
 
 // تصویر شفاف ۱×۱ پیکسل موقت برای جلوگیری از خطای Build قبل از قرارگیری فایل‌های واقعی
@@ -24,8 +24,8 @@ const TRANSPARENT_PNG_PLACEHOLDER =
 
 import bgHomeOpen from '../../../assets/sidebar/home-open.svg';
 import bgHomeClose from '../../../assets/sidebar/home-close.svg';
-import bgEkeepOpen from '../../../assets/sidebar/ekeep-open.svg';
-import bgEkeepClose from '../../../assets/sidebar/ekeep-close.svg';
+import bgGroupOpen from '../../../assets/sidebar/group-open.svg';
+import bgGroupClose from '../../../assets/sidebar/group-close.svg';
 import logoSidebarOpen from '../../../assets/sidebar/logo-sidebar-open.svg';
 import logoSidebarClose from '../../../assets/sidebar/logo-sidebar-close.svg';
 
@@ -34,13 +34,13 @@ const BACKGROUNDS: Record<SidebarPage, Record<SidebarMode, string>> = {
     open: bgHomeOpen, // bg-homepage-open.png (350×992)
     closed: bgHomeClose, // bg-homepage-closed.png (100×992)
   },
-  ekeeps: {
-    open: bgEkeepOpen, // bg-ekeeps-open.png (350×1024)
-    closed: bgEkeepClose, // bg-ekeeps-closed.png (100×1024)
+  group: {
+    open: bgGroupOpen, // bg-group-open.png (350×1024)
+    closed: bgGroupClose, // bg-group-closed.png (100×1024)
   },
 };
 
-const EKEEPS_MASKS: Record<SidebarMode, string> = {
+const GROUP_MASKS: Record<SidebarMode, string> = {
   open: TRANSPARENT_PNG_PLACEHOLDER, // bg-ekeeps-open-mask.png (350×396)
   closed: TRANSPARENT_PNG_PLACEHOLDER, // bg-ekeeps-closed-mask.png (100×400)
 };
@@ -49,7 +49,7 @@ const LOGOS = {
   open: logoSidebarOpen, // logo-open.png (80×85)
   closed: {
     homepage: logoSidebarClose, // logo-closed-homepage.png (60×64)
-    ekeeps: logoSidebarClose, // logo-closed-ekeeps.png (60×64)
+    group: logoSidebarClose, // logo-closed-group.png (60×64)
   },
 };
 
@@ -57,8 +57,8 @@ export function getBackground(page: SidebarPage, mode: SidebarMode): string {
   return BACKGROUNDS[page][mode];
 }
 
-export function getEkeepsMask(mode: SidebarMode): string {
-  return EKEEPS_MASKS[mode];
+export function getGroupMask(mode: SidebarMode): string {
+  return GROUP_MASKS[mode];
 }
 
 export function getLogo(page: SidebarPage, mode: SidebarMode): string {

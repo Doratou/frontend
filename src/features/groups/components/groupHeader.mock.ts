@@ -1,38 +1,38 @@
-// src/components/EkeepHeader/ekeepHeader.mock.ts
-import { EKEEP_HEADER_ASSETS } from './ekeepHeaderAssets';
-import type { EkeepHeaderProps } from './EkeepHeader.tsx';
+// src/components/GroupHeader/groupHeader.mock.ts
+import { GROUP_HEADER_ASSETS } from './groupHeaderAssets';
+import type { GroupHeaderProps } from './GroupHeader.tsx';
 
-export const EKEEP_HEADER_MOCK_DATA: EkeepHeaderProps = {
+export const GROUP_HEADER_MOCK_DATA: GroupHeaderProps = {
   title: 'اکیپ سفر شمال ۱۴۰۵',
   description: 'هماهنگی سفر، دنگ، چک‌لیست و خاطره‌ها',
   statusLabel: 'فعال',
   typeLabel: 'گروه عادی',
-  groupPhotoSrc: EKEEP_HEADER_ASSETS.groupPhotoSample,
+  groupPhotoSrc: GROUP_HEADER_ASSETS.groupPhotoSample,
   members: [
     {
       id: '1',
       name: 'کاربر ۱',
-      avatarSrc: EKEEP_HEADER_ASSETS.memberAvatarSample,
+      avatarSrc: GROUP_HEADER_ASSETS.memberAvatarSample,
     },
     {
       id: '2',
       name: 'کاربر ۲',
-      avatarSrc: EKEEP_HEADER_ASSETS.memberAvatarSample,
+      avatarSrc: GROUP_HEADER_ASSETS.memberAvatarSample,
     },
     {
       id: '3',
       name: 'کاربر ۳',
-      avatarSrc: EKEEP_HEADER_ASSETS.memberAvatarSample,
+      avatarSrc: GROUP_HEADER_ASSETS.memberAvatarSample,
     },
     {
       id: '4',
       name: 'کاربر ۴',
-      avatarSrc: EKEEP_HEADER_ASSETS.memberAvatarSample,
+      avatarSrc: GROUP_HEADER_ASSETS.memberAvatarSample,
     },
     {
       id: '5',
       name: 'کاربر ۵',
-      avatarSrc: EKEEP_HEADER_ASSETS.memberAvatarSample,
+      avatarSrc: GROUP_HEADER_ASSETS.memberAvatarSample,
     },
   ],
   maxVisibleMembers: 3,
@@ -42,18 +42,18 @@ export const EKEEP_HEADER_MOCK_DATA: EkeepHeaderProps = {
   },
   creator: {
     name: 'علی رضایی',
-    avatarSrc: EKEEP_HEADER_ASSETS.creatorAvatarSample,
+    avatarSrc: GROUP_HEADER_ASSETS.creatorAvatarSample,
   },
   dateRangeLabel: 'از ۲۵ تا ۲۹ خرداد ۱۴۰۵',
 };
 
-export const ekeepHeaderMobileMock: EkeepHeaderProps = {
-  ...EKEEP_HEADER_MOCK_DATA,
+export const groupHeaderMobileMock: GroupHeaderProps = {
+  ...GROUP_HEADER_MOCK_DATA,
   members: [
     {
       id: '1',
       name: 'کاربر ۱',
-      avatarSrc: EKEEP_HEADER_ASSETS.memberAvatarSample,
+      avatarSrc: GROUP_HEADER_ASSETS.memberAvatarSample,
     },
     { id: '2', name: 'Ali' }, // نمایش با حرف اول 'A'
     { id: '3' }, // نمایش با آواتار پیش‌فرض

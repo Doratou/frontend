@@ -1,4 +1,4 @@
-// src/components/EkeepHeader/EkeepHeader.tsx
+// src/components/GroupHeader/GroupHeader.tsx
 import React from 'react';
 import {
   Settings,
@@ -10,21 +10,21 @@ import {
   User,
   Calendar,
 } from 'lucide-react';
-import { EKEEP_HEADER_ASSETS } from './ekeepHeaderAssets';
+import { GROUP_HEADER_ASSETS } from './groupHeaderAssets';
 
-export interface EkeepMemberItem {
+export interface GroupMemberItem {
   id: string;
   name?: string;
   avatarSrc?: string;
 }
 
-export interface EkeepHeaderProps {
+export interface GroupHeaderProps {
   title: string;
   description: string;
   statusLabel: string;
   typeLabel: string;
   groupPhotoSrc?: string;
-  members: EkeepMemberItem[];
+  members: GroupMemberItem[];
   maxVisibleMembers?: number;
   storage: { usedGb: number; totalGb: number };
   creator: { name: string; avatarSrc?: string };
@@ -45,12 +45,12 @@ export function toPersianDigits(n: number | string): string {
   return String(n).replace(/\d/g, (w) => faDigits[+w] ?? w);
 }
 
-export const EkeepHeader: React.FC<EkeepHeaderProps> = ({
+export const GroupHeader: React.FC<GroupHeaderProps> = ({
   title,
   description,
   statusLabel,
   typeLabel,
-  groupPhotoSrc = EKEEP_HEADER_ASSETS.groupPhotoSample,
+  groupPhotoSrc = GROUP_HEADER_ASSETS.groupPhotoSample,
   members = [],
   maxVisibleMembers = 3,
   storage,
@@ -93,7 +93,7 @@ export const EkeepHeader: React.FC<EkeepHeaderProps> = ({
           className="pointer-events-none absolute top-0 left-0 z-0 h-[168px] w-[1238px]"
         >
           <img
-            src={EKEEP_HEADER_ASSETS.banner}
+            src={GROUP_HEADER_ASSETS.banner}
             alt=""
             draggable={false}
             className="h-full w-full object-cover select-none"
@@ -211,7 +211,7 @@ export const EkeepHeader: React.FC<EkeepHeaderProps> = ({
                   <img
                     key={member.id}
                     src={
-                      member.avatarSrc || EKEEP_HEADER_ASSETS.memberAvatarSample
+                      member.avatarSrc || GROUP_HEADER_ASSETS.memberAvatarSample
                     }
                     alt={member.name || ''}
                     draggable={false}
@@ -272,7 +272,7 @@ export const EkeepHeader: React.FC<EkeepHeaderProps> = ({
             {creator.name}
           </span>
           <img
-            src={creator.avatarSrc || EKEEP_HEADER_ASSETS.creatorAvatarSample}
+            src={creator.avatarSrc || GROUP_HEADER_ASSETS.creatorAvatarSample}
             alt={creator.name}
             draggable={false}
             className="h-[18px] w-[18px] shrink-0 rounded-full select-none"
@@ -304,4 +304,4 @@ export const EkeepHeader: React.FC<EkeepHeaderProps> = ({
   );
 };
 
-export default EkeepHeader;
+export default GroupHeader;

@@ -1,4 +1,4 @@
-// src/components/Sidebar/sidebar.config.ts
+﻿// src/components/Sidebar/sidebar.config.ts
 import type { LucideIcon } from 'lucide-react';
 import {
   LayoutGrid,
@@ -40,7 +40,7 @@ export const SIDEBAR_NAV_ITEMS: Record<SidebarPage, SidebarNavItem[]> = {
     { id: 'wallet', label: 'کیف پول', href: '/home/wallet', icon: Wallet },
     { id: 'profile', label: 'پروفایل', href: '/home/profile', icon: User },
   ],
-  ekeeps: [
+  group: [
     { id: 'dashboard', label: 'داشبورد', href: '', icon: LayoutGrid },
     { id: 'notification', label: 'اعلانات', href: 'notification', icon: Bell },
     { id: 'coins', label: 'هزینه‌ها و دنگ', href: 'coins', icon: Coins },
@@ -78,7 +78,7 @@ export const SIDEBAR_PAGE_THEME: Record<SidebarPage, PageThemeClasses> = {
       'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-60',
     topGapClass: 'gap-[40px]',
   },
-  ekeeps: {
+  group: {
     rootBgClass: 'bg-secondary-10',
     activeItemClass: 'bg-secondary-20',
     inactiveItemHoverClass: 'hover:bg-secondary-20/50',

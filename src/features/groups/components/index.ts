@@ -1,9 +1,8 @@
-// src/components/EkeepHeader/index.ts
-export { EkeepHeader, default } from './EkeepHeader';
-export type { EkeepHeaderProps } from './EkeepHeader';
-export { EKEEP_HEADER_MOCK_DATA } from './ekeepHeader.mock';
-export { EKEEP_HEADER_ASSETS } from './ekeepHeaderAssets';
-// export { EkeepHeaderMobile, default } from './EkeepHeaderMobile';
-export { EkeepHeaderMobile } from './EkeepHeaderMobile';
-export type { EkeepHeaderMobileProps } from './EkeepHeaderMobile';
+// src/components/GroupHeader/index.ts
+export { GroupHeader, default } from './GroupHeader';
+export type { GroupHeaderProps } from './GroupHeader';
+export { GROUP_HEADER_MOCK_DATA, groupHeaderMobileMock } from './groupHeader.mock';
+export { GROUP_HEADER_ASSETS } from './groupHeaderAssets';
+// export { GroupHeaderMobile, default } from './GroupHeaderMobile';
+export { GroupHeaderMobile } from './GroupHeaderMobile';
 export { MemberAvatar } from './MemberAvatar';

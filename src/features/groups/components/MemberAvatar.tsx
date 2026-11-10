@@ -1,11 +1,11 @@
-// src/components/EkeepHeaderMobile/MemberAvatar.tsx
+// src/components/GroupHeaderMobile/MemberAvatar.tsx
 import React from 'react';
 import { User } from 'lucide-react';
-import { EKEEP_HEADER_ASSETS } from './ekeepHeaderAssets';
-import type { EkeepMemberItem } from './EkeepHeader';
+import { GROUP_HEADER_ASSETS } from './groupHeaderAssets';
+import type { GroupMemberItem } from './GroupHeader';
 
 export interface MemberAvatarProps {
-  member: EkeepMemberItem;
+  member: GroupMemberItem;
   style?: React.CSSProperties;
   className?: string;
 }
@@ -40,7 +40,7 @@ export const MemberAvatar: React.FC<MemberAvatarProps> = ({
         className={`relative flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-full bg-[#7771D9] select-none ${className}`}
       >
         <img
-          src={EKEEP_HEADER_ASSETS.memberAvatarInitialBg}
+          src={GROUP_HEADER_ASSETS.memberAvatarInitialBg}
           alt=""
           draggable={false}
           className="pointer-events-none absolute inset-0 h-full w-full rounded-full object-cover"
@@ -60,7 +60,7 @@ export const MemberAvatar: React.FC<MemberAvatarProps> = ({
       className={`relative flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-full bg-[#D7D4FF] text-[#3A3587] select-none ${className}`}
     >
       <img
-        src={EKEEP_HEADER_ASSETS.memberAvatarDefault}
+        src={GROUP_HEADER_ASSETS.memberAvatarDefault}
         alt=""
         draggable={false}
         className="pointer-events-none absolute inset-0 h-full w-full rounded-full object-cover"

@@ -1,4 +1,4 @@
-// src/components/EkeepHeader/ekeepHeaderAssets.ts
+// src/features/groups/components/groupHeaderAssets.ts
 
 // تصویر شفاف ۱×۱ پیکسل معتبر برای جلوگیری از خطای Build تا زمان قرارگیری فایل‌های واقعی
 const TRANSPARENT_PNG =
@@ -22,10 +22,10 @@ const TRANSPARENT_PNG =
  * import iconMetaUser from '@/assets/ekeep-header/icon-meta-user.png';
  */
 
-import EkeepBanner from '../../../assets/group/dashboard-header.svg';
+import GroupBanner from '../../../assets/group/dashboard-header.svg';
 
-export const EKEEP_HEADER_ASSETS = {
-  banner: EkeepBanner, // ekeep-header-banner.png (1238×218)
+export const GROUP_HEADER_ASSETS = {
+  banner: GroupBanner, // group-header-banner.png (1238×218)
   groupPhotoSample: TRANSPARENT_PNG, // group-photo-sample.png (132×132)
   memberAvatarSample: TRANSPARENT_PNG, // member-avatar-sample.png (32×32)
   creatorAvatarSample: TRANSPARENT_PNG, // creator-avatar-sample.png (24×24)
@@ -38,7 +38,7 @@ export const EKEEP_HEADER_ASSETS = {
   iconMetaCloud: TRANSPARENT_PNG, // icon-meta-cloud.png (20×20)
   iconMetaUser: TRANSPARENT_PNG, // icon-meta-user.png (20×20)
   iconMetaCalendar: TRANSPARENT_PNG, // icon-meta-calendar.png (20×20)
-  mobileBanner: EkeepBanner,          // ekeep-header-mobile-banner.png (1671×295)
+  mobileBanner: GroupBanner,          // group-header-mobile-banner.png (1671×295)
   memberAvatarDefault: TRANSPARENT_PNG,   // member-avatar-default.png (32×32)
   memberAvatarInitialBg: TRANSPARENT_PNG, // member-avatar-initial-bg.png (32×32)
 };

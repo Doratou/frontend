@@ -1,4 +1,4 @@
-// src/components/EkeepHeaderMobile/EkeepHeaderMobile.tsx
+// src/components/GroupHeaderMobile/GroupHeaderMobile.tsx
 import React from 'react';
 import {
   ArrowLeft,
@@ -11,14 +11,14 @@ import {
 } from 'lucide-react';
 import {
   toPersianDigits,
-  type EkeepHeaderProps,
-} from './EkeepHeader';
-import { EKEEP_HEADER_ASSETS } from './ekeepHeaderAssets';
+  type GroupHeaderProps,
+} from './GroupHeader';
+import { GROUP_HEADER_ASSETS } from './groupHeaderAssets';
 import { MemberAvatar } from './MemberAvatar';
 import { useSidebarStore } from '@/features/sidebar/stores/sidebar-store';
 
 
-// export interface EkeepHeaderMobileProps extends EkeepHeaderProps {
+// export interface GroupHeaderMobileProps extends GroupHeaderProps {
 //   onBackClick?: () => void;
 //   onMenuClick?: () => void; // TODO mobile navigation drawer
 // }
@@ -29,10 +29,10 @@ const MORE_ARIA_LABEL = 'گزینه‌های بیشتر';
 const BACK_ARIA_LABEL = 'بازگشت';
 const MENU_ARIA_LABEL = 'باز کردن منو';
 
-export const EkeepHeaderMobile: React.FC<EkeepHeaderProps> = ({
+export const GroupHeaderMobile: React.FC<GroupHeaderProps> = ({
   title,
   description,
-  groupPhotoSrc = EKEEP_HEADER_ASSETS.groupPhotoSample,
+  groupPhotoSrc = GROUP_HEADER_ASSETS.groupPhotoSample,
   members = [],
   maxVisibleMembers = 3,
   storage,
@@ -80,7 +80,7 @@ export const EkeepHeaderMobile: React.FC<EkeepHeaderProps> = ({
           className="pointer-events-none absolute inset-0 overflow-hidden"
         >
           <img
-            src={EKEEP_HEADER_ASSETS.mobileBanner}
+            src={GROUP_HEADER_ASSETS.mobileBanner}
             alt=""
             draggable={false}
             className="absolute top-0 left-0 h-full w-[1671px] max-w-none object-cover select-none"
@@ -258,4 +258,4 @@ export const EkeepHeaderMobile: React.FC<EkeepHeaderProps> = ({
   );
 };
 
-export default EkeepHeaderMobile;
+export default GroupHeaderMobile;
