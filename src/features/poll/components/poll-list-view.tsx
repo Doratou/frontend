@@ -75,16 +75,18 @@ export function PollListView() {
           <h1 className="text-heading-5 text-primary-80">نظرسنجی</h1>
         </div>
         {/* TODO: navigate to the create-poll page once it exists. */}
+        {/* On very narrow screens only the icon is shown; the label stays for screen readers. */}
         <Button
           tone="secondary"
           radius="md"
           endIcon={<Plus className="size-4" />}
+          className="shrink-0 max-[400px]:w-8.75 max-[400px]:px-0"
         >
-          نظرسنجی جدید
+          <span className="max-[400px]:sr-only">نظرسنجی جدید</span>
         </Button>
       </header>
 
-      <div className="flex flex-col gap-8 rounded-3xl border border-secondary-60 p-4 sm:p-6">
+      <div className="flex flex-col gap-8 rounded-3xl border border-secondary-60 p-3 sm:p-6">
         {isPending ? (
           <PollListSkeleton />
         ) : isError ? (

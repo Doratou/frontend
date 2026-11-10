@@ -50,7 +50,7 @@ export function PollCard({ poll }: { poll: Poll }) {
           ))}
         </ul>
 
-        <footer className="flex items-center justify-between gap-2">
+        <footer className="flex items-center justify-between gap-2 max-[400px]:flex-col max-[400px]:justify-center">
           <p className="flex items-center gap-1.5 text-caption text-neutral-60">
             <Users className="size-4 shrink-0" aria-hidden="true" />
             {formatNumber(poll.totalVotes)} رأی
