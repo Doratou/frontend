@@ -13,7 +13,7 @@ import {
   type SidebarPage,
   type SidebarMode,
 } from './sidebarAssets';
-import { useSidebarStore } from '@/features/sidebar/stores/sidebar-store';
+import { useSidebarStore } from '../stores/sidebar-store';
 
 const OPEN_WIDTH = 250;
 const CLOSED_WIDTH = 80;

@@ -22,12 +22,12 @@ const TRANSPARENT_PNG_PLACEHOLDER =
  * import logoClosedEkeeps from '../../assets/sidebar/logo-closed-ekeeps.png';
  */
 
-import bgHomeOpen from '../../assets/sidebar/home-open.svg';
-import bgHomeClose from '../../assets/sidebar/home-close.svg';
-import bgEkeepOpen from '../../assets/sidebar/ekeep-open.svg';
-import bgEkeepClose from '../../assets/sidebar/ekeep-close.svg';
-import logoSidebarOpen from '../../assets/sidebar/logo-sidebar-open.svg';
-import logoSidebarClose from '../../assets/sidebar/logo-sidebar-close.svg';
+import bgHomeOpen from '../../../assets/sidebar/home-open.svg';
+import bgHomeClose from '../../../assets/sidebar/home-close.svg';
+import bgEkeepOpen from '../../../assets/sidebar/ekeep-open.svg';
+import bgEkeepClose from '../../../assets/sidebar/ekeep-close.svg';
+import logoSidebarOpen from '../../../assets/sidebar/logo-sidebar-open.svg';
+import logoSidebarClose from '../../../assets/sidebar/logo-sidebar-close.svg';
 
 const BACKGROUNDS: Record<SidebarPage, Record<SidebarMode, string>> = {
   homepage: {
