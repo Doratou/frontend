@@ -12,13 +12,19 @@ import {
 } from 'lucide-react';
 import { EKEEP_HEADER_ASSETS } from './ekeepHeaderAssets';
 
+export interface EkeepMemberItem {
+  id: string;
+  name?: string;
+  avatarSrc?: string;
+}
+
 export interface EkeepHeaderProps {
   title: string;
   description: string;
   statusLabel: string;
   typeLabel: string;
   groupPhotoSrc?: string;
-  members: { id: string; name: string; avatarSrc?: string }[];
+  members: EkeepMemberItem[];
   maxVisibleMembers?: number;
   storage: { usedGb: number; totalGb: number };
   creator: { name: string; avatarSrc?: string };
@@ -34,7 +40,7 @@ const PREMIUM_LABEL = 'پریمیوم کردن';
 const MORE_ARIA_LABEL = 'گزینه‌های بیشتر';
 const CREATED_BY_LABEL = 'ایجاد شده توسط';
 
-function toPersianDigits(n: number | string): string {
+export function toPersianDigits(n: number | string): string {
   const faDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
   return String(n).replace(/\d/g, (w) => faDigits[+w] ?? w);
 }
@@ -94,58 +100,56 @@ export const EkeepHeader: React.FC<EkeepHeaderProps> = ({
           />
         </div>
 
-        {/* Banner Column: Action Buttons at Bottom-Left */}
-        <div className="relative z-1 flex h-full w-[540px] shrink-0 flex-col items-start justify-end overflow-hidden p-[12px]">
-          <div className="flex items-center gap-[8px]">
-            {/* 1. Settings button */}
-            <button
-              type="button"
-              onClick={onSettingsClick}
-              className="m-0 flex h-[28px] cursor-pointer items-center justify-center gap-[6px] rounded-[8px] border border-[#3A3587] bg-[#FFFFFF] px-[12px] text-[#3A3587] transition-all hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5650B0]"
+        {/* Action Buttons: Positioned ABSOLUTE at Bottom-Left so Info Column has full width */}
+        <div className="absolute bottom-[12px] left-[12px] z-2 flex items-center gap-[8px]">
+          {/* 1. Settings button */}
+          <button
+            type="button"
+            onClick={onSettingsClick}
+            className="m-0 flex h-[28px] cursor-pointer items-center justify-center gap-[6px] rounded-[8px] border border-[#3A3587] bg-[#FFFFFF] px-[12px] text-[#3A3587] transition-all hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5650B0]"
+          >
+            <span
+              dir="auto"
+              className="text-[13px] leading-[20px] font-medium tracking-normal whitespace-nowrap text-[#3A3587]"
             >
-              <span
-                dir="auto"
-                className="text-[13px] leading-[20px] font-medium tracking-normal whitespace-nowrap text-[#3A3587]"
-              >
-                {SETTINGS_LABEL}
-              </span>
-              <Settings className="pointer-events-none h-[15px] w-[15px] stroke-[1.8]" />
-            </button>
+              {SETTINGS_LABEL}
+            </span>
+            <Settings className="pointer-events-none h-[15px] w-[15px] stroke-[1.8]" />
+          </button>
 
-            {/* 2. Premium button */}
-            <button
-              type="button"
-              onClick={onPremiumClick}
-              className="m-0 flex h-[28px] cursor-pointer items-center justify-center gap-[6px] rounded-[8px] border border-[#D0901D] bg-[#FFF7EA] px-[12px] text-[#7F5201] transition-all hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5650B0]"
+          {/* 2. Premium button */}
+          <button
+            type="button"
+            onClick={onPremiumClick}
+            className="m-0 flex h-[28px] cursor-pointer items-center justify-center gap-[6px] rounded-[8px] border border-[#D0901D] bg-[#FFF7EA] px-[12px] text-[#7F5201] transition-all hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5650B0]"
+          >
+            <span
+              dir="auto"
+              className="text-[13px] leading-[20px] font-medium tracking-normal whitespace-nowrap text-[#7F5201]"
             >
-              <span
-                dir="auto"
-                className="text-[13px] leading-[20px] font-medium tracking-normal whitespace-nowrap text-[#7F5201]"
-              >
-                {PREMIUM_LABEL}
-              </span>
-              <Crown className="pointer-events-none h-[15px] w-[15px] stroke-[1.8] text-[#D0901D]" />
-            </button>
+              {PREMIUM_LABEL}
+            </span>
+            <Crown className="pointer-events-none h-[15px] w-[15px] stroke-[1.8] text-[#D0901D]" />
+          </button>
 
-            {/* 3. More button */}
-            <button
-              type="button"
-              onClick={onMoreClick}
-              aria-label={MORE_ARIA_LABEL}
-              className="m-0 flex h-[28px] w-[34px] cursor-pointer items-center justify-center rounded-[8px] border border-[#3A3587] bg-[#FFFFFF] px-[6px] text-[#3A3587] transition-all hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5650B0]"
-            >
-              <Ellipsis className="pointer-events-none h-[16px] w-[16px] stroke-[1.8]" />
-            </button>
-          </div>
+          {/* 3. More button */}
+          <button
+            type="button"
+            onClick={onMoreClick}
+            aria-label={MORE_ARIA_LABEL}
+            className="m-0 flex h-[28px] w-[34px] cursor-pointer items-center justify-center rounded-[8px] border border-[#3A3587] bg-[#FFFFFF] px-[6px] text-[#3A3587] transition-all hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5650B0]"
+          >
+            <Ellipsis className="pointer-events-none h-[16px] w-[16px] stroke-[1.8]" />
+          </button>
         </div>
 
-        {/* Info Column (Extends leftwards visibly over the banner) */}
-        <div className="relative z-1 flex flex-1 shrink-0 flex-col items-end gap-[6px] pt-[14px] pr-[16px] pb-[14px] pl-[16px]">
+        {/* Info Column (Now takes full available space on the left) */}
+        <div className="relative z-1 flex min-w-0 flex-1 flex-col items-end gap-[6px] pt-[14px] pr-[16px] pb-[14px] pl-[16px]">
           {/* Row 1: Title & Icon box */}
-          <div className="flex shrink-0 items-center gap-[8px] whitespace-nowrap">
+          <div className="flex max-w-full shrink-0 items-center gap-[8px] whitespace-nowrap">
             <h1
               dir="auto"
-              className="m-0 text-right text-[20px] leading-[30px] font-bold tracking-normal text-[#231F5E]"
+              className="m-0 truncate text-right text-[20px] leading-[30px] font-bold tracking-normal text-[#231F5E]"
             >
               {title}
             </h1>
@@ -157,7 +161,7 @@ export const EkeepHeader: React.FC<EkeepHeaderProps> = ({
           {/* Row 2: Description */}
           <p
             dir="auto"
-            className="m-0 shrink-0 text-right text-[12px] leading-[20px] font-normal tracking-normal whitespace-nowrap text-[#3A3587]"
+            className="m-0 max-w-full shrink-0 truncate text-right text-[12px] leading-[20px] font-normal tracking-normal whitespace-nowrap text-[#3A3587]"
           >
             {description}
           </p>
@@ -209,7 +213,7 @@ export const EkeepHeader: React.FC<EkeepHeaderProps> = ({
                     src={
                       member.avatarSrc || EKEEP_HEADER_ASSETS.memberAvatarSample
                     }
-                    alt={member.name}
+                    alt={member.name || ''}
                     draggable={false}
                     style={{
                       marginRight: isLast ? '0px' : '-6px',
