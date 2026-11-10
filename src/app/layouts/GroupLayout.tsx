@@ -2,13 +2,13 @@
 // TEMP: Temporary page layout for desktop verification
 import React from 'react';
 import { Outlet } from 'react-router';
-import { Sidebar, type SidebarProps } from '../../components/Sidebar/Sidebar';
+import { Sidebar, type SidebarProps } from '@/features/sidebar/components/Sidebar';
 import {
   EkeepHeader,
   EKEEP_HEADER_MOCK_DATA,
   EkeepHeaderMobile,
-} from '../../components/EkeepHeader';
-import { ekeepHeaderMobileMock } from '@/components/EkeepHeader/ekeepHeader.mock';
+} from '@/features/groups/components';
+import { ekeepHeaderMobileMock } from '@/features/groups/components/ekeepHeader.mock';
 
 export interface GroupLayoutProps {
   children?: React.ReactNode;

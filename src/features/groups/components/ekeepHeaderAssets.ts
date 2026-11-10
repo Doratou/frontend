@@ -22,7 +22,7 @@ const TRANSPARENT_PNG =
  * import iconMetaUser from '@/assets/ekeep-header/icon-meta-user.png';
  */
 
-import EkeepBanner from '../../assets/group/dashboard-header.svg';
+import EkeepBanner from '../../../assets/group/dashboard-header.svg';
 
 export const EKEEP_HEADER_ASSETS = {
   banner: EkeepBanner, // ekeep-header-banner.png (1238×218)

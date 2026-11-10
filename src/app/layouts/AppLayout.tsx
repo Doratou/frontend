@@ -2,7 +2,7 @@
 // TEMP: Temporary page layout for desktop verification
 import React from 'react';
 import { Outlet } from 'react-router';
-import { Sidebar, type SidebarProps } from '../../components/Sidebar/Sidebar';
+import { Sidebar, type SidebarProps } from '@/features/sidebar/components/Sidebar';
 
 export interface AppLayoutProps {
   children?: React.ReactNode;

@@ -1,8 +1,8 @@
 // src/components/EkeepHeaderMobile/MemberAvatar.tsx
 import React from 'react';
 import { User } from 'lucide-react';
-import { EKEEP_HEADER_ASSETS } from '../EkeepHeader/ekeepHeaderAssets';
-import type { EkeepMemberItem } from '../EkeepHeader/EkeepHeader';
+import { EKEEP_HEADER_ASSETS } from './ekeepHeaderAssets';
+import type { EkeepMemberItem } from './EkeepHeader';
 
 export interface MemberAvatarProps {
   member: EkeepMemberItem;
