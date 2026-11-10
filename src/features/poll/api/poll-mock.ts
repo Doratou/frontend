@@ -1,3 +1,4 @@
+import { formatNumber } from '@/utils/format';
 import type { PollDto } from './contracts';
 
 // shortcut: temporary data; delete this file when the backend is connected.
@@ -22,7 +23,7 @@ function makePoll(
     is_anonymous: isAnonymous,
     options: votes.map((count, index) => ({
       id: id * 100 + index + 1,
-      text: `گزینه ${index + 1}`,
+      text: `گزینه ${formatNumber(index + 1)}`,
       votes_count: count,
     })),
   };
