@@ -46,3 +46,18 @@ export const EKEEP_HEADER_MOCK_DATA: EkeepHeaderProps = {
   },
   dateRangeLabel: 'از ۲۵ تا ۲۹ خرداد ۱۴۰۵',
 };
+
+export const ekeepHeaderMobileMock: EkeepHeaderProps = {
+  ...EKEEP_HEADER_MOCK_DATA,
+  members: [
+    {
+      id: '1',
+      name: 'کاربر ۱',
+      avatarSrc: EKEEP_HEADER_ASSETS.memberAvatarSample,
+    },
+    { id: '2', name: 'Ali' }, // نمایش با حرف اول 'A'
+    { id: '3' }, // نمایش با آواتار پیش‌فرض
+    { id: '4', name: 'کاربر ۴' },
+    { id: '5', name: 'کاربر ۵' },
+  ],
+};
