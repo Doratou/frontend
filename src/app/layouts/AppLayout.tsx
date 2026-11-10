@@ -19,7 +19,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       className="box-border flex h-dvh items-stretch gap-[10px] bg-white p-[16px]"
     >
       {/* Sidebar container: hidden below 1024px (lg), visible on desktop */}
-      <div className="hidden h-full shrink-0 lg:block">
+      <div className="h-full shrink-0">
         <Sidebar page="homepage" {...sidebarProps} />
       </div>
 

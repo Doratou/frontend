@@ -22,10 +22,10 @@ export const GroupLayout: React.FC<GroupLayoutProps> = ({
   return (
     <div
       dir="rtl"
-      className="box-border flex h-dvh items-stretch gap-[10px] bg-white p-0 md:p-[16px]"
+      className="box-border flex h-dvh items-stretch md:gap-[10px] bg-white p-0 md:p-[16px]"
     >
       {/* Sidebar container: hidden below 1024px (lg), visible on desktop */}
-      <div className="hidden h-full shrink-0 lg:block">
+      <div className="h-full shrink-0">
         <Sidebar page="ekeeps" {...sidebarProps} />
       </div>
 

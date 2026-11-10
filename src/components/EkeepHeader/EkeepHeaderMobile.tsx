@@ -15,11 +15,13 @@ import {
 } from '../EkeepHeader/EkeepHeader';
 import { EKEEP_HEADER_ASSETS } from '../EkeepHeader/ekeepHeaderAssets';
 import { MemberAvatar } from './MemberAvatar';
+import { useSidebarStore } from '@/features/sidebar/stores/sidebar-store';
 
-export interface EkeepHeaderMobileProps extends EkeepHeaderProps {
-  onBackClick?: () => void;
-  onMenuClick?: () => void; // TODO mobile navigation drawer
-}
+
+// export interface EkeepHeaderMobileProps extends EkeepHeaderProps {
+//   onBackClick?: () => void;
+//   onMenuClick?: () => void; // TODO mobile navigation drawer
+// }
 
 const SETTINGS_LABEL = 'تنظیمات';
 const PREMIUM_LABEL = 'پریمیوم کردن';
@@ -27,7 +29,7 @@ const MORE_ARIA_LABEL = 'گزینه‌های بیشتر';
 const BACK_ARIA_LABEL = 'بازگشت';
 const MENU_ARIA_LABEL = 'باز کردن منو';
 
-export const EkeepHeaderMobile: React.FC<EkeepHeaderMobileProps> = ({
+export const EkeepHeaderMobile: React.FC<EkeepHeaderProps> = ({
   title,
   description,
   groupPhotoSrc = EKEEP_HEADER_ASSETS.groupPhotoSample,
@@ -38,8 +40,6 @@ export const EkeepHeaderMobile: React.FC<EkeepHeaderMobileProps> = ({
   onSettingsClick,
   onPremiumClick,
   onMoreClick,
-  onBackClick,
-  onMenuClick,
   className = '',
 }) => {
   const usedFormatted = toPersianDigits(
@@ -58,6 +58,8 @@ export const EkeepHeaderMobile: React.FC<EkeepHeaderMobileProps> = ({
 
   const visibleMembers = members.slice(0, maxVisibleMembers);
   const extraMembersCount = members.length - maxVisibleMembers;
+
+  const openMobileSidebar = useSidebarStore((state) => state.openMobile);
 
   // Note: No overflow-hidden on root <header> so meta strip bottom corners remain square as designed
   return (
@@ -95,7 +97,7 @@ export const EkeepHeaderMobile: React.FC<EkeepHeaderMobileProps> = ({
         <div className="relative z-1 flex w-full items-center justify-between overflow-hidden">
           <button
             type="button"
-            onClick={onBackClick}
+            onClick={openMobileSidebar}
             aria-label={BACK_ARIA_LABEL}
             className="m-0 flex h-[38px] w-[40px] cursor-pointer items-center justify-center rounded-[10px] border border-[#3A3587] bg-[#FFFFFF] p-[8px] text-[#3A3587] transition-colors hover:bg-[#F5F4FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5650B0]"
           >
@@ -104,7 +106,7 @@ export const EkeepHeaderMobile: React.FC<EkeepHeaderMobileProps> = ({
 
           <button
             type="button"
-            onClick={onMenuClick}
+            onClick={openMobileSidebar}
             aria-label={MENU_ARIA_LABEL}
             className="m-0 flex h-[38px] w-[38px] cursor-pointer items-center justify-center rounded-[10px] border-0 bg-[#3A3587] p-[8px] text-[#FFFFFF] transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5650B0]"
           >
