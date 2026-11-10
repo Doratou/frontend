@@ -66,7 +66,7 @@ export const routes: RouteObject[] = [
     children: [
       {
         path: 'poll',
-        element: <p>نظرسنجی</p>,
+        lazy: () => import('@/app/pages/poll'),
       },
       {
         path: 'notification',
