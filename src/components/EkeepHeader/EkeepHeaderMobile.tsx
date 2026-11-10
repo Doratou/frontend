@@ -117,13 +117,13 @@ export const EkeepHeaderMobile: React.FC<EkeepHeaderMobileProps> = ({
           <div className="flex min-w-0 flex-1 flex-col items-end gap-[4px] overflow-hidden text-right">
             <h1
               dir="auto"
-              className="m-0 w-full text-right text-[18px] leading-[28px] font-bold tracking-normal text-[#231F5E]"
+              className="m-0 w-full truncate text-right text-[18px] leading-[28px] font-bold tracking-normal text-[#231F5E]"
             >
               {title}
             </h1>
             <p
               dir="auto"
-              className="m-0 w-full text-right text-[12px] leading-[20px] font-normal tracking-normal text-[#3A3587]"
+              className="m-0 w-full truncate text-right text-[12px] leading-[20px] font-normal tracking-normal text-[#3A3587]"
             >
               {description}
             </p>
