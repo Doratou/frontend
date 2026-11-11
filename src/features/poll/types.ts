@@ -10,10 +10,9 @@ export interface Poll {
   id: string;
   title: string;
   status: PollStatus;
-  /** Epoch milliseconds, same time contract as the auth feature. */
-  startsAt: number;
-  endsAt: number;
   isAnonymous: boolean;
+  /** Option ids the current user voted for; empty when they have not voted. */
+  votedOptionIds: string[];
   totalVotes: number;
   options: PollOption[];
 }

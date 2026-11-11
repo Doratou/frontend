@@ -2,41 +2,69 @@ import { formatNumber } from '@/utils/format';
 import type { PollDto } from './contracts';
 
 // shortcut: temporary data; delete this file when the backend is connected.
-const TIR_1 = '2026-06-21T20:30:00Z';
-const TIR_10 = '2026-07-01T20:29:00Z';
-const TIR_12 = '2026-07-03T20:29:00Z';
-
 function makePoll(
   id: number,
   title: string,
   status: PollDto['status'],
-  endsAt: string,
   votes: number[],
-  isAnonymous = false,
+  {
+    isAnonymous = false,
+    selected = [],
+  }: { isAnonymous?: boolean; selected?: number[] } = {},
 ): PollDto {
+  const optionId = (index: number) => id * 100 + index + 1;
   return {
     id,
     title,
     status,
-    starts_at: TIR_1,
-    ends_at: endsAt,
     is_anonymous: isAnonymous,
+    my_option_ids: selected.map(optionId),
     options: votes.map((count, index) => ({
-      id: id * 100 + index + 1,
+      id: optionId(index),
       text: `گزینه ${formatNumber(index + 1)}`,
       votes_count: count,
     })),
   };
 }
 
+// `selected` holds zero-based option indexes the current user voted for.
 export const mockPollDtos: PollDto[] = [
-  makePoll(1, 'تصمیم‌گیری درباره‌ی مقصد سفر', 'active', TIR_10, [12, 6, 4, 2]),
-  makePoll(2, 'انتخاب تاریخ حرکت', 'active', TIR_12, [8, 5, 3, 2], true),
-  makePoll(3, 'تصمیم‌گیری درباره‌ی مقصد سفر', 'active', TIR_10, [12, 6, 4, 2]),
-  makePoll(4, 'تصمیم‌گیری درباره‌ی مقصد سفر', 'closed', TIR_10, [12, 6, 4, 2]),
-  makePoll(5, 'انتخاب وعده‌ی شام', 'closed', TIR_10, [12, 5, 3, 1]),
-  makePoll(6, 'ساعت حرکت', 'closed', TIR_10, [8, 5, 2, 1], true),
+  makePoll(1, 'تصمیم‌گیری درباره‌ی مقصد سفر', 'active', [12, 6, 4, 2], {
+    selected: [1],
+  }),
+  makePoll(2, 'انتخاب تاریخ حرکت', 'active', [8, 5, 3, 2], {
+    isAnonymous: true,
+  }),
+  makePoll(
+    3,
+    'انتخاب فعالیت‌های سفر',
+    'active',
+    [6, 5, 4, 4, 3, 2, 2, 1],
+    { selected: [6] },
+  ),
+  makePoll(4, 'تصمیم‌گیری درباره‌ی مقصد سفر', 'closed', [12, 6, 4, 2], {
+    selected: [0],
+  }),
+  makePoll(5, 'انتخاب وعده‌ی شام', 'closed', [12, 5, 3, 1]),
+  makePoll(6, 'ساعت حرکت', 'closed', [8, 5, 2, 1], {
+    isAnonymous: true,
+    selected: [3],
+  }),
 ];
+
+// Mutates the in-memory mock so refetches reflect the vote. Single choice only;
+// a null optionId removes the current user's vote.
+export function applyMockVote(pollId: number, optionId: number | null) {
+  const poll = mockPollDtos.find((item) => item.id === pollId);
+  if (!poll || poll.status !== 'active') {
+    throw new Error('Poll is not open for voting');
+  }
+  for (const option of poll.options) {
+    if (poll.my_option_ids.includes(option.id)) option.votes_count -= 1;
+    if (option.id === optionId) option.votes_count += 1;
+  }
+  poll.my_option_ids = optionId === null ? [] : [optionId];
+}
 
 export function delay(ms: number, signal?: AbortSignal) {
   return new Promise<void>((resolve, reject) => {

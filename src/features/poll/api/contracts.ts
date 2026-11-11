@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { Poll } from '@/features/poll/types';
 
+// ASSUMED: the DTO shape below is a guess until the real backend contract exists.
 // After integration only this file (field names and envelope) should need changes.
 
 const pollOptionDtoSchema = z.object({
@@ -13,9 +14,8 @@ const pollDtoSchema = z.object({
   id: z.number().int().positive(),
   title: z.string().min(1),
   status: z.enum(['active', 'closed']),
-  starts_at: z.iso.datetime({ offset: true }),
-  ends_at: z.iso.datetime({ offset: true }),
   is_anonymous: z.boolean(),
+  my_option_ids: z.array(z.number().int().positive()),
   options: z.array(pollOptionDtoSchema).min(2),
 });
 
@@ -29,9 +29,8 @@ function toPoll(dto: z.infer<typeof pollDtoSchema>): Poll {
     id: String(dto.id),
     title: dto.title,
     status: dto.status,
-    startsAt: Date.parse(dto.starts_at),
-    endsAt: Date.parse(dto.ends_at),
     isAnonymous: dto.is_anonymous,
+    votedOptionIds: dto.my_option_ids.map(String),
     totalVotes: options.reduce((sum, option) => sum + option.votes, 0),
     options,
   };
