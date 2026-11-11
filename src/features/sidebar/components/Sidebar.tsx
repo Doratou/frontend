@@ -142,7 +142,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     isVisible: boolean,
   ) => (
     <div
-      className={`relative z-2 flex h-full flex-col justify-between px-[16px] pt-[22px] pb-[16px] ${
+      className={`relative z-2 flex h-full flex-col justify-between px-4 pt-5.5 pb-4 ${
         isVisible ? activeContentClasses : inactiveContentClasses
       }`}
     >
@@ -152,16 +152,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="flex w-full flex-row items-center justify-between">
           <p></p>
           {/* Brand (Physical Right) */}
-          <div className="flex flex-row items-center gap-[10px] pr-[8px]">
-            <div className="relative flex h-[52px] w-[48px] shrink-0 items-center justify-center">
+          <div className="flex flex-row items-center gap-2.5 pr-2">
+            <div className="relative flex h-13 w-12 shrink-0 items-center justify-center">
               <img
                 src={openLogoSrc}
                 alt=""
                 draggable={false}
-                className="pointer-events-none h-[52px] w-[48px] object-contain"
+                className="pointer-events-none h-13 w-12 object-contain"
               />
             </div>
-            <span className="text-[24px] leading-[38px] font-extrabold tracking-normal whitespace-nowrap text-white">
+            <span className="text-2xl leading-9.5 font-extrabold tracking-normal whitespace-nowrap text-white">
               دوراتو
             </span>
           </div>
@@ -172,16 +172,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={onCloseAction}
             aria-label="بستن منو"
             aria-expanded={isVisible}
-            className={`${theme.focusOutlineClass} m-0 flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[8px] border-0 bg-transparent p-0 text-white transition-opacity hover:opacity-80`}
+            className={`${theme.focusOutlineClass} m-0 flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border-0 bg-transparent p-0 text-white transition-opacity hover:opacity-80`}
           >
-            <PanelRightClose className="pointer-events-none h-[20px] w-[20px] stroke-[1.75]" />
+            <PanelRightClose className="pointer-events-none h-5 w-5 stroke-[1.75]" />
           </button>
         </div>
 
         {/* Navigation List (Open) */}
         <nav
           aria-label="منوی اصلی"
-          className="mt-6 flex w-full flex-col gap-[6px]"
+          className="mt-6 flex w-full flex-col gap-1.5"
         >
           {navItems.map((item) => {
             const IconComponent = item.icon;
@@ -196,7 +196,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     item.href,
                     navLinkIsActive,
                   );
-                  return `${theme.focusOutlineClass} relative flex h-[42px] w-full items-center gap-[10px] rounded-[12px] px-[14px] py-[9px] no-underline transition-colors duration-150 motion-reduce:transition-none ${
+                  return `${theme.focusOutlineClass} relative flex h-10.5 w-full items-center gap-2.5 rounded-xl px-3.5 py-2.25 no-underline transition-colors duration-150 motion-reduce:transition-none ${
                     isActive
                       ? theme.activeItemClass
                       : `bg-transparent ${theme.inactiveItemHoverClass}`
@@ -214,16 +214,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       {isActive && (
                         <span
                           aria-hidden="true"
-                          className={`absolute top-1/2 right-[2px] h-[22px] w-[3.5px] -translate-y-1/2 rounded-[2px] ${theme.activeIndicatorClass}`}
+                          className={`w-0.9 absolute top-1/2 right-0.5 h-5.5 -translate-y-1/2 rounded-xs ${theme.activeIndicatorClass}`}
                         />
                       )}
 
                       <IconComponent
-                        className="pointer-events-none h-[18px] w-[18px] shrink-0 text-primary-80"
+                        className="pointer-events-none h-4.5 w-4.5 shrink-0 text-primary-80"
                         strokeWidth={1.75}
                       />
 
-                      <span className="min-w-0 flex-1 truncate text-right text-[14px] leading-[22px] font-medium tracking-normal text-primary-80">
+                      <span className="min-w-0 flex-1 truncate text-right text-sm leading-5.5 font-medium tracking-normal text-primary-80">
                         {item.label}
                       </span>
                     </>
@@ -238,17 +238,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Back Button (Open) */}
       <NavLink
         to={backHref}
-        className={`${theme.focusOutlineClass} flex h-[42px] w-full items-center gap-[10px] rounded-[12px] border-[1.5px] border-danger-50 bg-danger-10 px-[14px] py-[9px] no-underline transition-opacity hover:opacity-95`}
+        className={`${theme.focusOutlineClass} flex h-10.5 w-full items-center gap-2.5 rounded-xl border-[1.5px] border-danger-50 bg-danger-10 px-3.5 py-2.25 no-underline transition-opacity hover:opacity-95`}
       >
         <Home
-          className="pointer-events-none h-[18px] w-[18px] shrink-0 text-danger-50"
+          className="pointer-events-none h-4.5 w-4.5 shrink-0 text-danger-50"
           strokeWidth={1.75}
         />
-        <span className="min-w-0 flex-1 truncate text-right text-[13px] leading-[20px] font-medium tracking-normal text-danger-50">
+        <span className="min-w-0 flex-1 truncate text-right text-xs leading-5 font-medium tracking-normal text-danger-50">
           {SIDEBAR_BACK_LABEL}
         </span>
         <ArrowLeft
-          className="pointer-events-none h-[18px] w-[18px] shrink-0 text-danger-50"
+          className="pointer-events-none h-4.5 w-4.5 shrink-0 text-danger-50"
           strokeWidth={1.75}
         />
       </NavLink>
@@ -262,13 +262,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ===================================================================== */}
       <aside
         dir="rtl"
-        className={`relative box-border hidden h-full shrink-0 overflow-hidden rounded-[24px] font-['IRANYekan','Vazirmatn',Tahoma,sans-serif] shadow-[0_4px_8px_-2px_rgba(0,0,0,0.12)] transition-[width,background-color] duration-400 ease-[cubic-bezier(0.4,0,0.2,1)] will-change-[width] select-none motion-reduce:transition-none md:block ${
+        className={`relative box-border hidden h-full shrink-0 overflow-hidden rounded-3xl font-['IRANYekan','Vazirmatn',Tahoma,sans-serif] shadow-[0_4px_8px_-2px_rgba(0,0,0,0.12)] transition-[width,background-color] duration-400 ease-in-out will-change-[width] select-none motion-reduce:transition-none md:block ${
           theme.rootBgClass
-        } ${isCollapsed ? 'w-[80px]' : 'w-[250px]'} ${className}`}
+        } ${isCollapsed ? 'w-20' : 'w-62.5'} ${className}`}
       >
         {/* OPEN PANEL (250px wide) */}
         <div
-          className="absolute inset-y-0 right-0 w-[250px]"
+          className="absolute inset-y-0 right-0 w-62.5"
           aria-hidden={isCollapsed}
           inert={isCollapsed ? true : undefined}
         >
@@ -278,36 +278,36 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* CLOSED PANEL (80px wide) */}
         <div
-          className="absolute inset-y-0 right-0 w-[80px]"
+          className="absolute inset-y-0 right-0 w-20"
           aria-hidden={!isCollapsed}
           inert={!isCollapsed ? true : undefined}
         >
           <BackgroundLayers page={page} mode="closed" isActive={isCollapsed} />
 
           <div
-            className={`relative z-2 flex h-full flex-col items-center justify-between px-[12px] py-[14px] ${
+            className={`relative z-2 flex h-full flex-col items-center justify-between px-3 py-3.5 ${
               isCollapsed ? activeContentClasses : inactiveContentClasses
             }`}
           >
-            <div className="flex w-full flex-col items-center gap-[32px] pt-[8px]">
+            <div className="flex w-full flex-col items-center gap-8 pt-2">
               <button
                 type="button"
                 onClick={() => handleSetCollapsed(false)}
                 aria-label="باز کردن منو"
                 aria-expanded={!isCollapsed}
-                className={`${theme.focusOutlineClass} relative m-0 flex h-[48px] w-[44px] cursor-pointer items-center justify-center rounded-[12px] border-0 bg-transparent p-0 transition-opacity hover:opacity-90`}
+                className={`${theme.focusOutlineClass} relative m-0 flex h-12 w-11 cursor-pointer items-center justify-center rounded-xl border-0 bg-transparent p-0 transition-opacity hover:opacity-90`}
               >
                 <img
                   src={closedLogoSrc}
                   alt=""
                   draggable={false}
-                  className="pointer-events-none h-[48px] w-[44px] object-contain"
+                  className="pointer-events-none h-12 w-11 object-contain"
                 />
               </button>
 
               <nav
                 aria-label="منوی اصلی"
-                className="mt-4 flex flex-col items-center gap-[6px]"
+                className="mt-4 flex flex-col items-center gap-1.5"
               >
                 {navItems.map((item) => {
                   const IconComponent = item.icon;
@@ -324,7 +324,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           item.href,
                           navLinkIsActive,
                         );
-                        return `${theme.focusOutlineClass} flex h-[44px] w-[44px] items-center justify-center rounded-[14px] border-[1.5px] no-underline transition-all duration-150 motion-reduce:transition-none ${
+                        return `${theme.focusOutlineClass} flex h-11 w-11 items-center justify-center rounded-2xl border-[1.5px] no-underline transition-all duration-150 motion-reduce:transition-none ${
                           isActive
                             ? `${theme.activeItemClass} ${theme.activeClosedBorderClass} shadow-[0_2px_3px_0_rgba(0,0,0,0.10)]`
                             : `border-transparent bg-transparent ${theme.inactiveItemHoverClass}`
@@ -332,7 +332,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       }}
                     >
                       <IconComponent
-                        className="pointer-events-none h-[18px] w-[18px] text-primary-80"
+                        className="pointer-events-none h-4.5 w-4.5 text-primary-80"
                         strokeWidth={1.75}
                       />
                     </NavLink>
@@ -345,10 +345,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
               to={backHref}
               aria-label={SIDEBAR_BACK_LABEL}
               title={SIDEBAR_BACK_LABEL}
-              className={`${theme.focusOutlineClass} flex h-[44px] w-[44px] items-center justify-center rounded-[14px] border-[1.5px] border-danger-50 bg-danger-10 no-underline transition-opacity hover:opacity-95`}
+              className={`${theme.focusOutlineClass} flex h-11 w-11 items-center justify-center rounded-2xl border-[1.5px] border-danger-50 bg-danger-10 no-underline transition-opacity hover:opacity-95`}
             >
               <Home
-                className="pointer-events-none h-[18px] w-[18px] text-danger-50"
+                className="pointer-events-none h-4.5 w-4.5 text-danger-50"
                 strokeWidth={1.75}
               />
             </NavLink>
@@ -361,11 +361,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ===================================================================== */}
       <div
         dir="rtl"
+        inert={!isMobileOpen ? true : undefined}
         className={`fixed inset-0 z-50 lg:hidden ${
           isMobileOpen ? 'pointer-events-auto' : 'pointer-events-none'
         }`}
-        aria-hidden={!isMobileOpen}
-        inert={!isMobileOpen ? true : undefined}
       >
         {/* Backdrop */}
         <div
@@ -378,7 +377,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Sliding Drawer Panel from Right to Left */}
         <aside
           aria-label="منوی موبایل"
-          className={`absolute inset-y-0 right-0 w-[250px] overflow-hidden rounded-l-[16px] font-['IRANYekan','Vazirmatn',Tahoma,sans-serif] shadow-[-8px_0_24px_rgba(0,0,0,0.18)] transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] select-none motion-reduce:transition-none ${
+          className={`absolute inset-y-0 right-0 w-62.5 overflow-hidden rounded-l-2xl font-['IRANYekan','Vazirmatn',Tahoma,sans-serif] shadow-[-8px_0_24px_rgba(0,0,0,0.18)] transition-transform duration-300 ease-in-out select-none motion-reduce:transition-none ${
             theme.rootBgClass
           } ${isMobileOpen ? 'translate-x-0' : 'translate-x-full'}`}
         >

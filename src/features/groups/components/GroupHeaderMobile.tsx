@@ -9,14 +9,11 @@ import {
   Cloud,
   Calendar,
 } from 'lucide-react';
-import {
-  toPersianDigits,
-  type GroupHeaderProps,
-} from './GroupHeader';
+import { toPersianDigits, type GroupHeaderProps } from './GroupHeader';
 import { GROUP_HEADER_ASSETS } from './groupHeaderAssets';
 import { MemberAvatar } from './MemberAvatar';
 import { useSidebarStore } from '@/features/sidebar/stores/sidebar-store';
-
+import { useNavigate } from 'react-router';
 
 const SETTINGS_LABEL = 'تنظیمات';
 const PREMIUM_LABEL = 'پریمیوم کردن';
@@ -56,18 +53,20 @@ export const GroupHeaderMobile: React.FC<GroupHeaderProps> = ({
 
   const openMobileSidebar = useSidebarStore((state) => state.openMobile);
 
+  const navigate = useNavigate();
+
   // Note: No overflow-hidden on root <header> so meta strip bottom corners remain square as designed
   return (
     <header
       style={{ direction: 'ltr' }}
-      className={`box-border flex w-full flex-col items-center rounded-b-[20px] bg-[#FFFFFF] font-['IRANYekan','Vazirmatn',Tahoma,sans-serif] drop-shadow-[0_6px_6px_rgba(0,0,0,0.12)] ${className}`}
+      className={`rounded-b-2.5xl box-border flex w-full flex-col items-center bg-white font-['IRANYekan','Vazirmatn',Tahoma,sans-serif] drop-shadow-[0_6px_6px_rgba(0,0,0,0.12)] ${className}`}
     >
       {/* =====================================================================
           1. TOP BLOCK
       ===================================================================== */}
       <div
         style={{ paddingTop: 'calc(18px + env(safe-area-inset-top, 0px))' }}
-        className="relative flex w-full flex-col items-start gap-[12px] overflow-hidden px-[16px] pb-[16px]"
+        className="relative flex w-full flex-col items-start gap-3 overflow-hidden px-4 pb-4"
       >
         {/* 1. Banner image (left-anchored, fixed 1671px width) */}
         <div
@@ -92,46 +91,46 @@ export const GroupHeaderMobile: React.FC<GroupHeaderProps> = ({
         <div className="relative z-1 flex w-full items-center justify-between overflow-hidden">
           <button
             type="button"
-            onClick={openMobileSidebar}
+            onClick={() => navigate('/home')}
             aria-label={BACK_ARIA_LABEL}
-            className="m-0 flex h-[38px] w-[40px] cursor-pointer items-center justify-center rounded-[10px] border border-danger-40 bg-neutral-10 p-[8px] text-danger-40 transition-colors hover:bg-[#F5F4FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5650B0]"
+            className="m-0 flex h-9.5 w-10 cursor-pointer items-center justify-center rounded-xl border border-danger-40 bg-neutral-10 p-2 text-danger-40 transition-colors hover:bg-primary-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-60"
           >
-            <ArrowLeft className="pointer-events-none h-[20px] w-[20px] stroke-[1.8]" />
+            <ArrowLeft className="pointer-events-none h-5 w-5 stroke-[1.8]" />
           </button>
 
           <button
             type="button"
             onClick={openMobileSidebar}
             aria-label={MENU_ARIA_LABEL}
-            className="m-0 flex h-[38px] w-[38px] cursor-pointer items-center justify-center rounded-[10px] border-0 bg-secondary-70 p-[8px] text-[#FFFFFF] transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5650B0]"
+            className="m-0 flex h-9.5 w-9.5 cursor-pointer items-center justify-center rounded-xl border-0 bg-secondary-70 p-2 text-white transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-60"
           >
-            <Menu className="pointer-events-none h-[20px] w-[20px] stroke-[1.8]" />
+            <Menu className="pointer-events-none h-5 w-5 stroke-[1.8]" />
           </button>
         </div>
 
         {/* (b) Profile row: Info (left) & Group Photo (right) */}
-        <div className="relative z-1 flex w-full items-center gap-[12px] overflow-hidden">
-          <div className="flex min-w-0 flex-1 flex-col items-end gap-[4px] overflow-hidden text-right">
+        <div className="relative z-1 flex w-full items-center gap-3 overflow-hidden">
+          <div className="flex min-w-0 flex-1 flex-col items-end gap-1 overflow-hidden text-right">
             <h1
               dir="auto"
-              className="m-0 w-full truncate text-right text-[18px] leading-[28px] font-bold tracking-normal text-secondary-80"
+              className="m-0 w-full truncate text-right text-lg leading-7 font-bold tracking-normal text-secondary-80"
             >
               {title}
             </h1>
             <p
               dir="auto"
-              className="m-0 w-full truncate text-right text-[12px] leading-[20px] font-normal tracking-normal text-secondary-80"
+              className="m-0 w-full truncate text-right text-xs leading-5 font-normal tracking-normal text-secondary-80"
             >
               {description}
             </p>
           </div>
 
-          <div className="flex h-[80px] w-[80px] shrink-0 overflow-hidden rounded-[16px] border border-secondary-60 bg-[#FCFCFF] p-[3px] shadow-[0_4px_8px_-2px_rgba(0,0,0,0.12)]">
+          <div className="flex h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-secondary-60 bg-neutral-10 p-0.75 shadow-[0_4px_8px_-2px_rgba(0,0,0,0.12)]">
             <img
               src={groupPhotoSrc}
               alt={title}
               draggable={false}
-              className="h-full w-full flex-1 rounded-[12px] object-cover"
+              className="h-full w-full flex-1 rounded-xl object-cover"
             />
           </div>
         </div>
@@ -142,7 +141,7 @@ export const GroupHeaderMobile: React.FC<GroupHeaderProps> = ({
             {extraMembersCount > 0 && (
               <div
                 style={{ marginRight: '-7px' }}
-                className="relative z-1 flex h-[30px] w-[30px] items-center justify-center rounded-[15px] border border-secondary-60 bg-secondary-10 text-[12px] leading-[18px] font-bold whitespace-nowrap text-secondary-70"
+                className="relative z-1 flex h-7.5 w-7.5 items-center justify-center rounded-full border border-secondary-60 bg-secondary-10 text-xs leading-4.5 font-bold whitespace-nowrap text-secondary-70"
               >
                 +{toPersianDigits(extraMembersCount)}
               </div>
@@ -168,35 +167,35 @@ export const GroupHeaderMobile: React.FC<GroupHeaderProps> = ({
         </div>
 
         {/* (d) Actions row: Settings | Premium (flex-1) | More */}
-        <div className="relative z-1 flex w-full items-center gap-[8px]">
+        <div className="relative z-1 flex w-full items-center gap-2">
           {/* 1. Settings */}
           <button
             type="button"
             onClick={onSettingsClick}
-            className="m-0 flex h-[32px] shrink-0 cursor-pointer items-center justify-center gap-[6px] rounded-[9px] border border-secondary-70 bg-[#FFFFFF] px-[12px] text-secondary-70 drop-shadow-[0_3px_3px_rgba(0,0,0,0.10)] transition-colors hover:bg-[#F5F4FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5650B0]"
+            className="m-0 flex h-8 shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-secondary-70 bg-white px-3 text-secondary-70 drop-shadow-[0_3px_3px_rgba(0,0,0,0.10)] transition-colors hover:bg-primary-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-60"
           >
             <span
               dir="auto"
-              className="text-[13px] leading-[20px] font-medium tracking-normal whitespace-nowrap text-secondary-70"
+              className="text-xs leading-5 font-medium tracking-normal whitespace-nowrap text-secondary-70"
             >
               {SETTINGS_LABEL}
             </span>
-            <Settings className="pointer-events-none h-[16px] w-[16px] stroke-[1.8]" />
+            <Settings className="pointer-events-none h-4 w-4 stroke-[1.8]" />
           </button>
 
           {/* 2. Premium (Flexible width) */}
           <button
             type="button"
             onClick={onPremiumClick}
-            className="m-0 flex h-[32px] cursor-pointer items-center justify-center gap-[6px] rounded-[9px] border border-[#D0901D] bg-[#FFF7EA] px-[12px] text-[#7F5201] transition-colors hover:bg-[#FFE2AE]/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5650B0]"
+            className="m-0 flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-accent-50 bg-accent-10 px-3 text-accent-70 transition-colors hover:bg-accent-20/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-60"
           >
             <span
               dir="auto"
-              className="text-[13px] leading-[20px] font-medium tracking-normal whitespace-nowrap text-[#7F5201]"
+              className="text-xs leading-5 font-medium tracking-normal whitespace-nowrap text-accent-70"
             >
               {PREMIUM_LABEL}
             </span>
-            <Crown className="pointer-events-none h-[16px] w-[16px] stroke-[1.8] text-[#D0901D]" />
+            <Crown className="pointer-events-none h-4 w-4 stroke-[1.8] text-accent-40" />
           </button>
 
           {/* 3. More */}
@@ -204,9 +203,9 @@ export const GroupHeaderMobile: React.FC<GroupHeaderProps> = ({
             type="button"
             onClick={onMoreClick}
             aria-label={MORE_ARIA_LABEL}
-            className="m-0 flex h-[32px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-[9px] border border-secondary-70 bg-[#FFFFFF] px-[8px] text-secondary-70 transition-colors hover:bg-[#F5F4FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5650B0]"
+            className="m-0 flex h-8 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-secondary-70 bg-white px-2 text-secondary-70 transition-colors hover:bg-primary-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-60"
           >
-            <Ellipsis className="pointer-events-none h-[18px] w-[18px] stroke-[1.8]" />
+            <Ellipsis className="pointer-events-none h-4.5 w-4.5 stroke-[1.8]" />
           </button>
         </div>
       </div>
@@ -214,39 +213,39 @@ export const GroupHeaderMobile: React.FC<GroupHeaderProps> = ({
       {/* =====================================================================
           2. META BLOCK
       ===================================================================== */}
-      <div className="flex w-full items-start overflow-hidden border-t border-[#DDDFFB] bg-[#F5F4FF] text-[#3A3587]">
+      <div className="flex w-full items-start overflow-hidden border-t border-neutral-20 bg-primary-10 text-primary-70">
         {/* Cell 1: Storage (Left, flexible) */}
-        <div className="flex min-w-0 flex-1 flex-col items-end justify-center gap-[6px] overflow-hidden px-[14px] py-[10px]">
-          <div className="flex items-center gap-[6px]">
+        <div className="flex min-w-0 flex-1 flex-col items-end justify-center gap-1.5 overflow-hidden px-3.5 py-2.5">
+          <div className="flex items-center gap-1.5">
             <span
               dir="auto"
-              className="text-right text-[12px] leading-[18px] font-normal tracking-normal whitespace-nowrap text-[#3A3587]"
+              className="text-right text-xs leading-4.5 font-normal tracking-normal whitespace-nowrap text-primary-70"
             >
               {storageLabel}
             </span>
-            <Cloud className="pointer-events-none h-[16px] w-[16px] shrink-0 stroke-[1.8]" />
+            <Cloud className="pointer-events-none h-4 w-4 shrink-0 stroke-[1.8]" />
           </div>
 
-          <div className="flex h-[6px] w-full items-center justify-end overflow-hidden rounded-[3px] bg-[#D7D4FF]">
+          <div className="flex h-1.5 w-full items-center justify-end overflow-hidden rounded-xs bg-primary-20">
             <div
               style={{ width: `${storagePercent}%` }}
-              className="h-[6px] rounded-[3px] bg-[#7771D9]"
+              className="h-1.5 rounded-xs bg-primary-50"
             />
           </div>
         </div>
 
         {/* 1px Vertical Divider */}
-        <div className="w-[1px] shrink-0 self-stretch bg-[#DDDFFB]" />
+        <div className="w-px shrink-0 self-stretch bg-neutral-20" />
 
         {/* Cell 2: Date (Right, shrink-0) */}
-        <div className="flex shrink-0 items-center gap-[6px] self-stretch overflow-hidden px-[14px] py-[10px]">
+        <div className="flex shrink-0 items-center gap-1.5 self-stretch overflow-hidden px-3.5 py-2.5">
           <span
             dir="auto"
-            className="text-right text-[12px] leading-[18px] font-medium tracking-normal whitespace-nowrap text-[#3A3587]"
+            className="text-right text-xs leading-4.5 font-medium tracking-normal whitespace-nowrap text-primary-70"
           >
             {dateRangeLabel}
           </span>
-          <Calendar className="pointer-events-none h-[16px] w-[16px] shrink-0 stroke-[1.8]" />
+          <Calendar className="pointer-events-none h-4 w-4 shrink-0 stroke-[1.8]" />
         </div>
       </div>
     </header>
