@@ -18,11 +18,6 @@ import { MemberAvatar } from './MemberAvatar';
 import { useSidebarStore } from '@/features/sidebar/stores/sidebar-store';
 
 
-// export interface GroupHeaderMobileProps extends GroupHeaderProps {
-//   onBackClick?: () => void;
-//   onMenuClick?: () => void; // TODO mobile navigation drawer
-// }
-
 const SETTINGS_LABEL = 'تنظیمات';
 const PREMIUM_LABEL = 'پریمیوم کردن';
 const MORE_ARIA_LABEL = 'گزینه‌های بیشتر';
@@ -99,7 +94,7 @@ export const GroupHeaderMobile: React.FC<GroupHeaderProps> = ({
             type="button"
             onClick={openMobileSidebar}
             aria-label={BACK_ARIA_LABEL}
-            className="m-0 flex h-[38px] w-[40px] cursor-pointer items-center justify-center rounded-[10px] border border-[#3A3587] bg-[#FFFFFF] p-[8px] text-[#3A3587] transition-colors hover:bg-[#F5F4FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5650B0]"
+            className="m-0 flex h-[38px] w-[40px] cursor-pointer items-center justify-center rounded-[10px] border border-danger-40 bg-neutral-10 p-[8px] text-danger-40 transition-colors hover:bg-[#F5F4FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5650B0]"
           >
             <ArrowLeft className="pointer-events-none h-[20px] w-[20px] stroke-[1.8]" />
           </button>
@@ -108,7 +103,7 @@ export const GroupHeaderMobile: React.FC<GroupHeaderProps> = ({
             type="button"
             onClick={openMobileSidebar}
             aria-label={MENU_ARIA_LABEL}
-            className="m-0 flex h-[38px] w-[38px] cursor-pointer items-center justify-center rounded-[10px] border-0 bg-[#3A3587] p-[8px] text-[#FFFFFF] transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5650B0]"
+            className="m-0 flex h-[38px] w-[38px] cursor-pointer items-center justify-center rounded-[10px] border-0 bg-secondary-70 p-[8px] text-[#FFFFFF] transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5650B0]"
           >
             <Menu className="pointer-events-none h-[20px] w-[20px] stroke-[1.8]" />
           </button>
@@ -119,19 +114,19 @@ export const GroupHeaderMobile: React.FC<GroupHeaderProps> = ({
           <div className="flex min-w-0 flex-1 flex-col items-end gap-[4px] overflow-hidden text-right">
             <h1
               dir="auto"
-              className="m-0 w-full truncate text-right text-[18px] leading-[28px] font-bold tracking-normal text-[#231F5E]"
+              className="m-0 w-full truncate text-right text-[18px] leading-[28px] font-bold tracking-normal text-secondary-80"
             >
               {title}
             </h1>
             <p
               dir="auto"
-              className="m-0 w-full truncate text-right text-[12px] leading-[20px] font-normal tracking-normal text-[#3A3587]"
+              className="m-0 w-full truncate text-right text-[12px] leading-[20px] font-normal tracking-normal text-secondary-80"
             >
               {description}
             </p>
           </div>
 
-          <div className="flex h-[80px] w-[80px] shrink-0 overflow-hidden rounded-[16px] border border-[#9B95FF] bg-[#FCFCFF] p-[3px] shadow-[0_4px_8px_-2px_rgba(0,0,0,0.12)]">
+          <div className="flex h-[80px] w-[80px] shrink-0 overflow-hidden rounded-[16px] border border-secondary-60 bg-[#FCFCFF] p-[3px] shadow-[0_4px_8px_-2px_rgba(0,0,0,0.12)]">
             <img
               src={groupPhotoSrc}
               alt={title}
@@ -147,7 +142,7 @@ export const GroupHeaderMobile: React.FC<GroupHeaderProps> = ({
             {extraMembersCount > 0 && (
               <div
                 style={{ marginRight: '-7px' }}
-                className="relative z-1 flex h-[30px] w-[30px] items-center justify-center rounded-[15px] border border-[#B9B4FF] bg-[#F5F4FF] text-[12px] leading-[18px] font-bold whitespace-nowrap text-[#3A3587]"
+                className="relative z-1 flex h-[30px] w-[30px] items-center justify-center rounded-[15px] border border-secondary-60 bg-secondary-10 text-[12px] leading-[18px] font-bold whitespace-nowrap text-secondary-70"
               >
                 +{toPersianDigits(extraMembersCount)}
               </div>
@@ -178,11 +173,11 @@ export const GroupHeaderMobile: React.FC<GroupHeaderProps> = ({
           <button
             type="button"
             onClick={onSettingsClick}
-            className="m-0 flex h-[32px] shrink-0 cursor-pointer items-center justify-center gap-[6px] rounded-[9px] border border-[#3A3587] bg-[#FFFFFF] px-[12px] text-[#3A3587] drop-shadow-[0_3px_3px_rgba(0,0,0,0.10)] transition-colors hover:bg-[#F5F4FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5650B0]"
+            className="m-0 flex h-[32px] shrink-0 cursor-pointer items-center justify-center gap-[6px] rounded-[9px] border border-secondary-70 bg-[#FFFFFF] px-[12px] text-secondary-70 drop-shadow-[0_3px_3px_rgba(0,0,0,0.10)] transition-colors hover:bg-[#F5F4FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5650B0]"
           >
             <span
               dir="auto"
-              className="text-[13px] leading-[20px] font-medium tracking-normal whitespace-nowrap text-[#3A3587]"
+              className="text-[13px] leading-[20px] font-medium tracking-normal whitespace-nowrap text-secondary-70"
             >
               {SETTINGS_LABEL}
             </span>
@@ -209,7 +204,7 @@ export const GroupHeaderMobile: React.FC<GroupHeaderProps> = ({
             type="button"
             onClick={onMoreClick}
             aria-label={MORE_ARIA_LABEL}
-            className="m-0 flex h-[32px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-[9px] border border-[#3A3587] bg-[#FFFFFF] px-[8px] text-[#3A3587] transition-colors hover:bg-[#F5F4FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5650B0]"
+            className="m-0 flex h-[32px] w-[40px] shrink-0 cursor-pointer items-center justify-center rounded-[9px] border border-secondary-70 bg-[#FFFFFF] px-[8px] text-secondary-70 transition-colors hover:bg-[#F5F4FF] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5650B0]"
           >
             <Ellipsis className="pointer-events-none h-[18px] w-[18px] stroke-[1.8]" />
           </button>
