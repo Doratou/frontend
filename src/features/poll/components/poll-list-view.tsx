@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { BarChart2, Plus } from 'lucide-react';
 import { EmptyState } from '@/components/custom/empty-state';
 import { ErrorState } from '@/components/custom/error-state';
@@ -6,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { usePolls } from '@/features/poll/api/get-polls';
 import { useCurrentGroupId } from '@/features/poll/hooks/use-current-group-id';
 import { cn } from '@/lib/utils';
+import { CreatePollDialog } from './create-poll-dialog';
 import { PollCard } from './poll-card';
 import type { Poll } from '@/features/poll/types';
 
@@ -56,6 +58,7 @@ function PollListSkeleton() {
 
 export function PollListView() {
   const groupId = useCurrentGroupId();
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const { data, isPending, isError, error, refetch, isRefetching } =
     usePolls(groupId);
 
@@ -74,12 +77,12 @@ export function PollListView() {
           </span>
           <h1 className="text-heading-5 text-primary-80">نظرسنجی</h1>
         </div>
-        {/* TODO: navigate to the create-poll page once it exists. */}
         {/* On very narrow screens only the icon is shown; the label stays for screen readers. */}
         <Button
           tone="secondary"
           radius="md"
           endIcon={<Plus className="size-4" />}
+          onClick={() => setIsCreateOpen(true)}
           className="shrink-0 max-[400px]:w-8.75 max-[400px]:px-0"
         >
           <span className="max-[400px]:sr-only">نظرسنجی جدید</span>
@@ -99,6 +102,11 @@ export function PollListView() {
           <EmptyState
             title="هنوز نظرسنجی‌ای ساخته نشده"
             description="با ساخت اولین نظرسنجی، نظر اعضای اکیپ را بپرسید."
+            action={
+              <Button tone="secondary" onClick={() => setIsCreateOpen(true)}>
+                نظرسنجی جدید
+              </Button>
+            }
           />
         ) : (
           <>
@@ -115,6 +123,8 @@ export function PollListView() {
           </>
         )}
       </div>
+
+      <CreatePollDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} />
     </div>
   );
 }

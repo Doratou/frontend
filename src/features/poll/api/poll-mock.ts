@@ -66,6 +66,29 @@ export function applyMockVote(pollId: number, optionId: number | null) {
   poll.my_option_ids = optionId === null ? [] : [optionId];
 }
 
+// Adds a new, empty, active poll at the top of the in-memory mock list.
+export function addMockPoll(input: {
+  question: string;
+  options: string[];
+  isAnonymous: boolean;
+}): PollDto {
+  const id = Math.max(0, ...mockPollDtos.map((poll) => poll.id)) + 1;
+  const poll: PollDto = {
+    id,
+    title: input.question,
+    status: 'active',
+    is_anonymous: input.isAnonymous,
+    my_option_ids: [],
+    options: input.options.map((text, index) => ({
+      id: id * 100 + index + 1,
+      text,
+      votes_count: 0,
+    })),
+  };
+  mockPollDtos.unshift(poll);
+  return poll;
+}
+
 export function delay(ms: number, signal?: AbortSignal) {
   return new Promise<void>((resolve, reject) => {
     if (signal?.aborted) {
