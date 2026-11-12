@@ -77,8 +77,8 @@ export const routes: RouteObject[] = [
         element: <p>نظرسنجی</p>,
       },
       {
-        path: 'gift',
-        element: <p>نظرسنجی</p>,
+        path: 'lottery',
+        lazy: () => import('@/app/pages/group/lottery'),
       },
     ],
   },

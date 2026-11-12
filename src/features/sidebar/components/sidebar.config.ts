@@ -11,7 +11,7 @@ import {
   Coins,
   CheckSquare,
   BarChart2,
-  Gift,
+  Dices,
   Sparkles,
 } from 'lucide-react';
 import type { SidebarPage } from './sidebarAssets';
@@ -51,7 +51,7 @@ export const SIDEBAR_NAV_ITEMS: Record<SidebarPage, SidebarNavItem[]> = {
       icon: CheckSquare,
     },
     { id: 'poll', label: 'نظرسنجی', href: 'poll', icon: BarChart2 },
-    { id: 'gift', label: 'قرعه‌کشی', href: 'gift', icon: Gift },
+    { id: 'lottery', label: 'قرعه‌کشی', href: 'lottery', icon: Dices },
     { id: 'gallery', label: 'گالری', href: 'gallery', icon: ImageIcon },
     { id: 'assistant', label: 'همیار', href: 'assistant', icon: Sparkles },
   ],
