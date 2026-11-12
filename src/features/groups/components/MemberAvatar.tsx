@@ -25,7 +25,7 @@ export const MemberAvatar: React.FC<MemberAvatarProps> = ({
         alt={trimmedName}
         draggable={false}
         style={style}
-        className={`relative h-[28px] w-[28px] shrink-0 rounded-full object-cover select-none ${className}`}
+        className={`relative h-7 w-7 shrink-0 rounded-full object-cover select-none ${className}`}
       />
     );
   }
@@ -37,7 +37,7 @@ export const MemberAvatar: React.FC<MemberAvatarProps> = ({
       <div
         style={style}
         aria-hidden="true"
-        className={`relative flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-full bg-secondary-70 select-none ${className}`}
+        className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary-70 select-none ${className}`}
       >
         <img
           src={GROUP_HEADER_ASSETS.memberAvatarInitialBg}
@@ -45,7 +45,7 @@ export const MemberAvatar: React.FC<MemberAvatarProps> = ({
           draggable={false}
           className="pointer-events-none absolute inset-0 h-full w-full rounded-full object-cover"
         />
-        <span className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-['Inter',system-ui,sans-serif] text-[13px] leading-[20px] font-semibold whitespace-nowrap text-white">
+        <span className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-['Inter',system-ui,sans-serif] text-[13px] leading-5 font-semibold whitespace-nowrap text-white">
           {initial}
         </span>
       </div>
@@ -57,7 +57,7 @@ export const MemberAvatar: React.FC<MemberAvatarProps> = ({
     <div
       style={style}
       aria-hidden="true"
-      className={`relative flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-full bg-secondary-70 text-secondary-80 select-none ${className}`}
+      className={`relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary-70 text-secondary-80 select-none ${className}`}
     >
       <img
         src={GROUP_HEADER_ASSETS.memberAvatarDefault}
@@ -65,7 +65,7 @@ export const MemberAvatar: React.FC<MemberAvatarProps> = ({
         draggable={false}
         className="pointer-events-none absolute inset-0 h-full w-full rounded-full object-cover"
       />
-      <User className="pointer-events-none h-[15px] w-[15px] stroke-[2]" />
+      <User className="pointer-events-none h-3.75 w-3.75 stroke-2" />
     </div>
   );
 };
