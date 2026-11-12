@@ -1,14 +1,16 @@
-import { useId } from 'react';
+import { useId, useState } from 'react';
 import { BarChart2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { formatNumber } from '@/utils/format';
+import { PollDetailsDialog } from './poll-details-dialog';
 import { PollOptionList } from './poll-option-list';
 import { PollStatusBadge } from './poll-status-badge';
 import type { Poll } from '@/features/poll/types';
 
 export function PollCard({ poll }: { poll: Poll }) {
   const titleId = useId();
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const isClosed = poll.status === 'closed';
 
   return (
@@ -48,17 +50,23 @@ export function PollCard({ poll }: { poll: Poll }) {
         <PollOptionList poll={poll} />
 
         <footer className="mt-auto">
-          {/* TODO: link to the poll details page once its route exists. */}
           <Button
             variant="outline"
             radius="full"
             startIcon={<BarChart2 className="size-4" />}
+            onClick={() => setIsDetailsOpen(true)}
             className="h-9 w-full text-button-sm"
           >
             مشاهده نتایج و جزئیات
           </Button>
         </footer>
       </div>
+
+      <PollDetailsDialog
+        poll={poll}
+        open={isDetailsOpen}
+        onOpenChange={setIsDetailsOpen}
+      />
     </article>
   );
 }

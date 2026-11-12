@@ -143,7 +143,10 @@ export function CreatePollForm({ onDone }: { onDone: () => void }) {
                       error={errors.options?.[index]?.text?.message}
                       description={
                         length >= OPTION_COUNTER_THRESHOLD ? (
-                          <CharCounter length={length} max={MAX_OPTION_LENGTH} />
+                          <CharCounter
+                            length={length}
+                            max={MAX_OPTION_LENGTH}
+                          />
                         ) : undefined
                       }
                     >

@@ -45,9 +45,9 @@ export function useVotePoll(groupId: string) {
         description: getApiErrorMessage(error),
       });
     },
-    // Sync with the server without keeping the mutation pending while refetching.
+    // Sync with the server (lists and voters) without keeping the mutation pending.
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey });
+      void queryClient.invalidateQueries({ queryKey: pollKeys.all });
     },
   });
 }

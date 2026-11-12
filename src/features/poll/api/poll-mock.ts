@@ -1,7 +1,11 @@
 import { formatNumber } from '@/utils/format';
-import type { PollDto } from './contracts';
+import type { PollDto, PollVotersDto } from './contracts';
 
 // shortcut: temporary data; delete this file when the backend is connected.
+// "preview-user" is the id used by the dev auth adapter, so those polls count as owned by the current user.
+const CURRENT_USER_ID = 'preview-user';
+const CREATED_AT = '2026-07-05T08:30:00Z';
+
 function makePoll(
   id: number,
   title: string,
@@ -10,7 +14,8 @@ function makePoll(
   {
     isAnonymous = false,
     selected = [],
-  }: { isAnonymous?: boolean; selected?: number[] } = {},
+    creatorId = CURRENT_USER_ID,
+  }: { isAnonymous?: boolean; selected?: number[]; creatorId?: string } = {},
 ): PollDto {
   const optionId = (index: number) => id * 100 + index + 1;
   return {
@@ -18,6 +23,8 @@ function makePoll(
     title,
     status,
     is_anonymous: isAnonymous,
+    creator_id: creatorId,
+    created_at: CREATED_AT,
     my_option_ids: selected.map(optionId),
     options: votes.map((count, index) => ({
       id: optionId(index),
@@ -34,23 +41,30 @@ export const mockPollDtos: PollDto[] = [
   }),
   makePoll(2, 'انتخاب تاریخ حرکت', 'active', [8, 5, 3, 2], {
     isAnonymous: true,
+    creatorId: 'user-2',
   }),
-  makePoll(
-    3,
-    'انتخاب فعالیت‌های سفر',
-    'active',
-    [6, 5, 4, 4, 3, 2, 2, 1],
-    { selected: [6] },
-  ),
+  makePoll(3, 'انتخاب فعالیت‌های سفر', 'active', [6, 5, 4, 4, 3, 2, 2, 1], {
+    selected: [6],
+    creatorId: 'user-2',
+  }),
   makePoll(4, 'تصمیم‌گیری درباره‌ی مقصد سفر', 'closed', [12, 6, 4, 2], {
     selected: [0],
   }),
-  makePoll(5, 'انتخاب وعده‌ی شام', 'closed', [12, 5, 3, 1]),
+  makePoll(5, 'انتخاب وعده‌ی شام', 'closed', [12, 5, 3, 1], {
+    creatorId: 'user-2',
+  }),
   makePoll(6, 'ساعت حرکت', 'closed', [8, 5, 2, 1], {
     isAnonymous: true,
     selected: [3],
+    creatorId: 'user-2',
   }),
 ];
+
+function findMockPoll(pollId: number) {
+  const poll = mockPollDtos.find((item) => item.id === pollId);
+  if (!poll) throw new Error('Poll not found');
+  return poll;
+}
 
 // Mutates the in-memory mock so refetches reflect the vote. Single choice only;
 // a null optionId removes the current user's vote.
@@ -78,6 +92,8 @@ export function addMockPoll(input: {
     title: input.question,
     status: 'active',
     is_anonymous: input.isAnonymous,
+    creator_id: CURRENT_USER_ID,
+    created_at: new Date().toISOString(),
     my_option_ids: [],
     options: input.options.map((text, index) => ({
       id: id * 100 + index + 1,
@@ -87,6 +103,52 @@ export function addMockPoll(input: {
   };
   mockPollDtos.unshift(poll);
   return poll;
+}
+
+export function closeMockPoll(pollId: number) {
+  findMockPoll(pollId).status = 'closed';
+}
+
+export function deleteMockPoll(pollId: number) {
+  const index = mockPollDtos.findIndex((poll) => poll.id === pollId);
+  if (index === -1) throw new Error('Poll not found');
+  mockPollDtos.splice(index, 1);
+}
+
+const MOCK_VOTER_NAMES = [
+  'مریم احمدی',
+  'علی رضایی',
+  'حسین کریمی',
+  'سارا محمدی',
+  'نگار حسینی',
+  'رضا موسوی',
+  'زهرا اکبری',
+  'محمد جعفری',
+  'الهام رحیمی',
+  'پویا نوری',
+  'نرگس فتحی',
+  'کامران یوسفی',
+];
+
+// Generates one voter per recorded vote; only public polls expose voters.
+export function getMockVoters(pollId: number): PollVotersDto {
+  const poll = findMockPoll(pollId);
+  if (poll.is_anonymous)
+    throw new Error('Voters are hidden for anonymous polls');
+  const firstVote = Date.parse('2026-07-05T11:00:00Z');
+  let counter = 0;
+  return poll.options.map((option) => ({
+    option_id: option.id,
+    voters: Array.from({ length: option.votes_count }, () => {
+      const index = counter++;
+      return {
+        id: index + 1,
+        name: MOCK_VOTER_NAMES[index % MOCK_VOTER_NAMES.length] ?? 'کاربر',
+        avatar_url: null,
+        voted_at: new Date(firstVote + index * 17 * 60_000).toISOString(),
+      };
+    }),
+  }));
 }
 
 export function delay(ms: number, signal?: AbortSignal) {

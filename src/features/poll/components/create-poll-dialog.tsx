@@ -14,7 +14,10 @@ interface CreatePollDialogProps {
 }
 
 // The form lives inside the popup, so its state is discarded whenever the dialog closes.
-export function CreatePollDialog({ open, onOpenChange }: CreatePollDialogProps) {
+export function CreatePollDialog({
+  open,
+  onOpenChange,
+}: CreatePollDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>

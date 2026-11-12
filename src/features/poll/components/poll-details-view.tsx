@@ -1,0 +1,337 @@
+import { useId, useState } from 'react';
+import {
+  ArrowLeft,
+  BarChart2,
+  CalendarCheck,
+  Check,
+  CheckSquare,
+  Ellipsis,
+  Trash2,
+  Undo2,
+  Users,
+  X,
+} from 'lucide-react';
+import { ConfirmDialog } from '@/components/custom/confirm-dialog';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { formatPollDay } from '@/features/poll/format';
+import { useCurrentGroupId } from '@/features/poll/hooks/use-current-group-id';
+import { useIsPollOwner } from '@/features/poll/hooks/use-is-poll-owner';
+import {
+  useClosePoll,
+  useDeletePoll,
+} from '@/features/poll/hooks/use-manage-poll';
+import { useVotePoll } from '@/features/poll/hooks/use-vote-poll';
+import { cn } from '@/lib/utils';
+import { formatNumber } from '@/utils/format';
+import { PollDialogHeader } from './poll-dialog-header';
+import type { Poll } from '@/features/poll/types';
+
+const badgeTones = {
+  success: 'border-success-40 bg-success-10 text-success-60',
+  info: 'border-info-40 bg-info-10 text-info-50',
+  neutral: 'border-neutral-40 bg-neutral-10 text-neutral-70',
+} as const;
+
+function MetaBadge({
+  tone,
+  children,
+}: {
+  tone: keyof typeof badgeTones;
+  children: string;
+}) {
+  return (
+    <span
+      className={cn(
+        'inline-flex h-6 items-center rounded-md border px-2 text-caption',
+        badgeTones[tone],
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
+interface ChoiceRowProps {
+  label: string;
+  isSelected: boolean;
+  canVote: boolean;
+  /** Reserve the leading slot so labels stay aligned (also used by read-only polls the user voted in). */
+  showIndicator: boolean;
+  isBusy: boolean;
+  onSelect: () => void;
+  onRetract: () => void;
+}
+
+function ChoiceRow({
+  label,
+  isSelected,
+  canVote,
+  showIndicator,
+  isBusy,
+  onSelect,
+  onRetract,
+}: ChoiceRowProps) {
+  const indicator = showIndicator && (
+    <span
+      aria-hidden="true"
+      className={cn(
+        'grid size-5 shrink-0 place-items-center rounded-full',
+        isSelected
+          ? 'bg-primary-70 text-white'
+          : canVote && 'border-[1.5px] border-neutral-40',
+      )}
+    >
+      {isSelected && <Check className="size-3" strokeWidth={3} />}
+    </span>
+  );
+  const mainClass =
+    'flex h-10 min-w-0 flex-1 items-center gap-3 px-3 text-start text-button-sm';
+
+  return (
+    <div
+      className={cn(
+        'flex items-center rounded-lg border bg-background transition-colors motion-reduce:transition-none',
+        isSelected ? 'border-primary-60 bg-primary-10' : 'border-neutral-20',
+        canVote && !isSelected && 'hover:border-primary-40',
+      )}
+    >
+      {canVote && !isSelected ? (
+        <button
+          type="button"
+          // aria-disabled (not disabled) keeps keyboard focus on the row during a vote.
+          aria-disabled={isBusy || undefined}
+          onClick={isBusy ? undefined : onSelect}
+          className={cn(
+            mainClass,
+            'rounded-lg outline-hidden focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring',
+          )}
+        >
+          {indicator}
+          <span className="truncate">{label}</span>
+        </button>
+      ) : (
+        <div className={mainClass}>
+          {indicator}
+          <span className={cn('truncate', isSelected && 'font-medium')}>
+            {label}
+          </span>
+          {isSelected && <span className="sr-only">انتخاب شما</span>}
+        </div>
+      )}
+      {canVote && isSelected && (
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            aria-label="گزینه‌های رأی"
+            disabled={isBusy}
+            className="me-1 grid size-8 shrink-0 place-items-center rounded-md text-neutral-60 outline-hidden hover:bg-primary-20/50 focus-visible:outline-2 focus-visible:outline-ring"
+          >
+            <Ellipsis className="size-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={onRetract}>
+              <Undo2 className="size-4" aria-hidden="true" />
+              پس‌گرفتن رأی
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+    </div>
+  );
+}
+
+interface PollDetailsViewProps {
+  poll: Poll;
+  onClose: () => void;
+  onShowVoters: () => void;
+}
+
+export function PollDetailsView({
+  poll,
+  onClose,
+  onShowVoters,
+}: PollDetailsViewProps) {
+  const questionId = useId();
+  const groupId = useCurrentGroupId();
+  const isOwner = useIsPollOwner(poll.creatorId);
+  const vote = useVotePoll(groupId);
+  const closePoll = useClosePoll(groupId);
+  const deletePoll = useDeletePoll(groupId);
+  const [confirming, setConfirming] = useState<'close' | 'delete' | null>(null);
+
+  const isActive = poll.status === 'active';
+  const hasVoted = poll.votedOptionIds.length > 0;
+  const subtitle = !isActive
+    ? 'این نظرسنجی پایان یافته است'
+    : hasVoted
+      ? 'رأی شما ثبت شده است'
+      : 'روی گزینه مدنظر خود کلیک کنید و رأی خود را ثبت کنید';
+
+  return (
+    <>
+      <PollDialogHeader
+        icon={<BarChart2 className="size-6" />}
+        title="جزئیات نظرسنجی"
+        description={subtitle}
+        action={
+          <Button
+            type="button"
+            variant="outline"
+            size="icon-md"
+            radius="md"
+            aria-label="بستن"
+            onClick={onClose}
+          >
+            <X className="size-5" />
+          </Button>
+        }
+      />
+
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 sm:p-5">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-caption text-neutral-70">
+          <span className="flex items-center gap-1.5">
+            <Users className="size-4" aria-hidden="true" />
+            {formatNumber(poll.totalVotes)} رأی
+          </span>
+          <span className="flex items-center gap-1.5">
+            <CalendarCheck className="size-4" aria-hidden="true" />
+            <span className="sr-only">تاریخ ایجاد:</span>
+            {formatPollDay(poll.createdAt)}
+          </span>
+          <span className="ms-auto flex items-center gap-2">
+            <MetaBadge tone={poll.isAnonymous ? 'neutral' : 'success'}>
+              {poll.isAnonymous ? 'ناشناس' : 'پابلیک'}
+            </MetaBadge>
+            <MetaBadge tone={isActive ? 'info' : 'neutral'}>
+              {isActive ? 'فعال' : 'تمام شده'}
+            </MetaBadge>
+          </span>
+        </div>
+
+        <section
+          aria-labelledby={questionId}
+          className="rounded-xl border border-primary-20 bg-primary-10/60 p-3"
+        >
+          <h3
+            id={questionId}
+            className="border-b border-primary-20 pb-3 text-button-sm font-bold text-primary-80"
+          >
+            {poll.title}
+          </h3>
+          <ul className="mt-3 flex flex-col gap-2">
+            {poll.options.map((option) => (
+              <li key={option.id}>
+                <ChoiceRow
+                  label={option.label}
+                  isSelected={poll.votedOptionIds.includes(option.id)}
+                  canVote={isActive}
+                  showIndicator={isActive || hasVoted}
+                  isBusy={vote.isPending}
+                  onSelect={() =>
+                    vote.mutate({ pollId: poll.id, optionId: option.id })
+                  }
+                  onRetract={() =>
+                    vote.mutate({ pollId: poll.id, optionId: null })
+                  }
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* Anonymous polls never reveal who voted, so there is nothing to open. */}
+        {!poll.isAnonymous && (
+          <button
+            type="button"
+            onClick={onShowVoters}
+            className="flex w-full items-center gap-3 rounded-xl border border-neutral-20 p-3 text-start outline-hidden transition-colors hover:bg-primary-10/50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring motion-reduce:transition-none"
+          >
+            <span
+              aria-hidden="true"
+              className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary-10 text-primary-70"
+            >
+              <Users className="size-5" />
+            </span>
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="text-button-sm font-bold">
+                مشاهده رأی‌دهندگان
+              </span>
+              <span className="text-caption text-neutral-60">
+                چه کسانی به هر گزینه رأی داده‌اند
+              </span>
+            </span>
+            <ArrowLeft
+              className="size-5 shrink-0 text-primary-70"
+              aria-hidden="true"
+            />
+          </button>
+        )}
+      </div>
+
+      {isOwner && (
+        <footer className="flex items-center gap-3 border-t border-neutral-20 p-4">
+          {isActive && (
+            <Button
+              type="button"
+              size="lg"
+              className="flex-1"
+              endIcon={<CheckSquare className="size-5" />}
+              onClick={() => setConfirming('close')}
+            >
+              پایان نظرسنجی
+            </Button>
+          )}
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            endIcon={<Trash2 className="size-5" />}
+            onClick={() => setConfirming('delete')}
+            className={cn(
+              'border-danger-50 text-danger-50 hover:bg-danger-10 active:bg-danger-20',
+              !isActive && 'flex-1',
+            )}
+          >
+            حذف
+          </Button>
+        </footer>
+      )}
+
+      <ConfirmDialog
+        open={confirming === 'close'}
+        onOpenChange={(open) => setConfirming(open ? 'close' : null)}
+        title="پایان نظرسنجی"
+        description="با پایان نظرسنجی، دیگر کسی نمی‌تواند رأی بدهد یا رأی خود را تغییر دهد. آیا مطمئن هستید؟"
+        confirmLabel="پایان نظرسنجی"
+        loadingText="در حال پایان…"
+        isLoading={closePoll.isPending}
+        onConfirm={() =>
+          closePoll.mutate(poll.id, { onSuccess: () => setConfirming(null) })
+        }
+      />
+      <ConfirmDialog
+        open={confirming === 'delete'}
+        onOpenChange={(open) => setConfirming(open ? 'delete' : null)}
+        title="حذف نظرسنجی"
+        description="نظرسنجی و همه‌ی رأی‌های آن برای همیشه حذف می‌شود و قابل بازیابی نیست. آیا مطمئن هستید؟"
+        confirmLabel="حذف نظرسنجی"
+        loadingText="در حال حذف…"
+        tone="danger"
+        isLoading={deletePoll.isPending}
+        onConfirm={() =>
+          deletePoll.mutate(poll.id, {
+            onSuccess: () => {
+              setConfirming(null);
+              onClose();
+            },
+          })
+        }
+      />
+    </>
+  );
+}

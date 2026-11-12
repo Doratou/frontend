@@ -49,7 +49,10 @@ export function PollOptionBar({
               className={cn(
                 'grid size-4 shrink-0 place-items-center rounded-full transition-colors motion-reduce:transition-none',
                 isSelected
-                  ? cn('text-white', isClosed ? 'bg-neutral-60' : 'bg-primary-60')
+                  ? cn(
+                      'text-white',
+                      isClosed ? 'bg-neutral-60' : 'bg-primary-60',
+                    )
                   : interactive &&
                       'border-[1.5px] border-neutral-40 group-hover:border-primary-50',
               )}

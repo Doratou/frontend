@@ -62,7 +62,7 @@ export function PollOptionList({ poll }: { poll: Poll }) {
       aria-label="گزینه‌های نظرسنجی"
       aria-busy={vote.isPending}
       style={{ maskImage: mask, WebkitMaskImage: mask }}
-      className="flex max-h-54 flex-col gap-1 overflow-y-auto rounded-sm pe-1.5 [scrollbar-gutter:stable] [scrollbar-width:thin] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      className="flex max-h-54 [scrollbar-width:thin] [scrollbar-gutter:stable] flex-col gap-1 overflow-y-auto rounded-sm pe-1.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
     >
       {poll.options.map((option) => {
         const isSelected = poll.votedOptionIds.includes(option.id);
