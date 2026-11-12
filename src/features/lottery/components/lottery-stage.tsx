@@ -1,18 +1,20 @@
 import { useRef, useState } from 'react';
 import type { PrizeWheelRef } from '@mertercelik/react-prize-wheel';
-import { Trophy } from 'lucide-react';
-import { LoadingButton } from '@/components/custom/loading-button';
-import { toPersianNumber } from '@/features/lottery/format';
 import { useDrawLottery } from '@/features/lottery/hooks/use-draw-lottery';
-import { LotteryWheel } from '@/features/lottery/components/lottery-wheel';
-import { ParticipantAvatar } from '@/features/lottery/components/participant-avatar';
-import { WinnerDialog } from '@/features/lottery/components/winner-dialog';
-import type { Lottery } from '@/features/lottery/types';
+import { LotteryDetailsCard } from '@/features/lottery/components/lottery-details-card';
+import { LotteryResultDialog } from '@/features/lottery/components/lottery-result-dialog';
+import { LotteryWheelCard } from '@/features/lottery/components/lottery-wheel-card';
+import type {
+  DrawLotteryResult,
+  Lottery,
+  LotteryResult,
+} from '@/features/lottery/types';
+import { findOption, getOptionChance } from '@/features/lottery/utils';
 
 interface LotteryStageProps {
   lottery: Lottery;
   groupId: string;
-  // Lets the parent lock navigation while a draw is in flight.
+  // Lets the parent lock the page while a draw is in flight.
   onBusyChange: (busy: boolean) => void;
 }
 
@@ -22,16 +24,16 @@ export function LotteryStage({
   onBusyChange,
 }: LotteryStageProps) {
   const wheelRef = useRef<PrizeWheelRef>(null);
+  const serverResult = useRef<DrawLotteryResult | null>(null);
   const draw = useDrawLottery(groupId);
   const [isBusy, setIsBusy] = useState(false);
-  const [spunWinnerId, setSpunWinnerId] = useState<string | null>(null);
-  const [isWinnerOpen, setIsWinnerOpen] = useState(false);
+  const [localResult, setLocalResult] = useState<LotteryResult | null>(null);
+  const [isResultOpen, setIsResultOpen] = useState(false);
 
   // The list refresh lands after the wheel stops, so keep the local result
   // until the cached lottery catches up.
-  const winnerId = spunWinnerId ?? lottery.result?.winnerId ?? null;
-  const winner = lottery.participants.find((p) => p.id === winnerId) ?? null;
-  const isDrawn = winnerId !== null;
+  const result = localResult ?? lottery.result;
+  const winner = findOption(lottery, result?.optionId ?? null);
 
   const updateBusy = (busy: boolean) => {
     setIsBusy(busy);
@@ -41,66 +43,48 @@ export function LotteryStage({
   const handleSpin = async () => {
     updateBusy(true);
     try {
-      const result = await draw.mutateAsync(lottery.id);
-      wheelRef.current?.spin(result.winnerId);
+      const drawResult = await draw.mutateAsync(lottery.id);
+      serverResult.current = drawResult;
+      wheelRef.current?.spin(drawResult.optionId);
     } catch {
       // The mutation hook already reported the failure with a toast.
       updateBusy(false);
     }
   };
 
-  const handleSpinEnd = (id: string) => {
-    setSpunWinnerId(id);
-    setIsWinnerOpen(true);
+  const handleSpinEnd = (optionId: string) => {
+    setLocalResult({
+      optionId,
+      drawnAt: serverResult.current?.drawnAt ?? new Date().toISOString(),
+    });
+    setIsResultOpen(true);
     updateBusy(false);
     void draw.refreshLotteries();
   };
 
   return (
-    <section className="flex flex-col items-center gap-6 rounded-3xl border bg-card p-6 sm:p-8">
-      <div className="text-center">
-        <h2 className="text-heading-mobile-2 sm:text-heading-4">
-          {lottery.title}
-        </h2>
-        <p className="text-paragraph-sm text-muted-foreground">
-          {toPersianNumber(lottery.participants.length)} شرکت‌کننده
-        </p>
-      </div>
-
-      <LotteryWheel
-        ref={wheelRef}
-        participants={lottery.participants}
+    <div className="grid gap-4 lg:grid-cols-2">
+      {/* On mobile the wheel comes first; on desktop the details sit at the start. */}
+      <LotteryDetailsCard lottery={lottery} winner={winner} />
+      <LotteryWheelCard
+        className="order-first lg:order-none"
+        options={lottery.options}
+        wheelRef={wheelRef}
+        isBusy={isBusy}
+        isDrawn={winner !== null}
+        onSpin={() => void handleSpin()}
         onSpinEnd={handleSpinEnd}
       />
-
-      {isDrawn ? (
-        <div
-          role="status"
-          className="flex items-center gap-3 rounded-2xl bg-accent px-5 py-3 text-accent-foreground"
-        >
-          <Trophy className="size-5" aria-hidden="true" />
-          {winner && <ParticipantAvatar participant={winner} size="sm" />}
-          <span className="text-heading-mobile-5">
-            برنده: {winner?.name ?? '—'}
-          </span>
-        </div>
-      ) : (
-        <LoadingButton
-          size="xl"
-          isLoading={isBusy}
-          loadingText="در حال چرخش…"
-          onClick={() => void handleSpin()}
-        >
-          بچرخون!
-        </LoadingButton>
-      )}
-
-      <WinnerDialog
-        open={isWinnerOpen}
-        onOpenChange={setIsWinnerOpen}
-        winner={winner}
+      <LotteryResultDialog
+        open={isResultOpen}
+        onOpenChange={setIsResultOpen}
         lotteryTitle={lottery.title}
+        mode={lottery.mode}
+        optionCount={lottery.options.length}
+        winner={winner}
+        chance={winner ? getOptionChance(lottery, winner) : 0}
+        drawnAt={result?.drawnAt ?? null}
       />
-    </section>
+    </div>
   );
 }

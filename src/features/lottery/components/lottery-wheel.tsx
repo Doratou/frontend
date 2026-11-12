@@ -3,22 +3,20 @@ import { PrizeWheel } from '@mertercelik/react-prize-wheel';
 import type { PrizeWheelRef, Sector } from '@mertercelik/react-prize-wheel';
 import '@mertercelik/react-prize-wheel/style.css';
 import { pickWheelColors, WHEEL_THEME } from '@/features/lottery/config';
-import type { LotteryParticipant } from '@/features/lottery/types';
+import type { LotteryOption } from '@/features/lottery/types';
 
 interface LotteryWheelProps {
-  participants: LotteryParticipant[];
+  options: LotteryOption[];
   ref?: Ref<PrizeWheelRef>;
-  onSpinEnd?: (participantId: string) => void;
+  onSpinEnd?: (optionId: string) => void;
 }
 
-export function LotteryWheel({
-  participants,
-  ref,
-  onSpinEnd,
-}: LotteryWheelProps) {
+export function LotteryWheel({ options, ref, onSpinEnd }: LotteryWheelProps) {
+  // Sector sizes stay equal on purpose: the server decides the winner and the
+  // wheel only lands on it, so chances are shown next to the option list.
   const sectors = useMemo<Sector[]>(
-    () => participants.map(({ id, name }) => ({ id, label: name })),
-    [participants],
+    () => options.map(({ id, label }) => ({ id, label })),
+    [options],
   );
   const wheelColors = useMemo(
     () => pickWheelColors(sectors.length),
@@ -27,17 +25,16 @@ export function LotteryWheel({
 
   return (
     // The SVG geometry must not mirror in RTL pages, so the wheel stays LTR.
-    <div
-      dir="ltr"
-      className="mx-auto w-full max-w-md drop-shadow-[0_12px_32px_rgba(58,53,135,0.28)]"
-    >
-      <PrizeWheel
-        ref={ref}
-        sectors={sectors}
-        wheelColors={wheelColors}
-        onSpinEnd={(sector) => onSpinEnd?.(String(sector.id))}
-        {...WHEEL_THEME}
-      />
+    <div dir="ltr" className="rounded-2xl bg-muted/60 p-4">
+      <div className="mx-auto w-full max-w-sm">
+        <PrizeWheel
+          ref={ref}
+          sectors={sectors}
+          wheelColors={wheelColors}
+          onSpinEnd={(sector) => onSpinEnd?.(String(sector.id))}
+          {...WHEEL_THEME}
+        />
+      </div>
     </div>
   );
 }
