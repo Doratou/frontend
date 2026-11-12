@@ -13,9 +13,16 @@ const time = new Intl.DateTimeFormat(locale, {
   hourCycle: 'h23',
 });
 
-/** Persian-calendar day and month, e.g. the 14th of Tir. */
-export function formatPollDay(timestamp: number): string {
-  return dayMonth.format(timestamp);
+/**
+ * Period shown in the details view: only the start day while the poll is active,
+ * "start to end" (Persian calendar) once it has been closed.
+ */
+export function formatPollPeriod(
+  createdAt: number,
+  closedAt: number | null,
+): string {
+  const start = dayMonth.format(createdAt);
+  return closedAt === null ? start : `${start} تا ${dayMonth.format(closedAt)}`;
 }
 
 /** Day, month and clock time, e.g. "14 Tir 15:27" in Persian digits. */

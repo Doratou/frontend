@@ -19,7 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { formatPollDay } from '@/features/poll/format';
+import { formatPollPeriod } from '@/features/poll/format';
 import { useCurrentGroupId } from '@/features/poll/hooks/use-current-group-id';
 import { useIsPollOwner } from '@/features/poll/hooks/use-is-poll-owner';
 import {
@@ -200,8 +200,10 @@ export function PollDetailsView({
           </span>
           <span className="flex items-center gap-1.5">
             <CalendarCheck className="size-4" aria-hidden="true" />
-            <span className="sr-only">تاریخ ایجاد:</span>
-            {formatPollDay(poll.createdAt)}
+            <span className="sr-only">
+              {isActive ? 'تاریخ ایجاد:' : 'از ایجاد تا پایان:'}
+            </span>
+            {formatPollPeriod(poll.createdAt, poll.closedAt)}
           </span>
           <span className="ms-auto flex items-center gap-2">
             <MetaBadge tone={poll.isAnonymous ? 'neutral' : 'success'}>

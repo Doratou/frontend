@@ -1,6 +1,6 @@
 import { queryOptions, useQuery } from '@tanstack/react-query';
 import { pollListSchema } from './contracts';
-import { delay, mockPollDtos } from './poll-mock';
+import { delay, getMockPolls } from './poll-mock';
 import { pollKeys } from './query-keys';
 import type { Poll } from '@/features/poll/types';
 
@@ -12,7 +12,7 @@ async function fetchPollList(
   signal?: AbortSignal,
 ): Promise<unknown> {
   await delay(500, signal);
-  return mockPollDtos;
+  return getMockPolls();
 }
 
 export async function getPolls(

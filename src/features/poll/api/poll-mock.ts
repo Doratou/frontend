@@ -1,10 +1,17 @@
+import { useAuthStore } from '@/features/auth/stores/auth-store';
 import { formatNumber } from '@/utils/format';
 import type { PollDto, PollVotersDto } from './contracts';
 
 // shortcut: temporary data; delete this file when the backend is connected.
-// "preview-user" is the id used by the dev auth adapter, so those polls count as owned by the current user.
-const CURRENT_USER_ID = 'preview-user';
+// Polls created by the signed-in user carry this placeholder; it is swapped for the
+// real session user id whenever the list is served, so ownership works for any account.
+const ME = 'me';
 const CREATED_AT = '2026-07-05T08:30:00Z';
+const CLOSED_AT = '2026-07-09T17:45:00Z';
+
+function currentUserId() {
+  return useAuthStore.getState().user?.id ?? 'preview-user';
+}
 
 function makePoll(
   id: number,
@@ -14,7 +21,7 @@ function makePoll(
   {
     isAnonymous = false,
     selected = [],
-    creatorId = CURRENT_USER_ID,
+    creatorId = ME,
   }: { isAnonymous?: boolean; selected?: number[]; creatorId?: string } = {},
 ): PollDto {
   const optionId = (index: number) => id * 100 + index + 1;
@@ -25,6 +32,7 @@ function makePoll(
     is_anonymous: isAnonymous,
     creator_id: creatorId,
     created_at: CREATED_AT,
+    closed_at: status === 'closed' ? CLOSED_AT : null,
     my_option_ids: selected.map(optionId),
     options: votes.map((count, index) => ({
       id: optionId(index),
@@ -60,6 +68,13 @@ export const mockPollDtos: PollDto[] = [
   }),
 ];
 
+/** The mock list as the "server" would return it for the signed-in user. */
+export function getMockPolls(): PollDto[] {
+  return mockPollDtos.map((poll) =>
+    poll.creator_id === ME ? { ...poll, creator_id: currentUserId() } : poll,
+  );
+}
+
 function findMockPoll(pollId: number) {
   const poll = mockPollDtos.find((item) => item.id === pollId);
   if (!poll) throw new Error('Poll not found');
@@ -92,8 +107,9 @@ export function addMockPoll(input: {
     title: input.question,
     status: 'active',
     is_anonymous: input.isAnonymous,
-    creator_id: CURRENT_USER_ID,
+    creator_id: ME,
     created_at: new Date().toISOString(),
+    closed_at: null,
     my_option_ids: [],
     options: input.options.map((text, index) => ({
       id: id * 100 + index + 1,
@@ -106,7 +122,9 @@ export function addMockPoll(input: {
 }
 
 export function closeMockPoll(pollId: number) {
-  findMockPoll(pollId).status = 'closed';
+  const poll = findMockPoll(pollId);
+  poll.status = 'closed';
+  poll.closed_at = new Date().toISOString();
 }
 
 export function deleteMockPoll(pollId: number) {

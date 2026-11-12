@@ -15,6 +15,8 @@ export interface Poll {
   creatorId: string;
   /** Epoch milliseconds. */
   createdAt: number;
+  /** Epoch milliseconds; null while the poll is active. */
+  closedAt: number | null;
   /** Option ids the current user voted for; empty when they have not voted. */
   votedOptionIds: string[];
   totalVotes: number;

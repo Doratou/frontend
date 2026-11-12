@@ -18,6 +18,7 @@ const pollDtoSchema = z.object({
   // ASSUMED: the backend sends the creator id; numbers and strings are both accepted.
   creator_id: z.coerce.string().min(1),
   created_at: z.iso.datetime({ offset: true }),
+  closed_at: z.iso.datetime({ offset: true }).nullable(),
   my_option_ids: z.array(z.number().int().positive()),
   options: z.array(pollOptionDtoSchema).min(2),
 });
@@ -35,6 +36,7 @@ function toPoll(dto: z.infer<typeof pollDtoSchema>): Poll {
     isAnonymous: dto.is_anonymous,
     creatorId: dto.creator_id,
     createdAt: Date.parse(dto.created_at),
+    closedAt: dto.closed_at === null ? null : Date.parse(dto.closed_at),
     votedOptionIds: dto.my_option_ids.map(String),
     totalVotes: options.reduce((sum, option) => sum + option.votes, 0),
     options,
