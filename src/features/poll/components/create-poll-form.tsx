@@ -104,7 +104,7 @@ export function CreatePollForm({ onDone }: { onDone: () => void }) {
           }
         >
           <Input
-            placeholder="سوال خود را بنویسید"
+            placeholder="ود را بنویسید"
             autoComplete="off"
             maxLength={MAX_QUESTION_LENGTH}
             className="border-primary-50"

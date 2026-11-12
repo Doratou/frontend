@@ -3,22 +3,13 @@ import {
   ArrowLeft,
   BarChart2,
   CalendarCheck,
-  Check,
   CheckSquare,
-  Ellipsis,
   Trash2,
-  Undo2,
   Users,
   X,
 } from 'lucide-react';
 import { ConfirmDialog } from '@/components/custom/confirm-dialog';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { formatPollPeriod } from '@/features/poll/format';
 import { useCurrentGroupId } from '@/features/poll/hooks/use-current-group-id';
 import { useIsPollOwner } from '@/features/poll/hooks/use-is-poll-owner';
@@ -27,10 +18,12 @@ import {
   useDeletePoll,
 } from '@/features/poll/hooks/use-manage-poll';
 import { useVotePoll } from '@/features/poll/hooks/use-vote-poll';
+import { getOptionPercent } from '@/features/poll/utils';
 import { cn } from '@/lib/utils';
 import { formatNumber } from '@/utils/format';
 import { PollDialogHeader } from './poll-dialog-header';
-import type { Poll } from '@/features/poll/types';
+import { PollOptionBar } from './poll-option-bar';
+import type { Poll, PollOption } from '@/features/poll/types';
 
 const badgeTones = {
   success: 'border-success-40 bg-success-10 text-success-60',
@@ -58,89 +51,39 @@ function MetaBadge({
 }
 
 interface ChoiceRowProps {
-  label: string;
-  isSelected: boolean;
-  canVote: boolean;
-  /** Reserve the leading slot so labels stay aligned (also used by read-only polls the user voted in). */
-  showIndicator: boolean;
+  option: PollOption;
+  poll: Poll;
+  maxVotes: number;
   isBusy: boolean;
-  onSelect: () => void;
-  onRetract: () => void;
+  /** Pass null to take the vote back. */
+  onVote: (optionId: string | null) => void;
 }
 
-function ChoiceRow({
-  label,
-  isSelected,
-  canVote,
-  showIndicator,
-  isBusy,
-  onSelect,
-  onRetract,
-}: ChoiceRowProps) {
-  const indicator = showIndicator && (
-    <span
-      aria-hidden="true"
-      className={cn(
-        'grid size-5 shrink-0 place-items-center rounded-full',
-        isSelected
-          ? 'bg-primary-70 text-white'
-          : canVote && 'border-[1.5px] border-neutral-40',
-      )}
-    >
-      {isSelected && <Check className="size-3" strokeWidth={3} />}
-    </span>
-  );
-  const mainClass =
-    'flex h-10 min-w-0 flex-1 items-center gap-3 px-3 text-start text-button-sm';
+// The same option row as on the poll card (results included), wrapped in the bordered
+// box from the design. Clicking the chosen option again takes the vote back.
+function ChoiceRow({ option, poll, maxVotes, isBusy, onVote }: ChoiceRowProps) {
+  const isActive = poll.status === 'active';
+  const isSelected = poll.votedOptionIds.includes(option.id);
 
   return (
     <div
       className={cn(
-        'flex items-center rounded-lg border bg-background transition-colors motion-reduce:transition-none',
-        isSelected ? 'border-primary-60 bg-primary-10' : 'border-neutral-20',
-        canVote && !isSelected && 'hover:border-primary-40',
+        'rounded-lg border bg-background p-1 transition-colors motion-reduce:transition-none',
+        isSelected ? 'border-primary-60' : 'border-neutral-20',
       )}
     >
-      {canVote && !isSelected ? (
-        <button
-          type="button"
-          // aria-disabled (not disabled) keeps keyboard focus on the row during a vote.
-          aria-disabled={isBusy || undefined}
-          onClick={isBusy ? undefined : onSelect}
-          className={cn(
-            mainClass,
-            'rounded-lg outline-hidden focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring',
-          )}
-        >
-          {indicator}
-          <span className="truncate">{label}</span>
-        </button>
-      ) : (
-        <div className={mainClass}>
-          {indicator}
-          <span className={cn('truncate', isSelected && 'font-medium')}>
-            {label}
-          </span>
-          {isSelected && <span className="sr-only">انتخاب شما</span>}
-        </div>
-      )}
-      {canVote && isSelected && (
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            aria-label="گزینه‌های رأی"
-            disabled={isBusy}
-            className="me-1 grid size-8 shrink-0 place-items-center rounded-md text-neutral-60 outline-hidden hover:bg-primary-20/50 focus-visible:outline-2 focus-visible:outline-ring"
-          >
-            <Ellipsis className="size-4" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={onRetract}>
-              <Undo2 className="size-4" aria-hidden="true" />
-              پس‌گرفتن رأی
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
+      <PollOptionBar
+        label={option.label}
+        percent={getOptionPercent(option, poll.totalVotes)}
+        isLeading={maxVotes > 0 && option.votes === maxVotes}
+        isClosed={!isActive}
+        isSelected={isSelected}
+        showIndicator={isActive || poll.votedOptionIds.length > 0}
+        onSelect={
+          isActive ? () => onVote(isSelected ? null : option.id) : undefined
+        }
+        disabled={isBusy}
+      />
     </div>
   );
 }
@@ -166,6 +109,7 @@ export function PollDetailsView({
 
   const isActive = poll.status === 'active';
   const hasVoted = poll.votedOptionIds.length > 0;
+  const maxVotes = Math.max(0, ...poll.options.map((option) => option.votes));
   const subtitle = !isActive
     ? 'این نظرسنجی پایان یافته است'
     : hasVoted
@@ -229,16 +173,12 @@ export function PollDetailsView({
             {poll.options.map((option) => (
               <li key={option.id}>
                 <ChoiceRow
-                  label={option.label}
-                  isSelected={poll.votedOptionIds.includes(option.id)}
-                  canVote={isActive}
-                  showIndicator={isActive || hasVoted}
+                  option={option}
+                  poll={poll}
+                  maxVotes={maxVotes}
                   isBusy={vote.isPending}
-                  onSelect={() =>
-                    vote.mutate({ pollId: poll.id, optionId: option.id })
-                  }
-                  onRetract={() =>
-                    vote.mutate({ pollId: poll.id, optionId: null })
+                  onVote={(optionId) =>
+                    vote.mutate({ pollId: poll.id, optionId })
                   }
                 />
               </li>
