@@ -15,7 +15,7 @@ export function useDrawLottery(groupId: string) {
   });
 
   // Called after the wheel stops. Refreshing earlier would reveal the winner
-  // in the history list while the wheel is still spinning.
+  // in the history table while the wheel is still spinning.
   const refreshLotteries = () =>
     queryClient.invalidateQueries({ queryKey: lotteryKeys.list(groupId) });
 

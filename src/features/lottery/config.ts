@@ -1,7 +1,9 @@
-export const LOTTERY_MIN_PARTICIPANTS = 2;
+export const LOTTERY_MIN_OPTIONS = 2;
 // The wheel component renders between 2 and 24 sectors.
-export const LOTTERY_MAX_PARTICIPANTS = 24;
+export const LOTTERY_MAX_OPTIONS = 24;
 export const LOTTERY_TITLE_MAX_LENGTH = 60;
+export const LOTTERY_OPTION_MAX_LENGTH = 40;
+export const LOTTERY_WEIGHT_TOTAL = 100;
 
 // SVG props need concrete values, so these hex codes mirror colors.css.
 // Every color keeps enough contrast against the white sector text.

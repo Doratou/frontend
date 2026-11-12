@@ -8,8 +8,18 @@ import type { CreateLotteryFormValues } from '@/features/lottery/schemas';
 export function useCreateLottery(groupId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (values: CreateLotteryFormValues) =>
-      createLottery({ groupId, ...values }),
+    mutationFn: ({ title, mode, options }: CreateLotteryFormValues) =>
+      createLottery({
+        groupId,
+        title,
+        mode,
+        options: options.map(({ memberId, label, weight }) => ({
+          memberId,
+          label,
+          // Equal lotteries let the server split the chances evenly.
+          weight: mode === 'weighted' ? weight : undefined,
+        })),
+      }),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: lotteryKeys.list(groupId) }),
     onError: (error) =>
