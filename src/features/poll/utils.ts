@@ -26,3 +26,10 @@ export function withVote(poll: Poll, optionId: string | null): Poll {
     totalVotes: options.reduce((sum, option) => sum + option.votes, 0),
   };
 }
+
+/** Votes can be cast, changed or withdrawn only while the poll is open and its group is active. */
+export function isPollVotable(
+  poll: Pick<Poll, 'status' | 'isFrozen'>,
+): boolean {
+  return poll.status === 'active' && !poll.isFrozen;
+}

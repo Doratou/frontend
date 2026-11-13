@@ -1,11 +1,15 @@
-import { deleteMockPoll, delay } from './poll-mock';
+import { apiClient } from '@/lib/api/client';
+import { pollPath, pollRequest, unwrap } from './poll-http';
 
-// Only this function changes when the backend is connected:
-//   await apiClient.delete(`/groups/${groupId}/polls/${pollId}`, { signal });
+/** Soft-deletes a poll with its options and votes (creator only). */
 export async function deletePoll(
   input: { groupId: string; pollId: string },
   signal?: AbortSignal,
 ): Promise<void> {
-  await delay(500, signal);
-  deleteMockPoll(Number(input.pollId));
+  const response = await pollRequest(() =>
+    apiClient.delete<unknown>(pollPath(input.groupId, input.pollId), {
+      signal,
+    }),
+  );
+  unwrap(response.data);
 }

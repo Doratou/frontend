@@ -18,7 +18,7 @@ import {
   useDeletePoll,
 } from '@/features/poll/hooks/use-manage-poll';
 import { useVotePoll } from '@/features/poll/hooks/use-vote-poll';
-import { getOptionPercent } from '@/features/poll/utils';
+import { getOptionPercent, isPollVotable } from '@/features/poll/utils';
 import { cn } from '@/lib/utils';
 import { formatNumber } from '@/utils/format';
 import { PollDialogHeader } from './poll-dialog-header';
@@ -62,7 +62,7 @@ interface ChoiceRowProps {
 // The same option row as on the poll card (results included), wrapped in the bordered
 // box from the design. Clicking the chosen option again takes the vote back.
 function ChoiceRow({ option, poll, maxVotes, isBusy, onVote }: ChoiceRowProps) {
-  const isActive = poll.status === 'active';
+  const isVotable = isPollVotable(poll);
   const isSelected = poll.votedOptionIds.includes(option.id);
 
   return (
@@ -76,11 +76,11 @@ function ChoiceRow({ option, poll, maxVotes, isBusy, onVote }: ChoiceRowProps) {
         label={option.label}
         percent={getOptionPercent(option, poll.totalVotes)}
         isLeading={maxVotes > 0 && option.votes === maxVotes}
-        isClosed={!isActive}
+        isClosed={poll.status === 'closed'}
         isSelected={isSelected}
-        showIndicator={isActive || poll.votedOptionIds.length > 0}
+        showIndicator={isVotable || poll.votedOptionIds.length > 0}
         onSelect={
-          isActive ? () => onVote(isSelected ? null : option.id) : undefined
+          isVotable ? () => onVote(isSelected ? null : option.id) : undefined
         }
         disabled={isBusy}
       />
@@ -101,7 +101,7 @@ export function PollDetailsView({
 }: PollDetailsViewProps) {
   const questionId = useId();
   const groupId = useCurrentGroupId();
-  const isOwner = useIsPollOwner(poll.creatorId);
+  const isOwner = useIsPollOwner(poll.createdByMemberId);
   const vote = useVotePoll(groupId);
   const closePoll = useClosePoll(groupId);
   const deletePoll = useDeletePoll(groupId);
@@ -112,9 +112,11 @@ export function PollDetailsView({
   const maxVotes = Math.max(0, ...poll.options.map((option) => option.votes));
   const subtitle = !isActive
     ? 'این نظرسنجی پایان یافته است'
-    : hasVoted
-      ? 'رأی شما ثبت شده است'
-      : 'روی گزینه مدنظر خود کلیک کنید و رأی خود را ثبت کنید';
+    : poll.isFrozen
+      ? 'گروه غیرفعال است و امکان تغییر رأی وجود ندارد'
+      : hasVoted
+        ? 'رأی شما ثبت شده است'
+        : 'روی گزینه مدنظر خود کلیک کنید و رأی خود را ثبت کنید';
 
   return (
     <>
@@ -215,7 +217,7 @@ export function PollDetailsView({
         )}
       </div>
 
-      {isOwner && (
+      {isOwner && !poll.isFrozen && (
         <footer className="flex items-center gap-3 border-t border-neutral-20 p-4">
           {isActive && (
             <Button

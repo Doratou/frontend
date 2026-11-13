@@ -1,78 +1,106 @@
 import { z } from 'zod';
-import type { Poll, PollOptionVoters } from '@/features/poll/types';
+import type { Poll, PollOptionVoters, PollVoter } from '@/features/poll/types';
 
-// ASSUMED: the DTO shape below is a guess until the real backend contract exists.
-// After integration only this file (field names and envelope) should need changes.
+// Shapes follow the backend Bruno collection (Polls folder). Responses are wrapped in
+// { success: true, data } and errors in { success: false, code, error }.
 
-const pollOptionDtoSchema = z.object({
-  id: z.number().int().positive(),
-  text: z.string(),
-  votes_count: z.number().int().nonnegative(),
+const id = z.number().int().positive();
+const timestamp = z.iso.datetime({ offset: true });
+
+export const paginationSchema = z.object({
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+  total: z.number().int().nonnegative(),
+});
+
+const optionDtoSchema = z.object({
+  id,
+  title: z.string(),
+  vote_count: z.number().int().nonnegative(),
 });
 
 const pollDtoSchema = z.object({
-  id: z.number().int().positive(),
-  title: z.string().min(1),
-  status: z.enum(['active', 'closed']),
-  is_anonymous: z.boolean(),
-  // ASSUMED: the backend sends the creator id; numbers and strings are both accepted.
-  creator_id: z.coerce.string().min(1),
-  created_at: z.iso.datetime({ offset: true }),
-  closed_at: z.iso.datetime({ offset: true }).nullable(),
-  my_option_ids: z.array(z.number().int().positive()),
-  options: z.array(pollOptionDtoSchema).min(2),
+  id,
+  created_by_member_id: id,
+  question: z.string(),
+  // PRIVATE hides voter identities from everyone, so it is the "anonymous" poll in the UI.
+  visibility: z.enum(['PUBLIC', 'PRIVATE']),
+  // INACTIVE means closed by its creator.
+  status: z.enum(['ACTIVE', 'INACTIVE']),
+  is_frozen: z.boolean(),
+  closed_at: timestamp.nullable(),
+  created_at: timestamp,
+  options: z.array(optionDtoSchema),
+  total_votes: z.number().int().nonnegative(),
+  my_option_id: id.nullable(),
 });
 
 function toPoll(dto: z.infer<typeof pollDtoSchema>): Poll {
-  const options = dto.options.map((option) => ({
-    id: String(option.id),
-    label: option.text,
-    votes: option.votes_count,
-  }));
   return {
     id: String(dto.id),
-    title: dto.title,
-    status: dto.status,
-    isAnonymous: dto.is_anonymous,
-    creatorId: dto.creator_id,
+    title: dto.question,
+    status: dto.status === 'ACTIVE' ? 'active' : 'closed',
+    isFrozen: dto.is_frozen,
+    isAnonymous: dto.visibility === 'PRIVATE',
+    createdByMemberId: String(dto.created_by_member_id),
     createdAt: Date.parse(dto.created_at),
     closedAt: dto.closed_at === null ? null : Date.parse(dto.closed_at),
-    votedOptionIds: dto.my_option_ids.map(String),
-    totalVotes: options.reduce((sum, option) => sum + option.votes, 0),
-    options,
+    votedOptionIds: dto.my_option_id === null ? [] : [String(dto.my_option_id)],
+    totalVotes: dto.total_votes,
+    options: dto.options.map((option) => ({
+      id: String(option.id),
+      label: option.title,
+      votes: option.vote_count,
+    })),
   };
 }
 
 export const pollSchema = pollDtoSchema.transform(toPoll);
-export const pollListSchema = z.array(pollSchema);
 
-// For mocks and tests only: the raw DTO shape.
-export type PollDto = z.input<typeof pollSchema>;
+export const pollPageSchema = z.object({
+  items: z.array(pollSchema),
+  pagination: paginationSchema,
+});
 
 const voterDtoSchema = z.object({
-  id: z.number().int().positive(),
-  name: z.string().min(1),
-  avatar_url: z.string().nullable(),
-  voted_at: z.iso.datetime({ offset: true }),
+  member_id: id,
+  user: z.object({
+    id,
+    // Empty when the voter's account was deleted.
+    name: z.string(),
+    // avatar_attachment_id is ignored until the attachments API is wired in.
+  }),
+  option_id: id,
+  // updated_at is the latest vote write; created_at keeps the first one.
+  updated_at: timestamp,
 });
 
-const optionVotersDtoSchema = z.object({
-  option_id: z.number().int().positive(),
-  voters: z.array(voterDtoSchema),
+export const voterPageSchema = z.object({
+  items: z.array(
+    voterDtoSchema.transform(
+      (item): { optionId: string; voter: PollVoter } => ({
+        optionId: String(item.option_id),
+        voter: {
+          id: String(item.member_id),
+          name: item.user.name.trim() || 'کاربر حذف‌شده',
+          avatarUrl: null,
+          votedAt: Date.parse(item.updated_at),
+        },
+      }),
+    ),
+  ),
+  pagination: paginationSchema,
 });
 
-export const pollVotersSchema = z
-  .array(optionVotersDtoSchema)
-  .transform((groups): PollOptionVoters[] =>
-    groups.map((group) => ({
-      optionId: String(group.option_id),
-      voters: group.voters.map((voter) => ({
-        id: String(voter.id),
-        name: voter.name,
-        avatarUrl: voter.avatar_url,
-        votedAt: Date.parse(voter.voted_at),
-      })),
-    })),
-  );
-
-export type PollVotersDto = z.input<typeof pollVotersSchema>;
+/** Groups the flat voters list by option, in order of first appearance. */
+export function groupVotersByOption(
+  items: { optionId: string; voter: PollVoter }[],
+): PollOptionVoters[] {
+  const groups = new Map<string, PollVoter[]>();
+  for (const { optionId, voter } of items) {
+    const voters = groups.get(optionId);
+    if (voters) voters.push(voter);
+    else groups.set(optionId, [voter]);
+  }
+  return Array.from(groups, ([optionId, voters]) => ({ optionId, voters }));
+}

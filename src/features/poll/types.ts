@@ -11,8 +11,10 @@ export interface Poll {
   title: string;
   status: PollStatus;
   isAnonymous: boolean;
-  /** Id of the user who created the poll; compared with the session user to decide ownership. */
-  creatorId: string;
+  /** Membership id (not user id) of the creator inside the group. */
+  createdByMemberId: string;
+  /** True while the group is inactive: reads work, every write is rejected. */
+  isFrozen: boolean;
   /** Epoch milliseconds. */
   createdAt: number;
   /** Epoch milliseconds; null while the poll is active. */

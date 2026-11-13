@@ -1,6 +1,12 @@
-// shortcut: the poll route does not carry a group id yet.
-// Replace the body once the group route (or a store) is decided;
-// every poll component reads the id only through this hook.
+import { useParams } from 'react-router';
+
+/** The group the poll panel belongs to, taken from the /group/:groupId route. */
 export function useCurrentGroupId(): string {
-  return 'preview-group';
+  const { groupId } = useParams<{ groupId: string }>();
+  if (!groupId) {
+    throw new Error(
+      'useCurrentGroupId must be used under a /group/:groupId route',
+    );
+  }
+  return groupId;
 }

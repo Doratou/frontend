@@ -1,25 +1,25 @@
 import { queryOptions, useQuery } from '@tanstack/react-query';
-import { pollListSchema } from './contracts';
-import { delay, getMockPolls } from './poll-mock';
+import { apiClient } from '@/lib/api/client';
+import { pollPageSchema } from './contracts';
+import { fetchAllPages } from './pagination';
+import { groupPollsPath, pollRequest, unwrap } from './poll-http';
 import { pollKeys } from './query-keys';
 import type { Poll } from '@/features/poll/types';
-
-// Only this function changes when the backend is connected:
-//   const response = await apiClient.get<unknown>(`/groups/${groupId}/polls`, { signal });
-//   return response.data; // or unwrap the envelope per the real contract
-async function fetchPollList(
-  _groupId: string,
-  signal?: AbortSignal,
-): Promise<unknown> {
-  await delay(500, signal);
-  return getMockPolls();
-}
 
 export async function getPolls(
   groupId: string,
   signal?: AbortSignal,
 ): Promise<Poll[]> {
-  return pollListSchema.parse(await fetchPollList(groupId, signal));
+  return fetchAllPages(async (page, limit) => {
+    const response = await pollRequest(() =>
+      apiClient.get<unknown>(groupPollsPath(groupId), {
+        params: { page, limit },
+        signal,
+      }),
+    );
+    const result = pollPageSchema.parse(unwrap(response.data));
+    return { items: result.items, total: result.pagination.total };
+  });
 }
 
 export const pollsQueryOptions = (groupId: string) =>

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePolls } from '@/features/poll/api/get-polls';
 import { useCurrentGroupId } from '@/features/poll/hooks/use-current-group-id';
+import { useMyMemberId } from '@/features/poll/hooks/use-my-member-id';
 import { cn } from '@/lib/utils';
 import { CreatePollDialog } from './create-poll-dialog';
 import { PollCard } from './poll-card';
@@ -58,6 +59,8 @@ function PollListSkeleton() {
 
 export function PollListView() {
   const groupId = useCurrentGroupId();
+  // Loads the group members early so owner actions are ready when a details dialog opens.
+  useMyMemberId();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const { data, isPending, isError, error, refetch, isRefetching } =
     usePolls(groupId);

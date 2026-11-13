@@ -1,11 +1,17 @@
-import { closeMockPoll, delay } from './poll-mock';
+import { apiClient } from '@/lib/api/client';
+import { pollPath, pollRequest, unwrap } from './poll-http';
 
-// Only this function changes when the backend is connected:
-//   await apiClient.post(`/groups/${groupId}/polls/${pollId}/close`, undefined, { signal });
+/** Closes a poll (creator only). There is no reopen endpoint. */
 export async function closePoll(
   input: { groupId: string; pollId: string },
   signal?: AbortSignal,
 ): Promise<void> {
-  await delay(500, signal);
-  closeMockPoll(Number(input.pollId));
+  const response = await pollRequest(() =>
+    apiClient.patch<unknown>(
+      `${pollPath(input.groupId, input.pollId)}/close`,
+      undefined,
+      { signal },
+    ),
+  );
+  unwrap(response.data);
 }

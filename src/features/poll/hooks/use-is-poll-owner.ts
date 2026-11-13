@@ -1,7 +1,11 @@
-import { useAuthStore } from '@/features/auth/stores/auth-store';
+import { useMyMemberId } from './use-my-member-id';
 
-/** True when the signed-in user created the poll. */
-export function useIsPollOwner(creatorId: string): boolean {
-  const userId = useAuthStore((state) => state.user?.id);
-  return userId !== undefined && userId === creatorId;
+/**
+ * True when the current member created the poll. Group owners and site admins
+ * have no override on the backend, so only the creator qualifies. Until the
+ * membership is known this is false, which hides the owner actions.
+ */
+export function useIsPollOwner(createdByMemberId: string): boolean {
+  const memberId = useMyMemberId();
+  return memberId !== null && memberId === createdByMemberId;
 }

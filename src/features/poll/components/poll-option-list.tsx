@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useVotePoll } from '@/features/poll/hooks/use-vote-poll';
 import { useCurrentGroupId } from '@/features/poll/hooks/use-current-group-id';
-import { getOptionPercent } from '@/features/poll/utils';
+import { getOptionPercent, isPollVotable } from '@/features/poll/utils';
 import { PollOptionBar } from './poll-option-bar';
 import type { Poll } from '@/features/poll/types';
 
@@ -44,8 +44,8 @@ export function PollOptionList({ poll }: { poll: Poll }) {
   }, [updateEdges, poll.options.length]);
 
   const isScrollable = edges.top || edges.bottom;
-  const canVote = poll.status === 'active';
-  const isClosed = !canVote;
+  const canVote = isPollVotable(poll);
+  const isClosed = poll.status === 'closed';
   const showIndicator = canVote || poll.votedOptionIds.length > 0;
   const maxVotes = Math.max(0, ...poll.options.map((option) => option.votes));
   // Fade only the edge that still has hidden content.

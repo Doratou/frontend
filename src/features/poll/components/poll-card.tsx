@@ -2,6 +2,7 @@ import { useId, useState } from 'react';
 import { BarChart2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { isPollVotable } from '@/features/poll/utils';
 import { formatNumber } from '@/utils/format';
 import { PollDetailsDialog } from './poll-details-dialog';
 import { PollOptionList } from './poll-option-list';
@@ -38,7 +39,7 @@ export function PollCard({ poll }: { poll: Poll }) {
             {poll.title}
           </h3>
           {/* Tells the user what to do: rows of an active poll are clickable. */}
-          {!isClosed && (
+          {isPollVotable(poll) && (
             <p className="text-caption text-neutral-60">
               {poll.votedOptionIds.length > 0
                 ? 'رأی شما ثبت شد'
