@@ -9,12 +9,15 @@ function parseJwtPayload(token: string): Record<string, unknown> | null {
     while (base64.length % 4) {
       base64 += '=';
     }
-    const json = decodeURIComponent(
-      Array.from(atob(base64))
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join(''),
-    );
-    return JSON.parse(json) as Record<string, unknown>;
+    const bin = atob(base64);
+    if (typeof TextDecoder !== 'undefined') {
+      const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+      return JSON.parse(new TextDecoder().decode(bytes)) as Record<
+        string,
+        unknown
+      >;
+    }
+    return JSON.parse(bin) as Record<string, unknown>;
   } catch {
     return null;
   }
