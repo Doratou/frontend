@@ -3,6 +3,7 @@ import { ArrowLeft, Users } from 'lucide-react';
 import { ErrorState } from '@/components/custom/error-state';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAttachmentUrl } from '@/features/attachments/api/get-attachment-url';
 import { usePollVoters } from '@/features/poll/api/get-poll-voters';
 import { formatVoteTime } from '@/features/poll/format';
 import { useCurrentGroupId } from '@/features/poll/hooks/use-current-group-id';
@@ -15,11 +16,15 @@ import type { Poll, PollVoter } from '@/features/poll/types';
 const VISIBLE_CELLS = 4;
 
 function VoterAvatar({ voter }: { voter: PollVoter }) {
-  if (voter.avatarUrl) {
+  // Only visible chips are mounted, so only their pictures are requested.
+  const { data: url } = useAttachmentUrl(voter.avatarAttachmentId);
+  const [failed, setFailed] = useState(false);
+  if (url && !failed) {
     return (
       <img
-        src={voter.avatarUrl}
+        src={url}
         alt=""
+        onError={() => setFailed(true)}
         className="size-9 shrink-0 rounded-full object-cover"
       />
     );

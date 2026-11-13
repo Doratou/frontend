@@ -28,7 +28,8 @@ export interface Poll {
 export interface PollVoter {
   id: string;
   name: string;
-  avatarUrl: string | null;
+  /** Resolve with useAttachmentUrl; null when the user has no profile picture. */
+  avatarAttachmentId: string | null;
   /** Epoch milliseconds. */
   votedAt: number;
 }

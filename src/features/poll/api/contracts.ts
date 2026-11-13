@@ -68,7 +68,8 @@ const voterDtoSchema = z.object({
     id,
     // Empty when the voter's account was deleted.
     name: z.string(),
-    // avatar_attachment_id is ignored until the attachments API is wired in.
+    // Attachment id of the profile picture; null/absent when there is none.
+    avatar_attachment_id: z.union([id, z.string().min(1)]).nullish(),
   }),
   option_id: id,
   // updated_at is the latest vote write; created_at keeps the first one.
@@ -83,7 +84,10 @@ export const voterPageSchema = z.object({
         voter: {
           id: String(item.member_id),
           name: item.user.name.trim() || 'کاربر حذف‌شده',
-          avatarUrl: null,
+          avatarAttachmentId:
+            item.user.avatar_attachment_id == null
+              ? null
+              : String(item.user.avatar_attachment_id),
           votedAt: Date.parse(item.updated_at),
         },
       }),
