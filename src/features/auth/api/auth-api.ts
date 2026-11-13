@@ -1,4 +1,8 @@
-import { CanceledError } from 'axios';
+import axios, {
+  CanceledError,
+  type AxiosError,
+  type InternalAxiosRequestConfig,
+} from 'axios';
 import type { z } from 'zod';
 import { apiClient } from '@/lib/api/client';
 import { env } from '@/lib/api/env';
@@ -106,29 +110,104 @@ const publicPaths = new Set([
   '/captcha/generate',
 ]);
 
+function getAxiosError(error: unknown): AxiosError | null {
+  if (axios.isAxiosError(error)) return error;
+  if (
+    error instanceof Error &&
+    'cause' in error &&
+    axios.isAxiosError(error.cause)
+  ) {
+    return error.cause;
+  }
+  return null;
+}
+
+function toRejectError(error: unknown): Error {
+  return error instanceof Error ? error : new Error(String(error));
+}
+
 export function installAuthHeaders() {
   if (!env.VITE_AUTH_API_ENABLED) return;
   const root = new URL(env.VITE_API_BASE_URL, window.location.origin);
   const prefix = root.pathname.replace(/\/$/, '');
-  const interceptor = apiClient.interceptors.request.use(async (request) => {
-    const url = new URL(apiClient.getUri(request), window.location.origin);
-    if (url.origin !== root.origin || !url.pathname.startsWith(`${prefix}/`)) {
-      request.headers.delete('Authorization');
+
+  const requestInterceptor = apiClient.interceptors.request.use(
+    async (request) => {
+      const url = new URL(apiClient.getUri(request), window.location.origin);
+      if (
+        url.origin !== root.origin ||
+        !url.pathname.startsWith(`${prefix}/`)
+      ) {
+        request.headers.delete('Authorization');
+        return request;
+      }
+      if (publicPaths.has(url.pathname.slice(prefix.length))) {
+        request.headers.delete('Authorization');
+        return request;
+      }
+      let tokens = useAuthStore.getState().tokens;
+      if (tokens && tokens.accessTokenExpiresAt <= Date.now() + 5000)
+        tokens = await refreshSession();
+      if (tokens)
+        request.headers.set('Authorization', `Bearer ${tokens.accessToken}`);
+      else request.headers.delete('Authorization');
       return request;
-    }
-    if (publicPaths.has(url.pathname.slice(prefix.length))) {
-      request.headers.delete('Authorization');
-      return request;
-    }
-    let tokens = useAuthStore.getState().tokens;
-    if (tokens && tokens.accessTokenExpiresAt <= Date.now() + 5000)
-      tokens = await refreshSession();
-    if (tokens)
-      request.headers.set('Authorization', `Bearer ${tokens.accessToken}`);
-    else request.headers.delete('Authorization');
-    return request;
-  });
-  return () => apiClient.interceptors.request.eject(interceptor);
+    },
+  );
+
+  const responseInterceptor = apiClient.interceptors.response.use(
+    (response) => response,
+    async (error: unknown) => {
+      const axiosError = getAxiosError(error);
+
+      if (!axiosError || axiosError.response?.status !== 401) {
+        return Promise.reject(toRejectError(error));
+      }
+
+      const originalRequest = axiosError.config as
+        (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined;
+      if (!originalRequest || originalRequest._retry) {
+        return Promise.reject(toRejectError(error));
+      }
+
+      const url = new URL(
+        apiClient.getUri(originalRequest),
+        window.location.origin,
+      );
+      if (
+        url.origin !== root.origin ||
+        !url.pathname.startsWith(`${prefix}/`)
+      ) {
+        return Promise.reject(toRejectError(error));
+      }
+
+      const relativePath = url.pathname.slice(prefix.length);
+      if (publicPaths.has(relativePath)) {
+        return Promise.reject(toRejectError(error));
+      }
+
+      originalRequest._retry = true;
+
+      const sentAuth = originalRequest.headers.get('Authorization');
+      const current = useAuthStore.getState().tokens;
+
+      const nextTokens =
+        current && sentAuth !== `Bearer ${current.accessToken}`
+          ? current
+          : await refreshSession();
+
+      originalRequest.headers.set(
+        'Authorization',
+        `Bearer ${nextTokens.accessToken}`,
+      );
+      return apiClient(originalRequest);
+    },
+  );
+
+  return () => {
+    apiClient.interceptors.request.eject(requestInterceptor);
+    apiClient.interceptors.response.eject(responseInterceptor);
+  };
 }
 
 export const isAuthPreview = import.meta.env.DEV && !env.VITE_AUTH_API_ENABLED;
