@@ -51,7 +51,9 @@ export function Component() {
         queueMicrotask(() => {
           setStatus('success_popup');
         });
-        window.close();
+        window.setTimeout(() => {
+          window.close();
+        }, 100);
         return;
       }
 
@@ -87,7 +89,9 @@ export function Component() {
           setErrorMessage(message);
           setStatus('error_popup');
         });
-        window.close();
+        window.setTimeout(() => {
+          window.close();
+        }, 100);
         return;
       }
 

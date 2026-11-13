@@ -47,6 +47,8 @@ function AuthScreen({ view }: { view: AuthView }) {
     view === 'password-login' ||
     view === 'code-login' ||
     view === 'verify-login';
+  const isEntryView =
+    view === 'password-login' || view === 'code-login' || view === 'signup';
   useEffect(() => {
     const previousTitle = document.title;
     document.title = `${titles[view]} | Dorato`;
@@ -134,9 +136,9 @@ function AuthScreen({ view }: { view: AuthView }) {
             </Link>
           </Button>
         </div>
-      ) : (
+      ) : isEntryView ? (
         <AuthFooter signup={isSignup} disabled={busy} />
-      )}
+      ) : null}
     </section>
   );
 }

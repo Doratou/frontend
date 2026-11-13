@@ -80,6 +80,8 @@ export function startGoogleBackendFlow(): Promise<{
       let popup: Window | null = null;
       let checkTimer: number | undefined;
       let safetyTimer: number | undefined;
+      let graceTimer: number | undefined;
+      let settled = false;
 
       const cleanup = () => {
         if (checkTimer !== undefined) {
@@ -90,11 +92,15 @@ export function startGoogleBackendFlow(): Promise<{
           window.clearTimeout(safetyTimer);
           safetyTimer = undefined;
         }
+        if (graceTimer !== undefined) {
+          window.clearTimeout(graceTimer);
+          graceTimer = undefined;
+        }
         window.removeEventListener('message', handleMessage);
       };
 
       const handleMessage = (event: MessageEvent) => {
-        if (event.origin !== window.location.origin) return;
+        if (event.origin !== window.location.origin || settled) return;
         const data = event.data as
           | {
               type: 'DORATO_GOOGLE_AUTH_SUCCESS';
@@ -109,9 +115,11 @@ export function startGoogleBackendFlow(): Promise<{
         if (!data || typeof data !== 'object') return;
 
         if (data.type === 'DORATO_GOOGLE_AUTH_SUCCESS') {
+          settled = true;
           cleanup();
           resolve(data.payload);
         } else if (data.type === 'DORATO_GOOGLE_AUTH_ERROR') {
+          settled = true;
           cleanup();
           reject(new GoogleAuthError('unknown', data.message));
         }
@@ -136,23 +144,34 @@ export function startGoogleBackendFlow(): Promise<{
         return;
       }
 
-      // Check for user closing the popup window manually
+      // Check for user closing the popup window manually with a grace period
+      // to avoid race condition where postMessage is queued right before popup closes
       checkTimer = window.setInterval(() => {
-        if (popup?.closed) {
-          cleanup();
-          reject(new GoogleAuthError('cancelled'));
+        if (popup?.closed && !settled) {
+          if (graceTimer === undefined) {
+            graceTimer = window.setTimeout(() => {
+              if (!settled) {
+                settled = true;
+                cleanup();
+                reject(new GoogleAuthError('cancelled'));
+              }
+            }, 200);
+          }
         }
       }, 500);
 
       // Safety timeout: 2 minutes (prevent infinite pending state if popup hangs)
       safetyTimer = window.setTimeout(() => {
-        cleanup();
-        try {
-          popup?.close();
-        } catch {
-          // Ignore
+        if (!settled) {
+          settled = true;
+          cleanup();
+          try {
+            popup?.close();
+          } catch {
+            // Ignore
+          }
+          reject(new GoogleAuthError('timeout'));
         }
-        reject(new GoogleAuthError('timeout'));
       }, 120_000);
     },
   );

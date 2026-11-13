@@ -135,7 +135,7 @@ export const isAuthPreview = import.meta.env.DEV && !env.VITE_AUTH_API_ENABLED;
 
 const backendAuthApi: AuthApi = {
   signIn: (input, signal) => createSession('/auth/login', input, signal),
-  signUp({ identifier, password, name }, signal) {
+  signUp({ identifier, password }, signal) {
     return createSession(
       '/auth/register',
       {
@@ -143,7 +143,6 @@ const backendAuthApi: AuthApi = {
           ? { email: identifier }
           : { phone: identifier }),
         password,
-        ...(name ? { name } : {}),
       },
       signal,
     );

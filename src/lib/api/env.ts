@@ -39,7 +39,6 @@ const envSchema = z.object({
     .enum(['true', 'false'])
     .default('false')
     .transform((value) => value === 'true'),
-  VITE_GOOGLE_CLIENT_ID: z.string().trim().default(''),
 });
 
 export function parseEnv(input: Record<string, unknown>) {
