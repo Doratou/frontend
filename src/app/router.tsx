@@ -61,7 +61,7 @@ export const routes: RouteObject[] = [
     ],
   },
   {
-    path: '/group',
+    path: '/group/:groupId',
     element: <GroupLayout />,
     children: [
       {
