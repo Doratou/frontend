@@ -95,9 +95,14 @@ function refreshSession(): Promise<AuthTokens> {
   return request;
 }
 
+// TODO(backend-contract): Confirm Google sign-in endpoint and payload with backend.
+// Backend is expected to exchange code using redirect_uri = 'postmessage' and server-side client secret.
+const GOOGLE_AUTH_PATH = '/auth/google';
+
 const publicPaths = new Set([
   '/auth/login',
   '/auth/login/otp',
+  GOOGLE_AUTH_PATH,
   '/auth/register',
   '/auth/otp/send',
   '/auth/otp/verify',
@@ -135,6 +140,8 @@ export const isAuthPreview = import.meta.env.DEV && !env.VITE_AUTH_API_ENABLED;
 
 const backendAuthApi: AuthApi = {
   signIn: (input, signal) => createSession('/auth/login', input, signal),
+  signInWithGoogle: (input, signal) =>
+    createSession(GOOGLE_AUTH_PATH, input, signal),
   signUp({ identifier, password, name }, signal) {
     return createSession(
       '/auth/register',

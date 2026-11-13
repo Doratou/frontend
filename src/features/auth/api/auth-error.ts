@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { z } from 'zod';
 import { ApiError } from '@/lib/api/error';
+import { GoogleAuthError } from '@/features/auth/lib/google-auth';
 
 const messages = {
   invalid_credentials: 'ایمیل، شماره موبایل یا رمز عبور درست نیست.',
@@ -18,6 +19,14 @@ const messages = {
   account_not_found: 'حسابی با این ایمیل یا شماره موبایل پیدا نشد.',
   password_change_unauthorized: 'رمز عبور فعلی یا نشست حساب معتبر نیست.',
   verification_required: 'ابتدا ایمیل یا شماره موبایل را با کد تأیید کنید.',
+  popup_blocked: 'پنجره ورود گوگل باز نشد. اجازه نمایش پاپ‌آپ را بررسی کنید.',
+  timeout: 'مهلت ورود با گوگل به پایان رسید. لطفاً دوباره تلاش کنید.',
+  script_load_failed:
+    'ارتباط با گوگل برقرار نشد. اتصال اینترنت یا فیلترشکن را بررسی کنید.',
+  access_denied: 'دسترسی به حساب گوگل تأیید نشد.',
+  disallowed_useragent:
+    'ورود با گوگل در این مرورگر پشتیبانی نمی‌شود. لینک را در Chrome یا Safari باز کنید.',
+  // TODO(backend-contract): Add specific codes for Google account conflict / profile completion when backend contract is finalized.
 } as const;
 
 const statusCodes: Readonly<Partial<Record<number, keyof typeof messages>>> = {
@@ -130,5 +139,10 @@ export function toAuthError(error: unknown): Error {
 
 export function authErrorMessage(error: unknown): string | undefined {
   if (!error || axios.isCancel(error)) return undefined;
+  if (error instanceof GoogleAuthError) {
+    if (error.kind === 'cancelled') return undefined;
+    if (error.kind === 'unknown') return messages.unavailable;
+    return messages[error.kind];
+  }
   return error instanceof AuthError ? error.message : messages.unavailable;
 }
