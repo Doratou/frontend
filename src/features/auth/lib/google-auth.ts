@@ -4,9 +4,7 @@ import type { AuthTokens, SessionUser } from '@/features/auth/types';
 
 export type GoogleAuthErrorKind =
   | 'cancelled'
-  | 'popup_blocked'
   | 'timeout'
-  | 'script_load_failed'
   | 'access_denied'
   | 'disallowed_useragent'
   | 'unknown';

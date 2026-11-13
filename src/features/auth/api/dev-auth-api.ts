@@ -23,7 +23,6 @@ function requireVerification(identifier: string) {
 
 export const devAuthApi: AuthApi = {
   signIn: () => Promise.resolve(previewUser),
-  signInWithGoogle: () => Promise.resolve(previewUser),
   signUp({ identifier }) {
     requireVerification(identifier);
     verifiedIdentifier = null;

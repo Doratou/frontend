@@ -77,13 +77,6 @@ export interface RegistrationInput {
   name?: string;
 }
 
-// TODO(backend-contract): Confirm Google sign-in payload schema with backend.
-export const googleAuthInputSchema = z.object({
-  code: z.string().trim().min(1, 'کد احراز هویت گوگل الزامی است.'),
-});
-
-export type GoogleAuthInput = z.infer<typeof googleAuthInputSchema>;
-
 export type VerificationResult =
   | { type: 'authenticated'; user: SessionUser }
   | { type: 'password-reset'; grant: ResetGrant };
@@ -91,10 +84,6 @@ export type VerificationResult =
 export interface AuthApi {
   signIn: (
     input: { identifier: string; password: string },
-    signal?: AbortSignal,
-  ) => Promise<SessionUser>;
-  signInWithGoogle: (
-    input: GoogleAuthInput,
     signal?: AbortSignal,
   ) => Promise<SessionUser>;
   signUp: (
