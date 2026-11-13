@@ -111,14 +111,20 @@ label واقعی جای placeholder را نمی‌گیرد. با placeholder و�
 خود input برای email/tel/url/password پیش‌فرض LTR است؛ label و قاب جهت صفحه را حفظ می‌کنند. برای متن آزاد در صورت نیاز dir=auto بدهید. text-left جهت داده را عوض نمی‌کند. PasswordField همان props به‌جز type/endAdornment را دارد؛ پیش‌فرض LTR و کنترل چشم ۳۲ پیکسلی با نام، aria-pressed و aria-controls دارد.
 
 ```tsx
+const loginSchema = z.object({
+  email: z.string().pipe(z.email('ایمیل معتبر وارد کنید.')),
+  password: z.string().min(1, 'رمز عبور را وارد کنید.'),
+});
+type LoginInput = z.infer<typeof loginSchema>;
+
 const {
   register,
   handleSubmit,
   setValue,
   reset,
   formState: { errors },
-} = useForm<PasswordLoginInput>({
-  resolver: zodResolver(passwordLoginSchema),
+} = useForm<LoginInput>({
+  resolver: zodResolver(loginSchema),
   defaultValues: { email: '', password: '' },
 });
 

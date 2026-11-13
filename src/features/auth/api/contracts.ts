@@ -74,7 +74,6 @@ export interface CaptchaSolution {
 export interface RegistrationInput {
   identifier: string;
   password: string;
-  name?: string;
 }
 
 export type VerificationResult =

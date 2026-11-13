@@ -1,20 +1,12 @@
 import { z } from 'zod';
 import { toEnglishDigits } from '@/utils/format';
 
-export const passwordLoginSchema = z.object({
-  email: z.string().trim().pipe(z.email('ایمیل معتبر وارد کنید.')),
-  // Sign-in must not impose sign-up password rules or trim the password.
-  password: z.string().min(1, 'رمز عبور را وارد کنید.'),
-});
-
 // Code length comes from the auth adapter; Bruno currently returns only expiry.
 export const otpCodeSchema = z
   .string()
   .trim()
   .transform(toEnglishDigits)
   .pipe(z.string().regex(/^\d+$/, 'کد عددی را وارد کنید.'));
-
-export type PasswordLoginInput = z.infer<typeof passwordLoginSchema>;
 
 export const accountIdentifierSchema = z
   .string()

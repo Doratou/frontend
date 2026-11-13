@@ -2,6 +2,9 @@ import { Link } from 'react-router';
 import { KeyRound, MessageSquareText } from 'lucide-react';
 import googleIcon from '@/assets/auth/google.png';
 import { Button } from '@/components/ui/button';
+import { LoadingButton } from '@/components/custom/loading-button';
+import { isGoogleAuthEnabled } from '@/features/auth/lib/google-auth';
+import { useGoogleSignIn } from '@/features/auth/hooks/use-google-sign-in';
 
 export function AuthMethods({
   active,
@@ -61,32 +64,44 @@ export function AuthFooter({
   signup: boolean;
   disabled: boolean;
 }) {
+  const googleEnabled = isGoogleAuthEnabled();
+  const { signIn: signInWithGoogle, isPending: isGoogleSigningIn } =
+    useGoogleSignIn();
+
   return (
     <div className="flex min-w-0 flex-col gap-2 lg:gap-3">
-      <div
-        aria-hidden="true"
-        className="flex items-center gap-3 text-button-md"
-      >
-        <span className="h-px flex-1 bg-primary-50" />
-        یا
-        <span className="h-px flex-1 bg-primary-50" />
-      </div>
-      <Button
-        variant="outline"
-        size="lg"
-        radius="lg"
-        className="auth-action w-full text-button-md"
-        startIcon={<img src={googleIcon} width="24" height="24" alt="" />}
-        disabled
-      >
-        ورود با حساب گوگل
-      </Button>
+      {googleEnabled && (
+        <>
+          <div
+            aria-hidden="true"
+            className="flex items-center gap-3 text-button-md"
+          >
+            <span className="h-px flex-1 bg-primary-50" />
+            یا
+            <span className="h-px flex-1 bg-primary-50" />
+          </div>
+          <LoadingButton
+            type="button"
+            variant="outline"
+            size="lg"
+            radius="lg"
+            className="auth-action w-full text-button-md"
+            startIcon={<img src={googleIcon} width="24" height="24" alt="" />}
+            isLoading={isGoogleSigningIn}
+            loadingText="در حال ورود با گوگل…"
+            disabled={disabled || isGoogleSigningIn}
+            onClick={signInWithGoogle}
+          >
+            ورود با حساب گوگل
+          </LoadingButton>
+        </>
+      )}
       <p className="text-center text-caption">
         {signup ? 'حساب کاربری دارید؟' : 'حساب کاربری ندارید؟'}{' '}
         <Button
           asChild
           variant="link"
-          disabled={disabled}
+          disabled={disabled || isGoogleSigningIn}
           className="h-auto min-h-6 px-1 text-caption"
         >
           <Link to={signup ? '/login' : '/signup'}>
