@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import type { AuthTokens, SessionUser } from '@/features/auth/types';
+import { AuthError } from '@/features/auth/api/auth-error';
+import type { AuthTokens, SessionUser, SystemRole } from '@/features/auth/types';
 
 function parseJwtPayload(token: string): Record<string, unknown> | null {
   try {
@@ -40,7 +41,16 @@ const callbackDataSchema = z.object({
       name: z.string().nullable().optional(),
       email: z.string().nullable().optional(),
       phone: z.string().nullable().optional(),
-      system_role: z.enum(['user', 'admin']).optional(),
+      system_role: z
+        .string()
+        .transform((val) => val.toUpperCase())
+        .pipe(z.enum(['USER', 'ADMIN']))
+        .optional(),
+      status: z
+        .string()
+        .transform((val) => val.toUpperCase())
+        .pipe(z.enum(['ACTIVE', 'INACTIVE']))
+        .optional(),
     })
     .optional(),
 });
@@ -149,18 +159,28 @@ export function parseOAuthCallback(
   const rawUser = data.user;
   const userId =
     extractString(rawUser?.id) ??
+    extractString(jwtPayload?.user_id) ??
     extractString(jwtPayload?.id) ??
     extractString(jwtPayload?.sub) ??
-    'user';
+    'USER';
   const displayName =
     extractString(rawUser?.name) ??
     extractString(rawUser?.email) ??
     extractString(jwtPayload?.name) ??
     extractString(jwtPayload?.email) ??
     'کاربر دوراتو';
-  const systemRole =
+  const rawRole =
     rawUser?.system_role ??
-    (jwtPayload?.system_role === 'admin' ? 'admin' : 'user');
+    (typeof jwtPayload?.role === 'string' ? jwtPayload.role : undefined) ??
+    (typeof jwtPayload?.system_role === 'string'
+      ? jwtPayload.system_role
+      : undefined);
+  const systemRole: SystemRole =
+    rawRole?.toUpperCase() === 'ADMIN' ? 'ADMIN' : 'USER';
+
+  if (rawUser?.status === 'INACTIVE') {
+    throw new AuthError('account_inactive');
+  }
 
   const user: SessionUser = {
     id: userId,

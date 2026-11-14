@@ -63,7 +63,7 @@ export function startGoogleBackendFlow(): Promise<{
     const previewUser: SessionUser = {
       id: 'preview-user',
       displayName: 'کاربر نمونه',
-      systemRole: 'user',
+      systemRole: 'USER',
     };
     return Promise.resolve({ user: previewUser, tokens: previewTokens });
   }

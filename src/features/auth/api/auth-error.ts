@@ -19,6 +19,7 @@ const messages = {
   account_not_found: 'حسابی با این ایمیل یا شماره موبایل پیدا نشد.',
   password_change_unauthorized: 'رمز عبور فعلی یا نشست حساب معتبر نیست.',
   verification_required: 'ابتدا ایمیل یا شماره موبایل را با کد تأیید کنید.',
+  account_inactive: 'حساب کاربری شما غیرفعال است.',
   timeout: 'مهلت ورود با گوگل به پایان رسید. لطفاً دوباره تلاش کنید.',
   access_denied: 'دسترسی به حساب گوگل تأیید نشد.',
   disallowed_useragent:

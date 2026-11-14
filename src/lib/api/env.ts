@@ -32,7 +32,7 @@ const envSchema = z.object({
     .trim()
     .min(1)
     .refine(isApiBaseUrl)
-    .default('https://api.example.invalid/api/v1'),
+    .default('https://api.dorato.fpna.ir/api/v1/'),
   // Bruno's OTP examples use 5 digits; its send response does not expose length.
   VITE_AUTH_OTP_LENGTH: z.coerce.number().int().min(4).max(8).default(5),
   VITE_API_WITH_CREDENTIALS: z
