@@ -7,10 +7,9 @@ import {
 } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, Plus, Send, Trash2 } from 'lucide-react';
-import { FormField } from '@/components/custom/form-field';
 import { LoadingButton } from '@/components/custom/loading-button';
+import { TextField } from '@/components/custom/text-field';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import {
   MAX_OPTION_LENGTH,
@@ -96,21 +95,17 @@ export function CreatePollForm({ onDone }: { onDone: () => void }) {
       className="flex min-h-0 flex-1 flex-col"
     >
       <div className="flex flex-col gap-5 overflow-y-auto p-4 sm:p-5">
-        <FormField
+        <TextField
           label="سوال نظرسنجی"
+          fieldSize="lg"
+          autoComplete="off"
+          maxLength={MAX_QUESTION_LENGTH}
           error={errors.question?.message}
           description={
             <CharCounter length={question.length} max={MAX_QUESTION_LENGTH} />
           }
-        >
-          <Input
-            placeholder="سوال خود را بنویسید"
-            autoComplete="off"
-            maxLength={MAX_QUESTION_LENGTH}
-            className="border-primary-50"
-            {...register('question')}
-          />
-        </FormField>
+          {...register('question')}
+        />
 
         <section
           aria-labelledby={optionsHeadingId}
@@ -134,12 +129,15 @@ export function CreatePollForm({ onDone }: { onDone: () => void }) {
                   <li key={field.id} className="flex items-start gap-2">
                     <span
                       aria-hidden="true"
-                      className="mt-1.5 grid size-7 shrink-0 place-items-center rounded-full border border-primary-30 bg-primary-10 text-caption text-primary-60"
+                      className="mt-1.25 grid size-7 shrink-0 place-items-center rounded-full border border-primary-30 bg-primary-10 text-caption text-primary-60"
                     >
                       {number}
                     </span>
-                    <FormField
-                      className="flex-1"
+                    <TextField
+                      label={`گزینه ${number}`}
+                      autoComplete="off"
+                      maxLength={MAX_OPTION_LENGTH}
+                      containerClassName="flex-1"
                       error={errors.options?.[index]?.text?.message}
                       description={
                         length >= OPTION_COUNTER_THRESHOLD ? (
@@ -149,16 +147,8 @@ export function CreatePollForm({ onDone }: { onDone: () => void }) {
                           />
                         ) : undefined
                       }
-                    >
-                      <Input
-                        aria-label={`گزینه ${number}`}
-                        placeholder={`گزینه ${number}`}
-                        autoComplete="off"
-                        maxLength={MAX_OPTION_LENGTH}
-                        className="border-primary-50"
-                        {...register(`options.${index}.text`)}
-                      />
-                    </FormField>
+                      {...register(`options.${index}.text`)}
+                    />
                     <Button
                       type="button"
                       variant="ghost"
@@ -175,17 +165,27 @@ export function CreatePollForm({ onDone }: { onDone: () => void }) {
               })}
             </ul>
 
-            <Button
-              type="button"
-              variant="outline"
-              radius="md"
-              disabled={fields.length >= MAX_POLL_OPTIONS}
-              endIcon={<Plus className="size-5" />}
-              onClick={() => append({ text: '' })}
-              className="self-center"
-            >
-              افزودن گزینه‌ی جدید
-            </Button>
+            {/* At the limit the button gives way to a note; it returns when an option is removed. */}
+            {fields.length < MAX_POLL_OPTIONS ? (
+              <Button
+                type="button"
+                variant="outline"
+                radius="md"
+                endIcon={<Plus className="size-5" />}
+                onClick={() => append({ text: '' })}
+                className="self-center"
+              >
+                افزودن گزینه‌ی جدید
+              </Button>
+            ) : (
+              <p
+                role="status"
+                className="text-center text-caption text-neutral-60"
+              >
+                حداکثر {formatNumber(MAX_POLL_OPTIONS)} گزینه می‌توانید اضافه
+                کنید
+              </p>
+            )}
           </div>
         </section>
 
