@@ -6,6 +6,8 @@ import { PublicLayout } from '@/app/layouts/public-layout';
 import { RouteError } from '@/app/pages/route-error';
 import { PageLoading } from '@/components/custom/page-loading';
 import { authViews } from '@/features/auth/config';
+import { DashboardLayout } from './layouts/AppLayout';
+import GroupLayout from './layouts/GroupLayout';
 
 export const routes: RouteObject[] = [
   {
@@ -51,6 +53,42 @@ export const routes: RouteObject[] = [
       handle: view,
       lazy: () => import('@/features/auth/components/auth-screen'),
     })),
+  },
+  {
+    path: '/home',
+    element: <DashboardLayout />,
+    children: [
+      {
+        path: 'notification',
+        element: <p>نوتیفیکیشن</p>,
+      },
+      {
+        path: 'profile',
+        element: <p>پروفایل کاربر</p>,
+      },
+    ],
+  },
+  {
+    path: '/group/:slug',
+    element: <GroupLayout />,
+    children: [
+      {
+        index: true,
+        lazy: () => import('@/app/pages/group/dashboard'),
+      },
+      {
+        path: 'poll',
+        element: <p>sdafasdfkjsbdfjkasbdfjkasbdfajksbd</p>,
+      },
+      {
+        path: 'notification',
+        element: <p>نظرسنجی</p>,
+      },
+      {
+        path: 'gift',
+        element: <p>نظرسنجی</p>,
+      },
+    ],
   },
 ];
 
