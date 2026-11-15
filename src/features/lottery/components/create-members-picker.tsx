@@ -6,6 +6,8 @@ import type { LotteryMember } from '@/features/lottery/types';
 
 interface CreateMembersPickerProps {
   members: LotteryMember[];
+  // State of the members request, so the section never looks silently empty.
+  status: 'pending' | 'error' | 'success';
   selectedMemberIds: ReadonlySet<string>;
   // When the option limit is reached, only already selected members stay clickable.
   isFull: boolean;
@@ -14,6 +16,7 @@ interface CreateMembersPickerProps {
 
 export function CreateMembersPicker({
   members,
+  status,
   selectedMemberIds,
   isFull,
   onToggle,
@@ -49,7 +52,25 @@ export function CreateMembersPicker({
         </button>
       </div>
 
-      {isExpanded && (
+      {isExpanded && status !== 'success' && (
+        <p
+          id={panelId}
+          role={status === 'error' ? 'alert' : 'status'}
+          className="text-caption text-muted-foreground"
+        >
+          {status === 'pending'
+            ? 'در حال دریافت اعضای اکیپ…'
+            : 'دریافت اعضای اکیپ انجام نشد. می‌توانید گزینه‌ی دلخواه اضافه کنید.'}
+        </p>
+      )}
+
+      {isExpanded && status === 'success' && members.length === 0 && (
+        <p id={panelId} className="text-caption text-muted-foreground">
+          عضوی برای نمایش وجود ندارد.
+        </p>
+      )}
+
+      {isExpanded && status === 'success' && members.length > 0 && (
         <ul id={panelId} className="flex flex-wrap gap-2">
           {members.map((member) => {
             const selected = selectedMemberIds.has(member.id);

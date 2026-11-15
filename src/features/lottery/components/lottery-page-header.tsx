@@ -4,11 +4,14 @@ import { Button } from '@/components/ui/button';
 interface LotteryPageHeaderProps {
   onCreate: () => void;
   disabled?: boolean;
+  // Shown as a tooltip while the button is disabled.
+  disabledReason?: string;
 }
 
 export function LotteryPageHeader({
   onCreate,
   disabled = false,
+  disabledReason,
 }: LotteryPageHeaderProps) {
   return (
     <header className="flex items-center justify-between gap-3 rounded-2xl border border-secondary-60/40 bg-secondary-10 px-3 py-3 sm:px-4 dark:bg-secondary-80/40">
@@ -29,6 +32,7 @@ export function LotteryPageHeader({
         radius="lg"
         className="shrink-0 bg-secondary-70 hover:bg-secondary-80 max-sm:w-10.5 max-sm:px-0"
         disabled={disabled}
+        title={disabled ? disabledReason : undefined}
         onClick={onCreate}
         endIcon={<Plus />}
       >

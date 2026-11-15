@@ -36,6 +36,7 @@ interface LotteryCreateDialogProps {
   onOpenChange: (open: boolean) => void;
   groupId: string;
   members: LotteryMember[];
+  membersStatus: 'pending' | 'error' | 'success';
   onCreated?: (lottery: Lottery) => void;
 }
 
@@ -44,6 +45,7 @@ export function LotteryCreateDialog({
   onOpenChange,
   groupId,
   members,
+  membersStatus,
   onCreated,
 }: LotteryCreateDialogProps) {
   const createLottery = useCreateLottery(groupId);
@@ -195,6 +197,7 @@ export function LotteryCreateDialog({
               <div className="border-t pt-5">
                 <CreateMembersPicker
                   members={members}
+                  status={membersStatus}
                   selectedMemberIds={selectedMemberIds}
                   isFull={options.length >= LOTTERY_MAX_OPTIONS}
                   onToggle={toggleMember}

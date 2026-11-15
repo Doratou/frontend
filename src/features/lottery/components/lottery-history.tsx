@@ -4,15 +4,17 @@ import {
   formatLotteryTime,
   toPersianNumber,
 } from '@/features/lottery/format';
-import { findOption } from '@/features/lottery/utils';
 import { ModeBadge } from '@/features/lottery/components/lottery-badges';
 import { LotterySectionCard } from '@/features/lottery/components/lottery-section-card';
 import { OptionAvatar } from '@/features/lottery/components/option-avatar';
-import type { Lottery, LotteryOption } from '@/features/lottery/types';
+import type {
+  LotteryHistoryEntry,
+  LotteryWinner,
+} from '@/features/lottery/types';
 
 interface LotteryHistoryProps {
-  // Drawn lotteries only, newest first.
-  lotteries: Lottery[];
+  // Completed draws, newest first.
+  entries: LotteryHistoryEntry[];
 }
 
 const HEADERS = [
@@ -31,18 +33,16 @@ const CELL =
 
 const META_CLASS = 'flex items-center gap-1.5 text-muted-foreground';
 
-function Winner({ option }: { option: LotteryOption | null }) {
+function Winner({ winner }: { winner: LotteryWinner }) {
   return (
     <span className="flex min-w-0 items-center gap-2">
-      {option?.member && <OptionAvatar member={option.member} size="xs" />}
-      <span className="truncate text-heading-mobile-6">
-        {option?.label ?? '—'}
-      </span>
+      {winner.member && <OptionAvatar member={winner.member} size="xs" />}
+      <span className="truncate text-heading-mobile-6">{winner.label}</span>
     </span>
   );
 }
 
-export function LotteryHistory({ lotteries }: LotteryHistoryProps) {
+export function LotteryHistory({ entries }: LotteryHistoryProps) {
   return (
     // The card is a size container, so the table/cards switch follows the width
     // the card really gets (it changes with the sidebar), not the viewport.
@@ -51,7 +51,7 @@ export function LotteryHistory({ lotteries }: LotteryHistoryProps) {
       accent="amber"
       className="@container"
     >
-      {lotteries.length === 0 ? (
+      {entries.length === 0 ? (
         <p className="rounded-xl border border-dashed p-4 text-center text-paragraph-sm text-muted-foreground">
           هنوز قرعه‌ای انجام نشده است.
         </p>
@@ -73,24 +73,18 @@ export function LotteryHistory({ lotteries }: LotteryHistoryProps) {
               </tr>
             </thead>
             <tbody>
-              {lotteries.map((lottery) => {
-                const drawnAt = lottery.result?.drawnAt ?? lottery.createdAt;
+              {entries.map((entry) => {
                 return (
-                  <tr key={lottery.id}>
+                  <tr key={entry.id}>
                     <td className={CELL}>
-                      <Winner
-                        option={findOption(
-                          lottery,
-                          lottery.result?.optionId ?? null,
-                        )}
-                      />
+                      <Winner winner={entry.winner} />
                     </td>
-                    <td className={CELL}>{lottery.title}</td>
+                    <td className={CELL}>{entry.title}</td>
                     <td className={`${CELL} whitespace-nowrap`}>
-                      {toPersianNumber(lottery.options.length)} گزینه
+                      {toPersianNumber(entry.optionCount)} گزینه
                     </td>
                     <td className={CELL}>
-                      <ModeBadge mode={lottery.mode} />
+                      <ModeBadge mode={entry.mode} />
                     </td>
                     <td className={`${CELL} whitespace-nowrap`}>
                       <span className={META_CLASS}>
@@ -98,13 +92,13 @@ export function LotteryHistory({ lotteries }: LotteryHistoryProps) {
                           className="size-4 shrink-0"
                           aria-hidden="true"
                         />
-                        {formatLotteryDate(drawnAt)}
+                        {formatLotteryDate(entry.drawnAt)}
                       </span>
                     </td>
                     <td className={`${CELL} whitespace-nowrap`}>
                       <span className={META_CLASS}>
                         <Clock className="size-4 shrink-0" aria-hidden="true" />
-                        {formatLotteryTime(drawnAt)}
+                        {formatLotteryTime(entry.drawnAt)}
                       </span>
                     </td>
                   </tr>
@@ -114,38 +108,30 @@ export function LotteryHistory({ lotteries }: LotteryHistoryProps) {
           </table>
 
           <ul className="grid gap-2 @xl:grid-cols-2 @4xl:hidden">
-            {lotteries.map((lottery) => {
-              const drawnAt = lottery.result?.drawnAt ?? lottery.createdAt;
+            {entries.map((entry) => {
               return (
                 <li
-                  key={lottery.id}
+                  key={entry.id}
                   className="flex flex-col gap-3 rounded-xl border p-3"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <span className="text-heading-mobile-6">
-                      {lottery.title}
-                    </span>
-                    <ModeBadge mode={lottery.mode} />
+                    <span className="text-heading-mobile-6">{entry.title}</span>
+                    <ModeBadge mode={entry.mode} />
                   </div>
-                  <Winner
-                    option={findOption(
-                      lottery,
-                      lottery.result?.optionId ?? null,
-                    )}
-                  />
+                  <Winner winner={entry.winner} />
                   <div className="mt-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t pt-2 text-caption text-muted-foreground">
                     <span className="flex items-center gap-1.5">
                       <Calendar
                         className="size-4 shrink-0"
                         aria-hidden="true"
                       />
-                      {formatLotteryDate(drawnAt)}
+                      {formatLotteryDate(entry.drawnAt)}
                     </span>
                     <span className="flex items-center gap-1.5">
                       <Clock className="size-4 shrink-0" aria-hidden="true" />
-                      {formatLotteryTime(drawnAt)}
+                      {formatLotteryTime(entry.drawnAt)}
                     </span>
-                    <span>{toPersianNumber(lottery.options.length)} گزینه</span>
+                    <span>{toPersianNumber(entry.optionCount)} گزینه</span>
                   </div>
                 </li>
               );

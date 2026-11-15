@@ -4,11 +4,7 @@ import { useDrawLottery } from '@/features/lottery/hooks/use-draw-lottery';
 import { LotteryDetailsCard } from '@/features/lottery/components/lottery-details-card';
 import { LotteryResultDialog } from '@/features/lottery/components/lottery-result-dialog';
 import { LotteryWheelCard } from '@/features/lottery/components/lottery-wheel-card';
-import type {
-  DrawLotteryResult,
-  Lottery,
-  LotteryResult,
-} from '@/features/lottery/types';
+import type { Lottery, LotteryResult } from '@/features/lottery/types';
 import { findOption, getOptionChance } from '@/features/lottery/utils';
 
 interface LotteryStageProps {
@@ -16,22 +12,24 @@ interface LotteryStageProps {
   groupId: string;
   // Lets the parent lock the page while a draw is in flight.
   onBusyChange: (busy: boolean) => void;
+  // Called once the wheel has stopped, with the completed lottery.
+  onFinished: (lottery: Lottery) => void;
 }
 
 export function LotteryStage({
   lottery,
   groupId,
   onBusyChange,
+  onFinished,
 }: LotteryStageProps) {
   const wheelRef = useRef<PrizeWheelRef>(null);
-  const serverResult = useRef<DrawLotteryResult | null>(null);
+  const completedRef = useRef<Lottery | null>(null);
   const draw = useDrawLottery(groupId);
   const [isBusy, setIsBusy] = useState(false);
   const [localResult, setLocalResult] = useState<LotteryResult | null>(null);
   const [isResultOpen, setIsResultOpen] = useState(false);
 
-  // The list refresh lands after the wheel stops, so keep the local result
-  // until the cached lottery catches up.
+  // Keep the local result until the cached lottery catches up with the draw.
   const result = localResult ?? lottery.result;
   const winner = findOption(lottery, result?.optionId ?? null);
 
@@ -43,9 +41,14 @@ export function LotteryStage({
   const handleSpin = async () => {
     updateBusy(true);
     try {
-      const drawResult = await draw.mutateAsync(lottery.id);
-      serverResult.current = drawResult;
-      wheelRef.current?.spin(drawResult.optionId);
+      // The server picks the winner; the wheel only animates toward it.
+      const completed = await draw.mutateAsync(lottery.id);
+      if (!completed.result) {
+        updateBusy(false);
+        return;
+      }
+      completedRef.current = completed;
+      wheelRef.current?.spin(completed.result.optionId);
     } catch {
       // The mutation hook already reported the failure with a toast.
       updateBusy(false);
@@ -53,12 +56,14 @@ export function LotteryStage({
   };
 
   const handleSpinEnd = (optionId: string) => {
+    const completed = completedRef.current;
     setLocalResult({
       optionId,
-      drawnAt: serverResult.current?.drawnAt ?? new Date().toISOString(),
+      drawnAt: completed?.result?.drawnAt ?? new Date().toISOString(),
     });
     setIsResultOpen(true);
     updateBusy(false);
+    if (completed) onFinished(completed);
     void draw.refreshLotteries();
   };
 
@@ -72,6 +77,8 @@ export function LotteryStage({
         wheelRef={wheelRef}
         isBusy={isBusy}
         isDrawn={winner !== null}
+        isFrozen={lottery.isFrozen}
+        canRun={lottery.canRun}
         onSpin={() => void handleSpin()}
         onSpinEnd={handleSpinEnd}
       />
