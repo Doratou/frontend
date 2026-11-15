@@ -3,8 +3,8 @@ import { Dialog } from '@base-ui/react/dialog';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoaderPinwheel, Plus, X } from 'lucide-react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
+import { TextField } from '@/components/custom/text-field';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   LOTTERY_MAX_OPTIONS,
   LOTTERY_TITLE_MAX_LENGTH,
@@ -172,27 +172,13 @@ export function LotteryCreateDialog({
             className="flex min-h-0 flex-1 flex-col"
           >
             <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4 sm:p-5">
-              <div className="flex flex-col gap-2">
-                <label
-                  htmlFor="lottery-title"
-                  className="text-heading-mobile-6"
-                >
-                  عنوان قرعه‌کشی
-                </label>
-                <Input
-                  id="lottery-title"
-                  autoComplete="off"
-                  maxLength={LOTTERY_TITLE_MAX_LENGTH}
-                  placeholder="مثلاً: امشب کجا شام بخوریم؟"
-                  aria-invalid={errors.title ? true : undefined}
-                  {...register('title')}
-                />
-                {errors.title && (
-                  <p role="alert" className="text-caption text-destructive">
-                    {errors.title.message}
-                  </p>
-                )}
-              </div>
+              <TextField
+                label="عنوان قرعه‌کشی"
+                autoComplete="off"
+                maxLength={LOTTERY_TITLE_MAX_LENGTH}
+                error={errors.title?.message}
+                {...register('title')}
+              />
 
               <div className="border-t pt-5">
                 <CreateMembersPicker

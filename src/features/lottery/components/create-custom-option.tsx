@@ -1,7 +1,7 @@
-import { useId, useState } from 'react';
+import { useState } from 'react';
 import { Plus } from 'lucide-react';
+import { TextField } from '@/components/custom/text-field';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { LOTTERY_OPTION_MAX_LENGTH } from '@/features/lottery/config';
 
 interface CreateCustomOptionProps {
@@ -10,7 +10,6 @@ interface CreateCustomOptionProps {
 }
 
 export function CreateCustomOption({ onAdd }: CreateCustomOptionProps) {
-  const inputId = useId();
   const [value, setValue] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -30,23 +29,18 @@ export function CreateCustomOption({ onAdd }: CreateCustomOptionProps) {
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-col gap-0.5">
-        <label htmlFor={inputId} className="text-heading-mobile-6">
-          افزودن گزینه‌ی دلخواه
-        </label>
-        <p className="text-caption text-muted-foreground">
-          هر چیزی می‌تواند گزینه باشد؛ مثلاً یک مکان یا نام دلخواه
-        </p>
-      </div>
+    <div className="flex flex-col gap-3">
+      <h3 className="text-heading-mobile-6">افزودن گزینه‌ی دلخواه</h3>
+      {/* items-start keeps the button aligned with the field, not with its hint. */}
       <div className="flex items-start gap-2">
-        <Input
-          id={inputId}
-          value={value}
+        <TextField
+          containerClassName="min-w-0 flex-1"
+          label="نام گزینه"
+          description="هر چیزی می‌تواند گزینه باشد؛ مثلاً یک مکان یا نام دلخواه"
           autoComplete="off"
           maxLength={LOTTERY_OPTION_MAX_LENGTH}
-          placeholder="نام گزینه را وارد کنید"
-          aria-invalid={error ? true : undefined}
+          value={value}
+          error={error ?? undefined}
           onChange={(event) => {
             setValue(event.target.value);
             setError(null);
@@ -59,22 +53,20 @@ export function CreateCustomOption({ onAdd }: CreateCustomOptionProps) {
             }
           }}
         />
+        {/* Same height as the field; an outline keeps it lighter than the
+            primary "create" action in the footer. */}
         <Button
-          size="lg"
+          variant="outline"
           tone="secondary"
+          size="md"
           radius="lg"
-          className="h-9.5 shrink-0 bg-secondary-70 hover:bg-secondary-80"
+          className="h-9.5 shrink-0 px-3 text-button-sm font-bold [&_svg]:size-4"
           onClick={submit}
           endIcon={<Plus />}
         >
-          افزودن گزینه
+          افزودن
         </Button>
       </div>
-      {error && (
-        <p role="alert" className="text-caption text-destructive">
-          {error}
-        </p>
-      )}
     </div>
   );
 }
