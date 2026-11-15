@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ErrorState } from '@/components/custom/error-state';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuthStore } from '@/features/auth/stores/auth-store';
 import { LotteryCreateDialog } from '@/features/lottery/components/lottery-create-dialog';
 import { LotteryEmptyState } from '@/features/lottery/components/lottery-empty-state';
 import { LotteryHistory } from '@/features/lottery/components/lottery-history';
@@ -48,6 +49,7 @@ function LotteryContent({ groupId }: { groupId: string }) {
   const [pinned, setPinned] = useState<Lottery | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
+  const currentUserId = useAuthStore((state) => state.user?.id);
 
   const groupMembers = membersQuery.data ?? NO_MEMBERS;
   const rawStage = useMemo(
@@ -86,6 +88,19 @@ function LotteryContent({ groupId }: { groupId: string }) {
     [historyQuery.data, directory],
   );
 
+  // The creator is found as the docs describe: the current user's membership ID
+  // (from the members list) is compared with `created_by_member_id`.
+  const currentMemberId = groupMembers.find(
+    (member) => member.id === currentUserId,
+  )?.memberId;
+  const isCreator =
+    currentMemberId !== undefined &&
+    stageLottery?.createdByMemberId === currentMemberId;
+  // Until the members are known nobody is blamed: the button stays disabled
+  // without telling the creator that they are not allowed.
+  const isNotCreator =
+    stageLottery !== null && currentMemberId !== undefined && !isCreator;
+
   // A group can only have one draft at a time, so creating is blocked until
   // the current one has been run.
   const hasDraft = stageLottery?.status === 'draft';
@@ -114,8 +129,11 @@ function LotteryContent({ groupId }: { groupId: string }) {
         key={stageLottery.id}
         lottery={stageLottery}
         groupId={groupId}
+        isCreator={isCreator}
+        isNotCreator={isNotCreator}
         onBusyChange={setIsLocked}
         onFinished={setPinned}
+        onRerun={setPinned}
       />
     );
   } else {
@@ -125,7 +143,7 @@ function LotteryContent({ groupId }: { groupId: string }) {
   let historySection;
   if (historyQuery.isPending) {
     historySection = <Skeleton className="h-64" />;
-  } else if (historyQuery.isError) {
+  } else if (historyQuery.isError && historyQuery.data === undefined) {
     historySection = (
       <ErrorState
         error={historyQuery.error}
@@ -135,7 +153,14 @@ function LotteryContent({ groupId }: { groupId: string }) {
       />
     );
   } else {
-    historySection = <LotteryHistory entries={history} />;
+    historySection = (
+      <LotteryHistory
+        entries={history}
+        hasMore={historyQuery.hasNextPage}
+        isLoadingMore={historyQuery.isFetchingNextPage}
+        onLoadMore={() => void historyQuery.fetchNextPage()}
+      />
+    );
   }
 
   return (
