@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { AuthError } from '@/features/auth/api/auth-error';
 import type { AuthTokens, SessionUser } from '@/features/auth/types';
 
 export const authEnvelopeSchema = z.object({
@@ -7,11 +8,19 @@ export const authEnvelopeSchema = z.object({
 });
 
 const userDtoSchema = z.object({
-  id: z.number().int().positive(),
-  name: z.string().nullable(),
-  email: z.string().nullable(),
-  phone: z.string().nullable(),
-  system_role: z.enum(['user', 'admin']),
+  id: z.union([z.number().int().positive(), z.string().min(1)]),
+  name: z.string().nullable().optional(),
+  email: z.string().nullable().optional(),
+  phone: z.string().nullable().optional(),
+  system_role: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .pipe(z.enum(['USER', 'ADMIN'])),
+  status: z
+    .string()
+    .transform((val) => val.toUpperCase())
+    .pipe(z.enum(['ACTIVE', 'INACTIVE']))
+    .optional(),
 });
 
 const tokenDtoSchema = z.object({
@@ -33,21 +42,28 @@ function toTokens(data: z.infer<typeof tokenDtoSchema>): AuthTokens {
 export const tokenPairSchema = tokenDtoSchema.transform(toTokens);
 export const signedInSchema = tokenDtoSchema
   .extend({ user: userDtoSchema })
-  .transform((data) => ({
-    tokens: toTokens(data),
-    user: {
-      id: String(data.user.id),
-      displayName:
-        data.user.name || data.user.email || data.user.phone || 'کاربر',
-      systemRole: data.user.system_role,
-    } satisfies SessionUser,
-  }));
+  .transform((data) => {
+    if (data.user.status === 'INACTIVE') {
+      throw new AuthError('account_inactive');
+    }
+    return {
+      tokens: toTokens(data),
+      user: {
+        id: String(data.user.id),
+        displayName:
+          data.user.name || data.user.email || data.user.phone || 'کاربر',
+        systemRole: data.user.system_role,
+      } satisfies SessionUser,
+    };
+  });
 
 export const otpDeliverySchema = z.object({
   expires_in_seconds: z.number().int().min(1).max(86400),
 });
-export const otpVerifiedSchema = z.object({ status: z.literal('verified') });
-export const authMessageSchema = z.object({ message: z.string() });
+export const otpVerifiedSchema = z.object({
+  status: z.enum(['VERIFIED', 'verified']).optional(),
+});
+export const authMessageSchema = z.object({ message: z.string().optional() });
 
 export type CodePurpose = 'login' | 'signup' | 'password-reset';
 
@@ -74,7 +90,6 @@ export interface CaptchaSolution {
 export interface RegistrationInput {
   identifier: string;
   password: string;
-  name?: string;
 }
 
 export type VerificationResult =

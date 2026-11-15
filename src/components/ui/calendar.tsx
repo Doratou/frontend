@@ -218,7 +218,7 @@ export function Calendar({
             timeZone={iranTimeZone}
             startMonth={props.startMonth ?? firstMonth}
             endMonth={props.endMonth ?? lastMonth}
-            dateLib={persianCalendarLib.overrides}
+            dateLib={persianCalendarLib}
             autoFocus={props.autoFocus ?? true}
             formatters={mergedFormatters}
             labels={mergedLabels}

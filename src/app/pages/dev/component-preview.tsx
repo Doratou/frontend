@@ -13,16 +13,18 @@ import { EmptyState } from '@/components/custom/empty-state';
 import { ErrorState } from '@/components/custom/error-state';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  passwordLoginSchema,
-  otpCodeSchema,
-  type PasswordLoginInput,
-} from '@/features/auth/schemas';
+import { otpCodeSchema } from '@/features/auth/schemas';
 import { useCountdown } from '@/hooks/use-countdown';
 import { ApiError } from '@/lib/api/error';
 import { formatDateTime } from '@/utils/date';
 import { formatNumber } from '@/utils/format';
 import { FieldEnhancementsPreview } from '@/app/pages/dev/field-enhancements-preview';
+
+const previewLoginSchema = z.object({
+  email: z.string().trim().pipe(z.email('ایمیل معتبر وارد کنید.')),
+  password: z.string().min(1, 'رمز عبور را وارد کنید.'),
+});
+type PreviewLoginInput = z.infer<typeof previewLoginSchema>;
 
 const previewOtpSchema = z.object({
   code: otpCodeSchema.pipe(z.string().length(5, 'کد نمونه باید ۵ رقم باشد.')),
@@ -74,8 +76,8 @@ export function Component() {
     setValue,
     reset,
     formState: { errors },
-  } = useForm<PasswordLoginInput>({
-    resolver: zodResolver(passwordLoginSchema),
+  } = useForm<PreviewLoginInput>({
+    resolver: zodResolver(previewLoginSchema),
     defaultValues: { email: '', password: '' },
   });
   const otpForm = useForm<z.input<typeof previewOtpSchema>>({

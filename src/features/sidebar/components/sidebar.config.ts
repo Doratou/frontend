@@ -1,4 +1,4 @@
-// src/components/Sidebar/sidebar.config.ts
+﻿// src/components/Sidebar/sidebar.config.ts
 import type { LucideIcon } from 'lucide-react';
 import {
   LayoutGrid,
@@ -40,20 +40,20 @@ export const SIDEBAR_NAV_ITEMS: Record<SidebarPage, SidebarNavItem[]> = {
     { id: 'wallet', label: 'کیف پول', href: '/home/wallet', icon: Wallet },
     { id: 'profile', label: 'پروفایل', href: '/home/profile', icon: User },
   ],
-  ekeeps: [
-    { id: 'dashboard', label: 'داشبورد', href: '/group/', icon: LayoutGrid },
-    { id: 'notification', label: 'اعلانات', href: '/group/notification', icon: Bell },
-    { id: 'coins', label: 'هزینه‌ها و دنگ', href: '/group/coins', icon: Coins },
+  group: [
+    { id: 'dashboard', label: 'داشبورد', href: '', icon: LayoutGrid },
+    { id: 'notification', label: 'اعلانات', href: 'notification', icon: Bell },
+    { id: 'coins', label: 'هزینه‌ها و دنگ', href: 'coins', icon: Coins },
     {
       id: 'checklist',
       label: 'چک‌لیست',
-      href: '/group/checklist',
+      href: 'checklist',
       icon: CheckSquare,
     },
-    { id: 'poll', label: 'نظرسنجی', href: '/group/poll', icon: BarChart2 },
-    { id: 'gift', label: 'قرعه‌کشی', href: '/group/gift', icon: Gift },
-    { id: 'gallery', label: 'گالری', href: '/group/gallery', icon: ImageIcon },
-    { id: 'assistant', label: 'همیار', href: '/group/assistant', icon: Sparkles },
+    { id: 'poll', label: 'نظرسنجی', href: 'poll', icon: BarChart2 },
+    { id: 'gift', label: 'قرعه‌کشی', href: 'gift', icon: Gift },
+    { id: 'gallery', label: 'گالری', href: 'gallery', icon: ImageIcon },
+    { id: 'assistant', label: 'همیار', href: 'assistant', icon: Sparkles },
   ],
 };
 
@@ -78,7 +78,7 @@ export const SIDEBAR_PAGE_THEME: Record<SidebarPage, PageThemeClasses> = {
       'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-60',
     topGapClass: 'gap-[40px]',
   },
-  ekeeps: {
+  group: {
     rootBgClass: 'bg-secondary-10',
     activeItemClass: 'bg-secondary-20',
     inactiveItemHoverClass: 'hover:bg-secondary-20/50',

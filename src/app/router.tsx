@@ -29,6 +29,14 @@ export const routes: RouteObject[] = [
     ],
   },
   {
+    path: '/auth/callback',
+    lazy: () => import('@/features/auth/components/auth-callback'),
+  },
+  {
+    path: '/auth/google/callback',
+    lazy: () => import('@/features/auth/components/auth-callback'),
+  },
+  {
     lazy: () => {
       preload(
         window.matchMedia('(min-width: 64rem)').matches
@@ -64,6 +72,10 @@ export const routes: RouteObject[] = [
     path: '/group/:groupId',
     element: <GroupLayout />,
     children: [
+      {
+        index: true,
+        lazy: () => import('@/app/pages/group/dashboard'),
+      },
       {
         path: 'poll',
         lazy: () => import('@/app/pages/poll'),

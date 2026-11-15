@@ -1,12 +1,13 @@
+import type { SessionUser } from '@/features/auth/types';
 import { env } from '@/lib/api/env';
 import { useAuthStore } from '@/features/auth/stores/auth-store';
 import { AuthError } from './auth-error';
 import type { AuthApi, OtpChallenge } from './contracts';
 
-const previewUser = {
+const previewUser: SessionUser = {
   id: 'preview-user',
   displayName: 'کاربر نمونه',
-  systemRole: 'user' as const,
+  systemRole: 'USER',
 };
 
 // shortcut: preview state resets on reload; remove this adapter when backend integration is ready.
