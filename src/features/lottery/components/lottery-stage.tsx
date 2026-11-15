@@ -15,10 +15,8 @@ import {
 interface LotteryStageProps {
   lottery: Lottery;
   groupId: string;
-  // The current member created this lottery: only they can spin or repeat it.
-  isCreator: boolean;
-  // The current member is known and did not create it (so they only watch).
-  isNotCreator: boolean;
+  // The current member created this lottery and may repeat it.
+  canRerun: boolean;
   // Lets the parent lock the page while a draw is in flight.
   onBusyChange: (busy: boolean) => void;
   // Called once the wheel has stopped, with the completed lottery.
@@ -30,8 +28,7 @@ interface LotteryStageProps {
 export function LotteryStage({
   lottery,
   groupId,
-  isCreator,
-  isNotCreator,
+  canRerun,
   onBusyChange,
   onFinished,
   onRerun,
@@ -103,9 +100,8 @@ export function LotteryStage({
         isBusy={isBusy}
         isDrawn={winner !== null}
         isFrozen={lottery.isFrozen}
-        canSpin={lottery.canRun && isCreator}
-        isNotCreator={isNotCreator}
-        canRerun={isCreator}
+        canRun={lottery.canRun}
+        canRerun={canRerun}
         isRerunning={copy.isPending}
         onSpin={() => void handleSpin()}
         onRerun={handleRerun}

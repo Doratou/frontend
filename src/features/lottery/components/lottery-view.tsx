@@ -96,10 +96,6 @@ function LotteryContent({ groupId }: { groupId: string }) {
   const isCreator =
     currentMemberId !== undefined &&
     stageLottery?.createdByMemberId === currentMemberId;
-  // Until the members are known nobody is blamed: the button stays disabled
-  // without telling the creator that they are not allowed.
-  const isNotCreator =
-    stageLottery !== null && currentMemberId !== undefined && !isCreator;
 
   // A group can only have one draft at a time, so creating is blocked until
   // the current one has been run.
@@ -129,8 +125,7 @@ function LotteryContent({ groupId }: { groupId: string }) {
         key={stageLottery.id}
         lottery={stageLottery}
         groupId={groupId}
-        isCreator={isCreator}
-        isNotCreator={isNotCreator}
+        canRerun={isCreator}
         onBusyChange={setIsLocked}
         onFinished={setPinned}
         onRerun={setPinned}
