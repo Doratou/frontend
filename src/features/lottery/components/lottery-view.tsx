@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { ErrorState } from '@/components/custom/error-state';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useAuthStore } from '@/features/auth/stores/auth-store';
 import { LotteryCreateDialog } from '@/features/lottery/components/lottery-create-dialog';
 import { LotteryEmptyState } from '@/features/lottery/components/lottery-empty-state';
 import { LotteryHistory } from '@/features/lottery/components/lottery-history';
@@ -49,7 +48,6 @@ function LotteryContent({ groupId }: { groupId: string }) {
   const [pinned, setPinned] = useState<Lottery | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
-  const currentUserId = useAuthStore((state) => state.user?.id);
 
   const groupMembers = membersQuery.data ?? NO_MEMBERS;
   const rawStage = useMemo(
@@ -88,15 +86,6 @@ function LotteryContent({ groupId }: { groupId: string }) {
     [historyQuery.data, directory],
   );
 
-  // The creator is found as the docs describe: the current user's membership ID
-  // (from the members list) is compared with `created_by_member_id`.
-  const currentMemberId = groupMembers.find(
-    (member) => member.id === currentUserId,
-  )?.memberId;
-  const isCreator =
-    currentMemberId !== undefined &&
-    stageLottery?.createdByMemberId === currentMemberId;
-
   // A group can only have one draft at a time, so creating is blocked until
   // the current one has been run.
   const hasDraft = stageLottery?.status === 'draft';
@@ -125,10 +114,8 @@ function LotteryContent({ groupId }: { groupId: string }) {
         key={stageLottery.id}
         lottery={stageLottery}
         groupId={groupId}
-        canRerun={isCreator}
         onBusyChange={setIsLocked}
         onFinished={setPinned}
-        onRerun={setPinned}
       />
     );
   } else {

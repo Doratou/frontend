@@ -6,9 +6,6 @@ export type CandidateKind = 'text' | 'user';
 // ID), which is what candidates of type USER refer to.
 export interface LotteryMember {
   id: string;
-  // Membership ID in the group; only known for members from the members list.
-  // Draws store `created_by_member_id`, so this identifies the creator.
-  memberId?: string;
   name: string;
   avatarUrl?: string;
 }

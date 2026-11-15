@@ -1,6 +1,5 @@
 import { LOTTERY_WEIGHT_TOTAL } from './config';
 import { toPersianNumber } from './format';
-import type { CreateLotteryFormValues } from './schemas';
 import type {
   Lottery,
   LotteryHistoryEntry,
@@ -125,20 +124,6 @@ export function pickStageLottery(
   if (!pinned) return active;
   if (!active || active.id === pinned.id) return pinned;
   return active.createdAt > pinned.createdAt ? active : pinned;
-}
-
-// The backend has no "run again": another round is a new draw. This turns a
-// finished lottery into the values for creating its identical copy.
-export function toFormValues(lottery: Lottery): CreateLotteryFormValues {
-  return {
-    title: lottery.title,
-    mode: lottery.mode,
-    options: lottery.options.map((option) => ({
-      memberId: option.userId,
-      label: option.label,
-      weight: option.weight,
-    })),
-  };
 }
 
 // Splits 100 into `count` whole numbers that add up to exactly 100.
