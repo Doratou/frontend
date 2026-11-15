@@ -42,9 +42,16 @@ export const lotteryDetailSchema = z
   })
   .transform(toLottery);
 
-export const lotterySummaryListSchema = z
-  .object({ items: z.array(z.object(summaryShape).transform(toSummary)) })
-  .transform(({ items }) => items);
+export const lotterySummaryPageSchema = z
+  .object({
+    items: z.array(z.object(summaryShape).transform(toSummary)),
+    pagination: z.object({
+      page: z.number().int(),
+      limit: z.number().int(),
+      total: z.number().int(),
+    }),
+  })
+  .transform(({ items, pagination }) => ({ items, ...pagination }));
 
 const displayName = (name: string | null | undefined, userId: number) =>
   name?.trim() || `کاربر ${toPersianNumber(userId)}`;
@@ -62,6 +69,7 @@ export const groupMembersSchema = z
   .transform((items) =>
     items.map((item) => ({
       id: String(item.user_id),
+      memberId: String(item.member_id),
       name: displayName(item.name, item.user_id),
     })),
   );

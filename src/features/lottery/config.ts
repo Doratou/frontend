@@ -5,8 +5,8 @@ export const LOTTERY_TITLE_MAX_LENGTH = 60;
 export const LOTTERY_OPTION_MAX_LENGTH = 40;
 // Weighted lotteries are entered as percentages that add up to this total.
 export const LOTTERY_WEIGHT_TOTAL = 100;
-// The history table shows the latest completed draws; there is no pagination UI.
-export const LOTTERY_HISTORY_LIMIT = 20;
+// The history loads this many completed draws per request while scrolling.
+export const LOTTERY_HISTORY_PAGE_SIZE = 50;
 
 // SVG props need concrete values, so these hex codes mirror colors.css.
 // Every color keeps enough contrast against the white sector text.

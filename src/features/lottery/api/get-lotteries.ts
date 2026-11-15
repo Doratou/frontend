@@ -1,20 +1,20 @@
 import { apiClient } from '@/lib/api/client';
-import { LOTTERY_HISTORY_LIMIT } from '../config';
-import type { Lottery, LotterySummary } from '../types';
-import { lotterySummaryListSchema, parseData } from './contracts';
+import { LOTTERY_HISTORY_PAGE_SIZE } from '../config';
+import type { Lottery, LotterySummaryPage } from '../types';
+import { lotterySummaryPageSchema, parseData } from './contracts';
 import { getLottery } from './get-lottery';
 import { drawsPath } from './paths';
 
-async function getSummaries(
+async function getSummaryPage(
   groupId: string,
-  params: { status: 'DRAFT' | 'COMPLETED'; limit: number },
+  params: { status: 'DRAFT' | 'COMPLETED'; page: number; limit: number },
   signal?: AbortSignal,
-): Promise<LotterySummary[]> {
+): Promise<LotterySummaryPage> {
   const response = await apiClient.get<unknown>(drawsPath(groupId), {
-    params: { page: 1, ...params },
+    params,
     signal,
   });
-  return parseData(lotterySummaryListSchema, response.data);
+  return parseData(lotterySummaryPageSchema, response.data);
 }
 
 // A group has at most one draft; it is the shared wheel everybody can spin.
@@ -23,22 +23,24 @@ export async function getActiveLottery(
   groupId: string,
   signal?: AbortSignal,
 ): Promise<Lottery | null> {
-  const [draft] = await getSummaries(
+  const { items } = await getSummaryPage(
     groupId,
-    { status: 'DRAFT', limit: 1 },
+    { status: 'DRAFT', page: 1, limit: 1 },
     signal,
   );
+  const [draft] = items;
   return draft ? getLottery({ groupId, lotteryId: draft.id }, signal) : null;
 }
 
-// Completed draws, newest execution first (the server already sorts them).
-export function getLotteryHistory(
+// One page of completed draws, newest execution first (sorted by the server).
+export function getLotteryHistoryPage(
   groupId: string,
+  page: number,
   signal?: AbortSignal,
-): Promise<LotterySummary[]> {
-  return getSummaries(
+): Promise<LotterySummaryPage> {
+  return getSummaryPage(
     groupId,
-    { status: 'COMPLETED', limit: LOTTERY_HISTORY_LIMIT },
+    { status: 'COMPLETED', page, limit: LOTTERY_HISTORY_PAGE_SIZE },
     signal,
   );
 }
