@@ -69,7 +69,7 @@ export const routes: RouteObject[] = [
     ],
   },
   {
-    path: '/group/:slug',
+    path: '/group/:groupId',
     element: <GroupLayout />,
     children: [
       {
@@ -78,7 +78,7 @@ export const routes: RouteObject[] = [
       },
       {
         path: 'poll',
-        element: <p>sdafasdfkjsbdfjkasbdfjkasbdfajksbd</p>,
+        lazy: () => import('@/app/pages/poll'),
       },
       {
         path: 'notification',
