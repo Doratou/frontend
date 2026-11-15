@@ -62,7 +62,7 @@ function AuthScreen({ view }: { view: AuthView }) {
   if (isChange && status !== 'authenticated')
     return <Navigate to="/login" replace />;
   if (!isChange && status === 'authenticated')
-    return <Navigate to="/" replace />;
+    return <Navigate to="/home" replace />;
 
   const purpose =
     view === 'verify-signup'
@@ -131,7 +131,7 @@ function AuthScreen({ view }: { view: AuthView }) {
             startIcon={<ChevronRight />}
             className="min-h-11 text-button-md"
           >
-            <Link to={isChange ? '/' : '/login'}>
+            <Link to={isChange ? '/home' : '/login'}>
               {isChange ? 'بازگشت به صفحه اصلی' : 'بازگشت به ورود'}
             </Link>
           </Button>

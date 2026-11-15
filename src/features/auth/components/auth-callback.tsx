@@ -60,7 +60,7 @@ export function Component() {
       // Full-page redirect mode: update session directly in main tab
       useAuthStore.getState().setSession(user, tokens);
       toast.success('ورود با حساب گوگل با موفقیت انجام شد.');
-      void navigate('/', { replace: true });
+      void navigate('/home', { replace: true });
     } catch (error) {
       const message =
         error instanceof Error

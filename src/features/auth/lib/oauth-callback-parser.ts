@@ -39,8 +39,16 @@ const callbackDataSchema = z.object({
     .object({
       id: z.union([z.string(), z.number()]),
       name: z.string().nullable().optional(),
+      friend_code: z.string().nullable().optional(),
       email: z.string().nullable().optional(),
       phone: z.string().nullable().optional(),
+      is_email_verified: z.boolean().optional(),
+      is_phone_verified: z.boolean().optional(),
+      avatar_attachment_id: z
+        .union([z.number(), z.string()])
+        .nullable()
+        .optional(),
+      wallet: z.number().optional(),
       system_role: z
         .string()
         .transform((val) => val.toUpperCase())
@@ -186,6 +194,12 @@ export function parseOAuthCallback(
     id: userId,
     displayName,
     systemRole,
+    status: rawUser?.status ?? 'ACTIVE',
+    email: extractString(rawUser?.email) ?? extractString(jwtPayload?.email),
+    phone: extractString(rawUser?.phone),
+    friendCode: extractString(rawUser?.friend_code),
+    avatarAttachmentId: rawUser?.avatar_attachment_id ?? null,
+    wallet: typeof rawUser?.wallet === 'number' ? rawUser.wallet : undefined,
   };
 
   return { user, tokens };

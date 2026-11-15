@@ -6,6 +6,6 @@ export function useCompleteSignIn() {
   const navigate = useNavigate();
   return (user: SessionUser) => {
     useAuthStore.getState().setUser(user);
-    void navigate('/', { replace: true });
+    void navigate('/home', { replace: true });
   };
 }

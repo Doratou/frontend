@@ -7,11 +7,26 @@ export const authEnvelopeSchema = z.object({
   data: z.unknown(),
 });
 
+function parseDateToMs(val: string | number): number {
+  if (typeof val === 'number') {
+    return val < 10_000_000_000 ? val * 1000 : val;
+  }
+  const parsed = Date.parse(val);
+  return Number.isFinite(parsed) ? parsed : Date.now() + 3600 * 1000;
+}
+
 const userDtoSchema = z.object({
   id: z.union([z.number().int().positive(), z.string().min(1)]),
   name: z.string().nullable().optional(),
+  friend_code: z.string().nullable().optional(),
   email: z.string().nullable().optional(),
   phone: z.string().nullable().optional(),
+  is_email_verified: z.boolean().optional(),
+  is_phone_verified: z.boolean().optional(),
+  avatar_attachment_id: z
+    .union([z.number(), z.string()])
+    .nullable()
+    .optional(),
   system_role: z
     .string()
     .transform((val) => val.toUpperCase())
@@ -21,21 +36,24 @@ const userDtoSchema = z.object({
     .transform((val) => val.toUpperCase())
     .pipe(z.enum(['ACTIVE', 'INACTIVE']))
     .optional(),
+  wallet: z.number().optional(),
+  created_at: z.string().optional(),
 });
 
 const tokenDtoSchema = z.object({
   access_token: z.string().min(1),
-  access_token_expires_at: z.iso.datetime({ offset: true }),
+  access_token_expires_at: z.union([z.string(), z.number()]),
   refresh_token: z.string().min(1),
-  refresh_token_expires_at: z.iso.datetime({ offset: true }),
+  refresh_token_expires_at: z.union([z.string(), z.number()]),
+  expires_at: z.union([z.string(), z.number()]).optional(),
 });
 
 function toTokens(data: z.infer<typeof tokenDtoSchema>): AuthTokens {
   return {
     accessToken: data.access_token,
-    accessTokenExpiresAt: Date.parse(data.access_token_expires_at),
+    accessTokenExpiresAt: parseDateToMs(data.access_token_expires_at),
     refreshToken: data.refresh_token,
-    refreshTokenExpiresAt: Date.parse(data.refresh_token_expires_at),
+    refreshTokenExpiresAt: parseDateToMs(data.refresh_token_expires_at),
   };
 }
 
@@ -53,6 +71,12 @@ export const signedInSchema = tokenDtoSchema
         displayName:
           data.user.name || data.user.email || data.user.phone || 'کاربر',
         systemRole: data.user.system_role,
+        status: data.user.status ?? 'ACTIVE',
+        email: data.user.email ?? null,
+        phone: data.user.phone ?? null,
+        friendCode: data.user.friend_code ?? null,
+        avatarAttachmentId: data.user.avatar_attachment_id ?? null,
+        wallet: data.user.wallet,
       } satisfies SessionUser,
     };
   });

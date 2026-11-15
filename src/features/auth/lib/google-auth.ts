@@ -64,6 +64,7 @@ export function startGoogleBackendFlow(): Promise<{
       id: 'preview-user',
       displayName: 'کاربر نمونه',
       systemRole: 'USER',
+      status: 'ACTIVE',
     };
     return Promise.resolve({ user: previewUser, tokens: previewTokens });
   }

@@ -9,7 +9,7 @@ interface RoleGuardProps {
 
 export function RoleGuard({ children }: Readonly<RoleGuardProps>) {
   const hasShownRedirectToast = useRef(false);
-  const isAuthenticated = !useAuthStore(
+  const isAuthenticated = useAuthStore(
     (state) => state.status === 'authenticated',
   );
 

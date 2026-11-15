@@ -8,6 +8,7 @@ const previewUser: SessionUser = {
   id: 'preview-user',
   displayName: 'کاربر نمونه',
   systemRole: 'USER',
+  status: 'ACTIVE',
 };
 
 // shortcut: preview state resets on reload; remove this adapter when backend integration is ready.
