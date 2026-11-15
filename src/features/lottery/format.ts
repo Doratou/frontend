@@ -12,7 +12,7 @@ const timeFormatter = new Intl.DateTimeFormat('fa-IR', {
 });
 const percentFormatter = new Intl.NumberFormat('fa-IR', {
   style: 'percent',
-  maximumFractionDigits: 1,
+  maximumFractionDigits: 2,
 });
 
 export const LOTTERY_MODE_LABEL: Record<LotteryMode, string> = {

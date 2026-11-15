@@ -1,9 +1,12 @@
 export const LOTTERY_MIN_OPTIONS = 2;
-// The wheel component renders between 2 and 24 sectors.
+// The wheel component renders between 2 and 24 sectors (the API allows 100).
 export const LOTTERY_MAX_OPTIONS = 24;
 export const LOTTERY_TITLE_MAX_LENGTH = 60;
 export const LOTTERY_OPTION_MAX_LENGTH = 40;
+// Weighted lotteries are entered as percentages that add up to this total.
 export const LOTTERY_WEIGHT_TOTAL = 100;
+// The history table shows the latest completed draws; there is no pagination UI.
+export const LOTTERY_HISTORY_LIMIT = 20;
 
 // SVG props need concrete values, so these hex codes mirror colors.css.
 // Every color keeps enough contrast against the white sector text.
