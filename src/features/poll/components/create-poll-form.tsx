@@ -6,7 +6,15 @@ import {
   useWatch,
 } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, Plus, Send, Trash2 } from 'lucide-react';
+import {
+  Eye,
+  EyeOff,
+  ListChecks,
+  Plus,
+  Send,
+  Trash2,
+  type LucideIcon,
+} from 'lucide-react';
 import { LoadingButton } from '@/components/custom/loading-button';
 import { TextField } from '@/components/custom/text-field';
 import { Button } from '@/components/ui/button';
@@ -43,12 +51,51 @@ function CharCounter({ length, max }: { length: number; max: number }) {
   );
 }
 
+function SettingSwitchCard({
+  icon: Icon,
+  title,
+  description,
+  checked,
+  onCheckedChange,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}) {
+  const id = useId();
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-neutral-20 p-3">
+      <span
+        aria-hidden="true"
+        className="grid size-10 shrink-0 place-items-center rounded-lg bg-secondary-10 text-secondary-70"
+      >
+        <Icon className="size-5" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p id={id} className="text-button-sm font-bold">
+          {title}
+        </p>
+        <p id={`${id}-description`} className="text-caption text-neutral-60">
+          {description}
+        </p>
+      </div>
+      <Switch
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        aria-labelledby={id}
+        aria-describedby={`${id}-description`}
+      />
+    </div>
+  );
+}
+
 export function CreatePollForm({ onDone }: { onDone: () => void }) {
   const groupId = useCurrentGroupId();
   const createPoll = useCreatePoll(groupId);
   const baseId = useId();
   const optionsHeadingId = `${baseId}-options`;
-  const anonymousId = `${baseId}-anonymous`;
 
   const {
     register,
@@ -61,6 +108,7 @@ export function CreatePollForm({ onDone }: { onDone: () => void }) {
       question: '',
       options: [{ text: '' }, { text: '' }],
       isAnonymous: true,
+      allowMultiple: false,
     },
   });
   const { fields, append, remove } = useFieldArray({
@@ -70,6 +118,10 @@ export function CreatePollForm({ onDone }: { onDone: () => void }) {
   const { field: anonymousField } = useController({
     control,
     name: 'isAnonymous',
+  });
+  const { field: multipleField } = useController({
+    control,
+    name: 'allowMultiple',
   });
   const question = useWatch({ control, name: 'question' });
   const optionValues = useWatch({ control, name: 'options' });
@@ -83,6 +135,7 @@ export function CreatePollForm({ onDone }: { onDone: () => void }) {
         question: values.question,
         options: values.options.map((option) => option.text),
         isAnonymous: values.isAnonymous,
+        allowMultiple: values.allowMultiple,
       },
       { onSuccess: onDone },
     );
@@ -189,32 +242,32 @@ export function CreatePollForm({ onDone }: { onDone: () => void }) {
           </div>
         </section>
 
-        <div className="flex items-center gap-3 rounded-xl border border-neutral-20 p-3">
-          <span
-            aria-hidden="true"
-            className="grid size-10 shrink-0 place-items-center rounded-lg bg-secondary-10 text-secondary-70"
-          >
-            <AnonymousIcon className="size-5" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p id={anonymousId} className="text-button-sm font-bold">
-              نظرسنجی ناشناس
-            </p>
-            <p
-              id={`${anonymousId}-description`}
-              className="text-caption text-neutral-60"
-            >
-              {anonymousField.value
+        <div className="flex flex-col gap-2">
+          <SettingSwitchCard
+            icon={AnonymousIcon}
+            title="نظرسنجی ناشناس"
+            description={
+              anonymousField.value
                 ? 'هویت رأی‌دهندگان برای دیگران نمایش داده نمی‌شود'
-                : 'هویت رأی‌دهندگان برای دیگران نمایش داده می‌شود'}
-            </p>
-          </div>
-          <Switch
+                : 'هویت رأی‌دهندگان برای دیگران نمایش داده می‌شود'
+            }
             checked={anonymousField.value}
             onCheckedChange={anonymousField.onChange}
-            aria-labelledby={anonymousId}
-            aria-describedby={`${anonymousId}-description`}
           />
+          <SettingSwitchCard
+            icon={ListChecks}
+            title="چندگزینه‌ای"
+            description={
+              multipleField.value
+                ? 'هر نفر می‌تواند چند گزینه را انتخاب کند'
+                : 'هر نفر فقط یک گزینه را می‌تواند انتخاب کند'
+            }
+            checked={multipleField.value}
+            onCheckedChange={multipleField.onChange}
+          />
+          <p className="text-caption text-neutral-60">
+            نوع رأی‌دهی و ناشناس بودن بعد از ساخت قابل تغییر نیستند.
+          </p>
         </div>
       </div>
 

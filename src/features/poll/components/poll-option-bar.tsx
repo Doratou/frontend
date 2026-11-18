@@ -14,6 +14,8 @@ interface PollOptionBarProps {
   /** When set, the whole row is a button that casts the vote. */
   onSelect?: () => void;
   disabled?: boolean;
+  /** Multi-choice polls use square checkboxes instead of round radios. */
+  multiple?: boolean;
 }
 
 const rowClass = 'flex w-full flex-col gap-1 rounded-md px-1.5 py-1 text-start';
@@ -27,6 +29,7 @@ export function PollOptionBar({
   showIndicator = false,
   onSelect,
   disabled = false,
+  multiple = false,
 }: PollOptionBarProps) {
   const interactive = onSelect !== undefined;
 
@@ -47,7 +50,8 @@ export function PollOptionBar({
             <span
               aria-hidden="true"
               className={cn(
-                'grid size-4 shrink-0 place-items-center rounded-full transition-colors motion-reduce:transition-none',
+                'grid size-4 shrink-0 place-items-center transition-colors motion-reduce:transition-none',
+                multiple ? 'rounded-[5px]' : 'rounded-full',
                 isSelected
                   ? cn(
                       'text-white',

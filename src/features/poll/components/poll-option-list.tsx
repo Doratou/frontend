@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useVotePoll } from '@/features/poll/hooks/use-vote-poll';
 import { useCurrentGroupId } from '@/features/poll/hooks/use-current-group-id';
-import { getOptionPercent, isPollVotable } from '@/features/poll/utils';
+import {
+  getOptionPercent,
+  isPollVotable,
+  toggleSelection,
+} from '@/features/poll/utils';
 import { PollOptionBar } from './poll-option-bar';
 import type { Poll } from '@/features/poll/types';
 
@@ -70,18 +74,19 @@ export function PollOptionList({ poll }: { poll: Poll }) {
           <li key={option.id}>
             <PollOptionBar
               label={option.label}
-              percent={getOptionPercent(option, poll.totalVotes)}
+              percent={getOptionPercent(option, poll.totalVoters)}
               isLeading={maxVotes > 0 && option.votes === maxVotes}
               isClosed={isClosed}
               isSelected={isSelected}
               showIndicator={showIndicator}
-              // Clicking the chosen option again takes the vote back.
+              multiple={poll.allowMultiple}
+              // Clicking a chosen option again takes that choice back.
               onSelect={
                 canVote
                   ? () =>
                       vote.mutate({
                         pollId: poll.id,
-                        optionId: isSelected ? null : option.id,
+                        optionIds: toggleSelection(poll, option.id),
                       })
                   : undefined
               }

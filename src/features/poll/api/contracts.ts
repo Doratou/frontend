@@ -25,6 +25,7 @@ const pollDtoSchema = z.object({
   question: z.string(),
   // PRIVATE hides voter identities from everyone, so it is the "anonymous" poll in the UI.
   visibility: z.enum(['PUBLIC', 'PRIVATE']),
+  allow_multiple_choices: z.boolean(),
   // INACTIVE means closed by its creator.
   status: z.enum(['ACTIVE', 'INACTIVE']),
   is_frozen: z.boolean(),
@@ -32,7 +33,9 @@ const pollDtoSchema = z.object({
   created_at: timestamp,
   options: z.array(optionDtoSchema),
   total_votes: z.number().int().nonnegative(),
-  my_option_id: id.nullable(),
+  total_voters: z.number().int().nonnegative(),
+  // Ascending ids of the caller's active selections; [] before voting or after withdrawal.
+  my_option_ids: z.array(id),
 });
 
 function toPoll(dto: z.infer<typeof pollDtoSchema>): Poll {
@@ -42,11 +45,13 @@ function toPoll(dto: z.infer<typeof pollDtoSchema>): Poll {
     status: dto.status === 'ACTIVE' ? 'active' : 'closed',
     isFrozen: dto.is_frozen,
     isAnonymous: dto.visibility === 'PRIVATE',
+    allowMultiple: dto.allow_multiple_choices,
     createdByMemberId: String(dto.created_by_member_id),
     createdAt: Date.parse(dto.created_at),
     closedAt: dto.closed_at === null ? null : Date.parse(dto.closed_at),
-    votedOptionIds: dto.my_option_id === null ? [] : [String(dto.my_option_id)],
+    votedOptionIds: dto.my_option_ids.map(String),
     totalVotes: dto.total_votes,
+    totalVoters: dto.total_voters,
     options: dto.options.map((option) => ({
       id: String(option.id),
       label: option.title,

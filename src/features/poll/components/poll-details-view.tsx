@@ -5,6 +5,7 @@ import {
   CalendarCheck,
   CheckSquare,
   Trash2,
+  Undo2,
   Users,
   X,
 } from 'lucide-react';
@@ -18,7 +19,11 @@ import {
   useDeletePoll,
 } from '@/features/poll/hooks/use-manage-poll';
 import { useVotePoll } from '@/features/poll/hooks/use-vote-poll';
-import { getOptionPercent, isPollVotable } from '@/features/poll/utils';
+import {
+  getOptionPercent,
+  isPollVotable,
+  toggleSelection,
+} from '@/features/poll/utils';
 import { cn } from '@/lib/utils';
 import { formatNumber } from '@/utils/format';
 import { PollDialogHeader } from './poll-dialog-header';
@@ -55,8 +60,8 @@ interface ChoiceRowProps {
   poll: Poll;
   maxVotes: number;
   isBusy: boolean;
-  /** Pass null to take the vote back. */
-  onVote: (optionId: string | null) => void;
+  /** Saves the whole selection; an empty list withdraws every vote. */
+  onVote: (optionIds: string[]) => void;
 }
 
 // The same option row as on the poll card (results included), wrapped in the bordered
@@ -74,13 +79,14 @@ function ChoiceRow({ option, poll, maxVotes, isBusy, onVote }: ChoiceRowProps) {
     >
       <PollOptionBar
         label={option.label}
-        percent={getOptionPercent(option, poll.totalVotes)}
+        percent={getOptionPercent(option, poll.totalVoters)}
         isLeading={maxVotes > 0 && option.votes === maxVotes}
         isClosed={poll.status === 'closed'}
         isSelected={isSelected}
         showIndicator={isVotable || poll.votedOptionIds.length > 0}
+        multiple={poll.allowMultiple}
         onSelect={
-          isVotable ? () => onVote(isSelected ? null : option.id) : undefined
+          isVotable ? () => onVote(toggleSelection(poll, option.id)) : undefined
         }
         disabled={isBusy}
       />
@@ -108,6 +114,7 @@ export function PollDetailsView({
   const [confirming, setConfirming] = useState<'close' | 'delete' | null>(null);
 
   const isActive = poll.status === 'active';
+  const isVotable = isPollVotable(poll);
   const hasVoted = poll.votedOptionIds.length > 0;
   const maxVotes = Math.max(0, ...poll.options.map((option) => option.votes));
   const subtitle = !isActive
@@ -116,7 +123,9 @@ export function PollDetailsView({
       ? 'گروه غیرفعال است و امکان تغییر رأی وجود ندارد'
       : hasVoted
         ? 'رأی شما ثبت شده است'
-        : 'روی گزینه مدنظر خود کلیک کنید و رأی خود را ثبت کنید';
+        : poll.allowMultiple
+          ? 'روی یک یا چند گزینه کلیک کنید و رأی خود را ثبت کنید'
+          : 'روی گزینه مدنظر خود کلیک کنید و رأی خود را ثبت کنید';
 
   return (
     <>
@@ -142,7 +151,7 @@ export function PollDetailsView({
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-caption text-neutral-70">
           <span className="flex items-center gap-1.5">
             <Users className="size-4" aria-hidden="true" />
-            {formatNumber(poll.totalVotes)} رأی
+            {formatNumber(poll.totalVoters)} رأی
           </span>
           <span className="flex items-center gap-1.5">
             <CalendarCheck className="size-4" aria-hidden="true" />
@@ -153,6 +162,9 @@ export function PollDetailsView({
           </span>
           <span className="ms-auto flex items-center gap-2">
             <PollVisibilityBadge isAnonymous={poll.isAnonymous} />
+            {poll.allowMultiple && (
+              <MetaBadge tone="neutral">چندگزینه‌ای</MetaBadge>
+            )}
             <MetaBadge tone={isActive ? 'info' : 'neutral'}>
               {isActive ? 'فعال' : 'تمام شده'}
             </MetaBadge>
@@ -177,13 +189,33 @@ export function PollDetailsView({
                   poll={poll}
                   maxVotes={maxVotes}
                   isBusy={vote.isPending}
-                  onVote={(optionId) =>
-                    vote.mutate({ pollId: poll.id, optionId })
+                  onVote={(optionIds) =>
+                    vote.mutate({ pollId: poll.id, optionIds })
                   }
                 />
               </li>
             ))}
           </ul>
+          {poll.allowMultiple && (
+            <p className="mt-3 text-caption text-neutral-60">
+              درصد هر گزینه نسبت به تعداد رأی‌دهندگان است و مجموع درصدها
+              می‌تواند بیشتر از ۱۰۰ شود.
+            </p>
+          )}
+          {isVotable && hasVoted && poll.allowMultiple && (
+            <div className="mt-2">
+              <Button
+                type="button"
+                variant="ghost"
+                startIcon={<Undo2 className="size-4" />}
+                disabled={vote.isPending}
+                onClick={() => vote.mutate({ pollId: poll.id, optionIds: [] })}
+                className="text-neutral-70"
+              >
+                پس‌گرفتن همه‌ی رأی‌ها
+              </Button>
+            </div>
+          )}
         </section>
 
         {/* Anonymous polls never reveal who voted, so there is nothing to open. */}

@@ -27,7 +27,7 @@ export function PollCard({ poll }: { poll: Poll }) {
       >
         <p className="flex items-center gap-1.5 text-caption whitespace-nowrap text-neutral-80">
           <Users className="size-4 shrink-0" aria-hidden="true" />
-          {formatNumber(poll.totalVotes)} رأی
+          {formatNumber(poll.totalVoters)} رأی
         </p>
         <PollVisibilityBadge isAnonymous={poll.isAnonymous} />
       </header>
@@ -43,7 +43,9 @@ export function PollCard({ poll }: { poll: Poll }) {
             <p className="text-caption text-neutral-60">
               {poll.votedOptionIds.length > 0
                 ? 'رأی شما ثبت شد'
-                : 'یک گزینه را انتخاب کنید'}
+                : poll.allowMultiple
+                  ? 'یک یا چند گزینه را انتخاب کنید'
+                  : 'یک گزینه را انتخاب کنید'}
             </p>
           )}
         </div>

@@ -21,7 +21,12 @@ export interface Poll {
   closedAt: number | null;
   /** Option ids the current user voted for; empty when they have not voted. */
   votedOptionIds: string[];
+  /** Sum of active selections (a person choosing two options counts twice). */
   totalVotes: number;
+  /** Distinct people who voted; this is the "votes" count shown in the UI. */
+  totalVoters: number;
+  /** Fixed at creation: true lets each member pick several options. */
+  allowMultiple: boolean;
   options: PollOption[];
 }
 
