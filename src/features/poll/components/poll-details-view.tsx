@@ -23,10 +23,10 @@ import { cn } from '@/lib/utils';
 import { formatNumber } from '@/utils/format';
 import { PollDialogHeader } from './poll-dialog-header';
 import { PollOptionBar } from './poll-option-bar';
+import { PollVisibilityBadge } from './poll-visibility-badge';
 import type { Poll, PollOption } from '@/features/poll/types';
 
 const badgeTones = {
-  success: 'border-success-40 bg-success-10 text-success-60',
   info: 'border-info-40 bg-info-10 text-info-50',
   neutral: 'border-neutral-40 bg-neutral-10 text-neutral-70',
 } as const;
@@ -152,9 +152,7 @@ export function PollDetailsView({
             {formatPollPeriod(poll.createdAt, poll.closedAt)}
           </span>
           <span className="ms-auto flex items-center gap-2">
-            <MetaBadge tone={poll.isAnonymous ? 'neutral' : 'success'}>
-              {poll.isAnonymous ? 'ناشناس' : 'پابلیک'}
-            </MetaBadge>
+            <PollVisibilityBadge isAnonymous={poll.isAnonymous} />
             <MetaBadge tone={isActive ? 'info' : 'neutral'}>
               {isActive ? 'فعال' : 'تمام شده'}
             </MetaBadge>

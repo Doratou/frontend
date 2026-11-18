@@ -6,7 +6,7 @@ import { isPollVotable } from '@/features/poll/utils';
 import { formatNumber } from '@/utils/format';
 import { PollDetailsDialog } from './poll-details-dialog';
 import { PollOptionList } from './poll-option-list';
-import { PollStatusBadge } from './poll-status-badge';
+import { PollVisibilityBadge } from './poll-visibility-badge';
 import type { Poll } from '@/features/poll/types';
 
 export function PollCard({ poll }: { poll: Poll }) {
@@ -29,7 +29,7 @@ export function PollCard({ poll }: { poll: Poll }) {
           <Users className="size-4 shrink-0" aria-hidden="true" />
           {formatNumber(poll.totalVotes)} رأی
         </p>
-        <PollStatusBadge status={poll.status} />
+        <PollVisibilityBadge isAnonymous={poll.isAnonymous} />
       </header>
 
       {/* flex-1 + mt-auto on the footer keeps buttons aligned across cards in one grid row. */}
