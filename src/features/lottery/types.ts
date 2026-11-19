@@ -90,6 +90,8 @@ export interface LotteryHistoryEntry {
   optionCount: number;
   drawnAt: string;
   winner: LotteryWinner;
+  // The winner's share of the draw in percent (`result.weight`).
+  winnerChance: number;
 }
 
 export interface CreateLotteryCandidateInput {
