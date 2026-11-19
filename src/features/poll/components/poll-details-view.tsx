@@ -1,9 +1,11 @@
-import { useId, useState } from 'react';
+import { useId, useState, type ComponentType } from 'react';
+import { useNavigate } from 'react-router';
 import {
   ArrowLeft,
   BarChart2,
   CalendarCheck,
   CheckSquare,
+  LoaderPinwheel,
   Trash2,
   Undo2,
   Users,
@@ -19,6 +21,10 @@ import {
   useDeletePoll,
 } from '@/features/poll/hooks/use-manage-poll';
 import { useVotePoll } from '@/features/poll/hooks/use-vote-poll';
+import {
+  pollToLotteryDraft,
+  type PollLotteryState,
+} from '@/features/poll/to-lottery';
 import {
   getOptionPercent,
   isPollVotable,
@@ -52,6 +58,41 @@ function MetaBadge({
     >
       {children}
     </span>
+  );
+}
+
+function ActionRow({
+  icon: Icon,
+  title,
+  description,
+  onClick,
+}: {
+  icon: ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center gap-3 rounded-xl border border-neutral-20 p-3 text-start outline-hidden transition-colors hover:bg-primary-10/50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring motion-reduce:transition-none"
+    >
+      <span
+        aria-hidden="true"
+        className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary-10 text-primary-70"
+      >
+        <Icon className="size-5" />
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="text-button-sm font-bold">{title}</span>
+        <span className="text-caption text-neutral-60">{description}</span>
+      </span>
+      <ArrowLeft
+        className="size-5 shrink-0 text-primary-70"
+        aria-hidden="true"
+      />
+    </button>
   );
 }
 
@@ -108,6 +149,7 @@ export function PollDetailsView({
   const questionId = useId();
   const groupId = useCurrentGroupId();
   const isOwner = useIsPollOwner(poll.createdByMemberId);
+  const navigate = useNavigate();
   const vote = useVotePoll(groupId);
   const closePoll = useClosePoll(groupId);
   const deletePoll = useDeletePoll(groupId);
@@ -115,6 +157,7 @@ export function PollDetailsView({
 
   const isActive = poll.status === 'active';
   const isVotable = isPollVotable(poll);
+  const canConvert = isOwner && isVotable;
   const hasVoted = poll.votedOptionIds.length > 0;
   const maxVotes = Math.max(0, ...poll.options.map((option) => option.votes));
   const subtitle = !isActive
@@ -126,6 +169,17 @@ export function PollDetailsView({
         : poll.allowMultiple
           ? 'روی یک یا چند گزینه کلیک کنید و رأی خود را ثبت کنید'
           : 'روی گزینه مدنظر خود کلیک کنید و رأی خود را ثبت کنید';
+
+  // The lottery page opens its create dialog prefilled from this poll. The poll is
+  // closed there, once the lottery has actually been created.
+  const convertToLottery = () => {
+    const state: PollLotteryState = {
+      pollId: poll.id,
+      draft: pollToLotteryDraft(poll),
+    };
+    onClose();
+    void navigate(`/group/${encodeURIComponent(groupId)}/lottery`, { state });
+  };
 
   return (
     <>
@@ -220,30 +274,22 @@ export function PollDetailsView({
 
         {/* Anonymous polls never reveal who voted, so there is nothing to open. */}
         {!poll.isAnonymous && (
-          <button
-            type="button"
+          <ActionRow
+            icon={Users}
+            title="مشاهده رأی‌دهندگان"
+            description="چه کسانی به هر گزینه رأی داده‌اند"
             onClick={onShowVoters}
-            className="flex w-full items-center gap-3 rounded-xl border border-neutral-20 p-3 text-start outline-hidden transition-colors hover:bg-primary-10/50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring motion-reduce:transition-none"
-          >
-            <span
-              aria-hidden="true"
-              className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary-10 text-primary-70"
-            >
-              <Users className="size-5" />
-            </span>
-            <span className="flex min-w-0 flex-1 flex-col">
-              <span className="text-button-sm font-bold">
-                مشاهده رأی‌دهندگان
-              </span>
-              <span className="text-caption text-neutral-60">
-                چه کسانی به هر گزینه رأی داده‌اند
-              </span>
-            </span>
-            <ArrowLeft
-              className="size-5 shrink-0 text-primary-70"
-              aria-hidden="true"
-            />
-          </button>
+          />
+        )}
+
+        {/* Only the creator of an open poll can hand its result over to a lottery. */}
+        {canConvert && (
+          <ActionRow
+            icon={LoaderPinwheel}
+            title="تبدیل به قرعه‌کشی"
+            description="انتخاب برنده بین گزینه‌ها؛ پس از ساخت قرعه‌کشی نظرسنجی بسته می‌شود"
+            onClick={convertToLottery}
+          />
         )}
       </div>
 
