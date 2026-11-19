@@ -96,11 +96,17 @@ export function mergeProfiles(
   members: LotteryMember[],
   profiles: LotteryMember[],
 ): LotteryMember[] {
-  const byId = new Map(profiles.map((profile) => [profile.id, profile] as const));
+  const byId = new Map(
+    profiles.map((profile) => [profile.id, profile] as const),
+  );
   return members.map((member) => {
     const profile = byId.get(member.id);
     return profile
-      ? { ...member, name: profile.name || member.name, avatarUrl: profile.avatarUrl }
+      ? {
+          ...member,
+          name: profile.name || member.name,
+          avatarUrl: profile.avatarUrl,
+        }
       : member;
   });
 }
@@ -126,6 +132,16 @@ export function pickStageLottery(
   return active.createdAt > pinned.createdAt ? active : pinned;
 }
 
+// In a weighted lottery the last option is not typed in: it takes whatever the
+// other options leave of the 100%. `weights` are the values in list order.
+export function getLastWeight(weights: number[]): number {
+  const others = weights
+    .slice(0, -1)
+    .reduce((sum, weight) => sum + (Number.isFinite(weight) ? weight : 0), 0);
+  // Rounded to hundredths so values such as 0.1 + 0.2 do not leave a remainder.
+  return Math.max(0, Math.round((LOTTERY_WEIGHT_TOTAL - others) * 100) / 100);
+}
+
 // Splits 100 into `count` whole numbers that add up to exactly 100.
 export function splitEvenly(count: number): number[] {
   if (count <= 0) return [];
@@ -137,9 +153,7 @@ export function splitEvenly(count: number): number[] {
   );
 }
 
-export function withEvenWeights<T extends { weight: number }>(
-  items: T[],
-): T[] {
+export function withEvenWeights<T extends { weight: number }>(items: T[]): T[] {
   const weights = splitEvenly(items.length);
   return items.map((item, index) => ({ ...item, weight: weights[index] ?? 0 }));
 }

@@ -27,7 +27,7 @@ import type {
   LotteryMember,
   LotteryMode,
 } from '@/features/lottery/types';
-import { withEvenWeights } from '@/features/lottery/utils';
+import { getLastWeight, withEvenWeights } from '@/features/lottery/utils';
 
 type OptionValue = CreateLotteryFormValues['options'][number];
 
@@ -90,6 +90,32 @@ export function LotteryCreateDialog({
         ? options.filter((option) => option.memberId !== member.id)
         : [...options, { memberId: member.id, label: member.name, weight: 0 }],
     );
+  };
+
+  // Selects every member that is not an option yet, as far as the option limit
+  // allows; when all of them are selected it removes them again. Custom options
+  // are never touched.
+  const allMembersSelected =
+    members.length > 0 &&
+    members.every((member) => selectedMemberIds.has(member.id));
+
+  const toggleAllMembers = () => {
+    if (allMembersSelected) {
+      updateOptions(options.filter((option) => option.memberId === null));
+      return;
+    }
+    const room = Math.max(0, LOTTERY_MAX_OPTIONS - options.length);
+    const missing = members
+      .filter((member) => !selectedMemberIds.has(member.id))
+      .slice(0, room);
+    updateOptions([
+      ...options,
+      ...missing.map((member) => ({
+        memberId: member.id,
+        label: member.name,
+        weight: 0,
+      })),
+    ]);
   };
 
   const addCustomOption = (label: string): string | null => {
@@ -167,6 +193,14 @@ export function LotteryCreateDialog({
           <form
             noValidate
             onSubmit={(event) => {
+              // The last weighted option is calculated, so its value is stored
+              // right before the form is validated.
+              if (mode === 'weighted' && options.length > 0) {
+                setValue(
+                  `options.${options.length - 1}.weight`,
+                  getLastWeight(options.map((option) => option.weight)),
+                );
+              }
               void handleSubmit(onSubmit)(event);
             }}
             className="flex min-h-0 flex-1 flex-col"
@@ -186,7 +220,9 @@ export function LotteryCreateDialog({
                   status={membersStatus}
                   selectedMemberIds={selectedMemberIds}
                   isFull={options.length >= LOTTERY_MAX_OPTIONS}
+                  allSelected={allMembersSelected}
                   onToggle={toggleMember}
+                  onToggleAll={toggleAllMembers}
                 />
               </div>
 
