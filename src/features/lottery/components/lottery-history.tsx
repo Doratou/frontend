@@ -1,12 +1,10 @@
 import type { UIEvent } from 'react';
-import { Calendar, Clock } from 'lucide-react';
+import { Calendar, Clock, Crown, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   formatLotteryDate,
   formatLotteryTime,
-  toPersianNumber,
 } from '@/features/lottery/format';
-import { ModeBadge } from '@/features/lottery/components/lottery-badges';
 import { LotterySectionCard } from '@/features/lottery/components/lottery-section-card';
 import { OptionAvatar } from '@/features/lottery/components/option-avatar';
 import type {
@@ -20,16 +18,16 @@ interface LotteryHistoryProps {
   hasMore: boolean;
   isLoadingMore: boolean;
   onLoadMore: () => void;
+  onShowDetails: (lotteryId: string) => void;
+  onCreateAgain: (lotteryId: string) => void;
+  // The lottery whose copy is being prepared right now.
+  creatingAgainId: string | null;
+  // Creating is not possible at the moment (for example a lottery is waiting).
+  createAgainDisabled: boolean;
+  createAgainDisabledReason?: string;
 }
 
-const HEADERS = [
-  'گزینه‌ی انتخاب‌شده',
-  'عنوان قرعه‌کشی',
-  'گزینه‌ها',
-  'نوع قرعه‌کشی',
-  'تاریخ',
-  'ساعت',
-];
+const HEADERS = ['گزینه‌ی انتخاب‌شده', 'عنوان قرعه‌کشی', 'تاریخ', 'ساعت'];
 
 // The next page is requested this close to the end of the scroll area.
 const LOAD_MORE_THRESHOLD_PX = 160;
@@ -50,11 +48,68 @@ function Winner({ winner }: { winner: LotteryWinner }) {
   );
 }
 
+interface RowActionsProps {
+  entry: LotteryHistoryEntry;
+  onShowDetails: (lotteryId: string) => void;
+  onCreateAgain: (lotteryId: string) => void;
+  creatingAgainId: string | null;
+  createAgainDisabled: boolean;
+  createAgainDisabledReason?: string;
+  // Buttons share the row equally (mobile card) instead of hugging their text.
+  stretch?: boolean;
+}
+
+function RowActions({
+  entry,
+  onShowDetails,
+  onCreateAgain,
+  creatingAgainId,
+  createAgainDisabled,
+  createAgainDisabledReason,
+  stretch = false,
+}: RowActionsProps) {
+  const isPreparing = creatingAgainId === entry.id;
+  const isDisabled = createAgainDisabled || creatingAgainId !== null;
+  const buttonClass = stretch ? 'w-full' : '';
+
+  return (
+    <div className={stretch ? 'grid grid-cols-2 gap-2' : 'flex gap-2'}>
+      <Button
+        variant="outline"
+        tone="secondary"
+        size="md"
+        radius="md"
+        className={`h-8 px-3 text-button-sm ${buttonClass}`}
+        onClick={() => onShowDetails(entry.id)}
+      >
+        جزئیات
+      </Button>
+      <Button
+        variant="outline"
+        size="md"
+        radius="md"
+        className={`h-8 px-3 text-button-sm [&_svg]:size-4 ${buttonClass}`}
+        disabled={isDisabled}
+        title={createAgainDisabled ? createAgainDisabledReason : undefined}
+        onClick={() => onCreateAgain(entry.id)}
+        endIcon={<Plus />}
+      >
+        {isPreparing ? 'در حال آماده‌سازی…' : 'ساخت دوباره'}
+      </Button>
+    </div>
+  );
+}
+
 export function LotteryHistory({
   entries,
   hasMore,
   isLoadingMore,
   onLoadMore,
+  onShowDetails,
+  onCreateAgain,
+  creatingAgainId,
+  createAgainDisabled,
+  createAgainDisabledReason,
 }: LotteryHistoryProps) {
   const handleScroll = (event: UIEvent<HTMLDivElement>) => {
     const area = event.currentTarget;
@@ -62,6 +117,14 @@ export function LotteryHistory({
     if (hasMore && !isLoadingMore && remaining < LOAD_MORE_THRESHOLD_PX) {
       onLoadMore();
     }
+  };
+
+  const actions = {
+    onShowDetails,
+    onCreateAgain,
+    creatingAgainId,
+    createAgainDisabled,
+    createAgainDisabledReason,
   };
 
   return (
@@ -86,7 +149,8 @@ export function LotteryHistory({
           onScroll={handleScroll}
           className="max-h-[28rem] overflow-y-auto pe-1 outline-none [scrollbar-width:thin] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:max-h-[32rem]"
         >
-          {/* Six columns need roughly 56rem; narrower cards use the card list. */}
+          {/* Four columns and two buttons need roughly 56rem; narrower cards
+              use the card list. */}
           <table className="hidden w-full border-separate border-spacing-y-2 @4xl:table">
             <thead>
               <tr>
@@ -99,6 +163,12 @@ export function LotteryHistory({
                     {header}
                   </th>
                 ))}
+                <th
+                  scope="col"
+                  className="sticky top-0 z-10 bg-card px-3 pb-1"
+                >
+                  <span className="sr-only">عملیات</span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -108,12 +178,6 @@ export function LotteryHistory({
                     <Winner winner={entry.winner} />
                   </td>
                   <td className={CELL}>{entry.title}</td>
-                  <td className={`${CELL} whitespace-nowrap`}>
-                    {toPersianNumber(entry.optionCount)} گزینه
-                  </td>
-                  <td className={CELL}>
-                    <ModeBadge mode={entry.mode} />
-                  </td>
                   <td className={`${CELL} whitespace-nowrap`}>
                     <span className={META_CLASS}>
                       <Calendar
@@ -129,6 +193,9 @@ export function LotteryHistory({
                       {formatLotteryTime(entry.drawnAt)}
                     </span>
                   </td>
+                  <td className={`${CELL} whitespace-nowrap`}>
+                    <RowActions entry={entry} {...actions} />
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -140,22 +207,30 @@ export function LotteryHistory({
                 key={entry.id}
                 className="flex flex-col gap-3 rounded-xl border p-3"
               >
-                <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start justify-between gap-3">
                   <span className="text-heading-mobile-6">{entry.title}</span>
-                  <ModeBadge mode={entry.mode} />
-                </div>
-                <Winner winner={entry.winner} />
-                <div className="mt-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t pt-2 text-caption text-muted-foreground">
-                  <span className="flex items-center gap-1.5">
-                    <Calendar className="size-4 shrink-0" aria-hidden="true" />
-                    {formatLotteryDate(entry.drawnAt)}
+                  <span className="flex shrink-0 flex-col gap-1 text-caption text-muted-foreground">
+                    <span className="flex items-center gap-1.5">
+                      <Calendar
+                        className="size-4 shrink-0"
+                        aria-hidden="true"
+                      />
+                      {formatLotteryDate(entry.drawnAt)}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <Clock className="size-4 shrink-0" aria-hidden="true" />
+                      {formatLotteryTime(entry.drawnAt)}
+                    </span>
                   </span>
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="size-4 shrink-0" aria-hidden="true" />
-                    {formatLotteryTime(entry.drawnAt)}
-                  </span>
-                  <span>{toPersianNumber(entry.optionCount)} گزینه</span>
                 </div>
+                <div className="flex items-center justify-between gap-2 rounded-lg bg-muted px-3 py-2">
+                  <Winner winner={entry.winner} />
+                  <span className="flex shrink-0 items-center gap-1 text-caption text-accent-70 dark:text-accent-30">
+                    <Crown className="size-4" aria-hidden="true" />
+                    گزینه‌ی انتخاب‌شده
+                  </span>
+                </div>
+                <RowActions entry={entry} stretch {...actions} />
               </li>
             ))}
           </ul>

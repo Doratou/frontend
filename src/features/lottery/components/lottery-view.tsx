@@ -3,6 +3,7 @@ import { ErrorState } from '@/components/custom/error-state';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LotteryCreateDialog } from '@/features/lottery/components/lottery-create-dialog';
+import { LotteryDetailsDialog } from '@/features/lottery/components/lottery-details-dialog';
 import { LotteryEmptyState } from '@/features/lottery/components/lottery-empty-state';
 import { LotteryHistory } from '@/features/lottery/components/lottery-history';
 import { LotteryPageHeader } from '@/features/lottery/components/lottery-page-header';
@@ -10,6 +11,8 @@ import { LotteryStage } from '@/features/lottery/components/lottery-stage';
 import type { LotteryDraft } from '@/features/lottery/draft';
 import { useActiveLottery } from '@/features/lottery/hooks/use-active-lottery';
 import { useGroupMembers } from '@/features/lottery/hooks/use-group-members';
+import { useLotteryDetail } from '@/features/lottery/hooks/use-lottery-detail';
+import { useLotteryDraftBuilder } from '@/features/lottery/hooks/use-lottery-draft-builder';
 import { useLotteryGroupId } from '@/features/lottery/hooks/use-lottery-group-id';
 import { useLotteryHistory } from '@/features/lottery/hooks/use-lottery-history';
 import { useUserProfiles } from '@/features/lottery/hooks/use-user-profiles';
@@ -67,6 +70,7 @@ function LotteryContent({
   const activeQuery = useActiveLottery(groupId);
   const historyQuery = useLotteryHistory(groupId);
   const membersQuery = useGroupMembers(groupId);
+  const draftBuilder = useLotteryDraftBuilder(groupId);
   // A lottery that must stay on stage regardless of the queries: the one just
   // created, and the one just drawn (its result stays visible after the refresh
   // moves it from "waiting" to the history table).
@@ -75,6 +79,12 @@ function LotteryContent({
   const [isLocked, setIsLocked] = useState(false);
   // The pending draft is dropped as soon as the dialog is closed or dismissed.
   const [draft, setDraft] = useState<LotteryDraft | null>(initialDraft);
+  // The form only reads its starting values when it is created, so a draft that
+  // arrives later (from "create again") needs a fresh dialog: the key changes.
+  const [draftKey, setDraftKey] = useState(0);
+  // The history row whose details dialog is open.
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const detailQuery = useLotteryDetail(groupId, detailId);
 
   const groupMembers = membersQuery.data ?? NO_MEMBERS;
   const rawStage = useMemo(
@@ -87,11 +97,11 @@ function LotteryContent({
   const profileIds = useMemo(
     () =>
       collectProfileIds(
-        rawStage,
+        [rawStage, detailQuery.data ?? null],
         historyQuery.data ?? [],
         isCreateOpen ? groupMembers : NO_MEMBERS,
       ),
-    [rawStage, historyQuery.data, isCreateOpen, groupMembers],
+    [rawStage, detailQuery.data, historyQuery.data, isCreateOpen, groupMembers],
   );
   const profiles = useUserProfiles(profileIds);
 
@@ -112,6 +122,14 @@ function LotteryContent({
     () => toHistoryEntries(historyQuery.data ?? [], directory),
     [historyQuery.data, directory],
   );
+  const detailLottery = useMemo(
+    () =>
+      detailQuery.data
+        ? resolveOptionProfiles(detailQuery.data, directory)
+        : null,
+    [detailQuery.data, directory],
+  );
+  const detailEntry = history.find((entry) => entry.id === detailId) ?? null;
 
   // A group can only have one draft at a time, so creating is blocked until
   // the current one has been run.
@@ -124,6 +142,17 @@ function LotteryContent({
   const handleCreateOpenChange = (next: boolean) => {
     setIsCreateOpen(next);
     if (!next) setDraft(null);
+  };
+
+  // "Create again": the old lottery stays in the history; its title and options
+  // become the starting values of a new one that can still be edited.
+  const handleCreateAgain = (lotteryId: string) => {
+    void draftBuilder.build(lotteryId, directory).then((next) => {
+      if (next === null) return;
+      setDraft(next);
+      setDraftKey((key) => key + 1);
+      setIsCreateOpen(true);
+    });
   };
 
   let stage;
@@ -175,6 +204,13 @@ function LotteryContent({
         hasMore={historyQuery.hasNextPage}
         isLoadingMore={historyQuery.isFetchingNextPage}
         onLoadMore={() => void historyQuery.fetchNextPage()}
+        onShowDetails={setDetailId}
+        onCreateAgain={handleCreateAgain}
+        creatingAgainId={draftBuilder.pendingId}
+        createAgainDisabled={isLocked || isCheckingDraft || hasDraft}
+        createAgainDisabledReason={
+          hasDraft ? 'ابتدا قرعه‌کشی فعلی را اجرا کنید.' : undefined
+        }
       />
     );
   }
@@ -205,6 +241,7 @@ function LotteryContent({
       {stage}
       {historySection}
       <LotteryCreateDialog
+        key={draftKey}
         open={isCreateOpen || isDraftOpen}
         onOpenChange={handleCreateOpenChange}
         groupId={groupId}
@@ -215,6 +252,17 @@ function LotteryContent({
           setPinned(lottery);
           if (isDraftOpen) onCreatedFromDraft?.(lottery);
         }}
+      />
+      <LotteryDetailsDialog
+        open={detailId !== null}
+        onOpenChange={(open) => {
+          if (!open) setDetailId(null);
+        }}
+        entry={detailEntry}
+        lottery={detailLottery}
+        isLoading={detailQuery.isPending && detailId !== null}
+        isError={detailQuery.isError}
+        onRetry={() => void detailQuery.refetch()}
       />
     </div>
   );
