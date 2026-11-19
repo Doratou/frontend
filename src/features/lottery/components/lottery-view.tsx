@@ -1,11 +1,13 @@
 import { useMemo, useState } from 'react';
 import { ErrorState } from '@/components/custom/error-state';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LotteryCreateDialog } from '@/features/lottery/components/lottery-create-dialog';
 import { LotteryEmptyState } from '@/features/lottery/components/lottery-empty-state';
 import { LotteryHistory } from '@/features/lottery/components/lottery-history';
 import { LotteryPageHeader } from '@/features/lottery/components/lottery-page-header';
 import { LotteryStage } from '@/features/lottery/components/lottery-stage';
+import type { LotteryDraft } from '@/features/lottery/draft';
 import { useActiveLottery } from '@/features/lottery/hooks/use-active-lottery';
 import { useGroupMembers } from '@/features/lottery/hooks/use-group-members';
 import { useLotteryGroupId } from '@/features/lottery/hooks/use-lottery-group-id';
@@ -24,21 +26,44 @@ import {
 // Stable fallback, so memoized values do not change while members load.
 const NO_MEMBERS: LotteryMember[] = [];
 
-export function LotteryView() {
+interface LotteryViewProps {
+  // Values the create dialog opens with as soon as the page is ready (for example
+  // a lottery built from a poll). Read once; ignored while the group already has
+  // an unexecuted lottery.
+  initialDraft?: LotteryDraft | null;
+  // Called after a lottery was created from that initial draft.
+  onCreatedFromDraft?: (lottery: Lottery) => void;
+}
+
+export function LotteryView({
+  initialDraft = null,
+  onCreatedFromDraft,
+}: LotteryViewProps) {
   const groupId = useLotteryGroupId();
 
   if (groupId === null) {
     return (
-      <ErrorState
-        error={new Error('Missing group id')}
-        title="اکیپ پیدا نشد"
-      />
+      <ErrorState error={new Error('Missing group id')} title="اکیپ پیدا نشد" />
     );
   }
-  return <LotteryContent groupId={groupId} />;
+  return (
+    <LotteryContent
+      groupId={groupId}
+      initialDraft={initialDraft}
+      onCreatedFromDraft={onCreatedFromDraft}
+    />
+  );
 }
 
-function LotteryContent({ groupId }: { groupId: string }) {
+interface LotteryContentProps extends LotteryViewProps {
+  groupId: string;
+}
+
+function LotteryContent({
+  groupId,
+  initialDraft = null,
+  onCreatedFromDraft,
+}: LotteryContentProps) {
   const activeQuery = useActiveLottery(groupId);
   const historyQuery = useLotteryHistory(groupId);
   const membersQuery = useGroupMembers(groupId);
@@ -48,6 +73,8 @@ function LotteryContent({ groupId }: { groupId: string }) {
   const [pinned, setPinned] = useState<Lottery | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
+  // The pending draft is dropped as soon as the dialog is closed or dismissed.
+  const [draft, setDraft] = useState<LotteryDraft | null>(initialDraft);
 
   const groupMembers = membersQuery.data ?? NO_MEMBERS;
   const rawStage = useMemo(
@@ -90,7 +117,14 @@ function LotteryContent({ groupId }: { groupId: string }) {
   // the current one has been run.
   const hasDraft = stageLottery?.status === 'draft';
   const isCheckingDraft = pinned === null && activeQuery.isPending;
+  // The create dialog opens by itself for a pending draft, once it is known that
+  // the group has no unexecuted lottery.
+  const isDraftOpen = draft !== null && !isCheckingDraft && !hasDraft;
   const openCreate = () => setIsCreateOpen(true);
+  const handleCreateOpenChange = (next: boolean) => {
+    setIsCreateOpen(next);
+    if (!next) setDraft(null);
+  };
 
   let stage;
   if (isCheckingDraft) {
@@ -154,15 +188,33 @@ function LotteryContent({ groupId }: { groupId: string }) {
         }
         onCreate={openCreate}
       />
+      {draft !== null && hasDraft && (
+        <div
+          role="status"
+          className="flex items-center justify-between gap-3 rounded-xl border border-warning-30 bg-warning-10 p-3 text-paragraph-sm text-warning-60"
+        >
+          <p>
+            برای ساخت قرعه‌کشی از روی نظرسنجی، ابتدا قرعه‌کشی فعلی اکیپ را اجرا
+            کنید.
+          </p>
+          <Button variant="ghost" onClick={() => setDraft(null)}>
+            بستن
+          </Button>
+        </div>
+      )}
       {stage}
       {historySection}
       <LotteryCreateDialog
-        open={isCreateOpen}
-        onOpenChange={setIsCreateOpen}
+        open={isCreateOpen || isDraftOpen}
+        onOpenChange={handleCreateOpenChange}
         groupId={groupId}
         members={members}
         membersStatus={membersQuery.status}
-        onCreated={setPinned}
+        draft={draft}
+        onCreated={(lottery) => {
+          setPinned(lottery);
+          if (isDraftOpen) onCreatedFromDraft?.(lottery);
+        }}
       />
     </div>
   );

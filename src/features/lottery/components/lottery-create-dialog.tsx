@@ -9,6 +9,7 @@ import {
   LOTTERY_MAX_OPTIONS,
   LOTTERY_TITLE_MAX_LENGTH,
 } from '@/features/lottery/config';
+import { emptyLotteryDraft, type LotteryDraft } from '@/features/lottery/draft';
 import { toPersianNumber } from '@/features/lottery/format';
 import { useCreateLottery } from '@/features/lottery/hooks/use-create-lottery';
 import { CreateCustomOption } from '@/features/lottery/components/create-custom-option';
@@ -38,6 +39,9 @@ interface LotteryCreateDialogProps {
   members: LotteryMember[];
   membersStatus: 'pending' | 'error' | 'success';
   onCreated?: (lottery: Lottery) => void;
+  // Values the form starts with the first time it is shown (for example a lottery
+  // built from a poll). Closing the dialog always clears the form afterwards.
+  draft?: LotteryDraft | null;
 }
 
 export function LotteryCreateDialog({
@@ -47,6 +51,7 @@ export function LotteryCreateDialog({
   members,
   membersStatus,
   onCreated,
+  draft = null,
 }: LotteryCreateDialogProps) {
   const createLottery = useCreateLottery(groupId);
   const {
@@ -58,7 +63,7 @@ export function LotteryCreateDialog({
     formState: { errors },
   } = useForm<CreateLotteryFormValues>({
     resolver: zodResolver(createLotterySchema),
-    defaultValues: { title: '', mode: 'equal', options: [] },
+    defaultValues: draft ?? emptyLotteryDraft(),
   });
   const { fields, replace } = useFieldArray({ control, name: 'options' });
   const options = useWatch({ control, name: 'options' });
@@ -140,15 +145,16 @@ export function LotteryCreateDialog({
   };
 
   const handleOpenChange = (next: boolean) => {
-    // Options are defined per lottery, so a closed dialog always starts clean.
-    if (!next) reset();
+    // Options are defined per lottery, so a closed dialog always starts clean
+    // (an initial draft is only used the first time).
+    if (!next) reset(emptyLotteryDraft());
     onOpenChange(next);
   };
 
   const onSubmit = (values: CreateLotteryFormValues) => {
     createLottery.mutate(values, {
       onSuccess: (lottery) => {
-        reset();
+        reset(emptyLotteryDraft());
         onOpenChange(false);
         onCreated?.(lottery);
       },
