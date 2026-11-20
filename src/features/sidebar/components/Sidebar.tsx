@@ -1,7 +1,7 @@
 // src/components/Sidebar/Sidebar.tsx
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router';
-import { PanelRightClose, ArrowLeft, Home } from 'lucide-react';
+import { PanelRightClose, PanelRightOpen, ArrowLeft, Home } from 'lucide-react';
 import {
   SIDEBAR_NAV_ITEMS,
   SIDEBAR_PAGE_THEME,
@@ -152,19 +152,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="flex w-full flex-row items-center justify-between">
           <p></p>
           {/* Brand (Physical Right) */}
-          <div className="flex flex-row items-center gap-2.5 pr-2">
-            <div className="relative flex h-13 w-12 shrink-0 items-center justify-center">
-              <img
-                src={openLogoSrc}
-                alt=""
-                draggable={false}
-                className="pointer-events-none h-13 w-12 object-contain"
-              />
+          <NavLink to="/" >
+            <div className="flex flex-row items-center gap-2.5 pr-2">
+              <div className="relative flex h-13 w-12 shrink-0 items-center justify-center">
+                <img
+                  src={openLogoSrc}
+                  alt=""
+                  draggable={false}
+                  className="pointer-events-none h-13 w-12 object-contain"
+                />
+              </div>
+              <span className="text-2xl leading-9.5 font-extrabold tracking-normal whitespace-nowrap text-white">
+                دوراتو
+              </span>
             </div>
-            <span className="text-2xl leading-9.5 font-extrabold tracking-normal whitespace-nowrap text-white">
-              دوراتو
-            </span>
-          </div>
+          </NavLink>
 
           {/* Collapse / Close Button (Physical Left) */}
           <button
@@ -181,7 +183,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Navigation List (Open) */}
         <nav
           aria-label="منوی اصلی"
-          className="mt-6 flex w-full flex-col gap-1.5"
+          className="mt-8 flex w-full flex-col gap-1.5"
         >
           {navItems.map((item) => {
             const IconComponent = item.icon;
@@ -236,29 +238,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Back Button (Open) */}
-      <NavLink
-        to={backHref}
-        className={`${theme.focusOutlineClass} flex h-10.5 w-full items-center gap-2.5 rounded-xl border-[1.5px] border-danger-50 bg-danger-10 px-3.5 py-2.25 no-underline transition-opacity hover:opacity-95`}
-      >
-        <Home
-          className="pointer-events-none h-4.5 w-4.5 shrink-0 text-danger-50"
-          strokeWidth={1.75}
-        />
-        <span className="min-w-0 flex-1 truncate text-right text-xs leading-5 font-medium tracking-normal text-danger-50">
-          {SIDEBAR_BACK_LABEL}
-        </span>
-        <ArrowLeft
-          className="pointer-events-none h-4.5 w-4.5 shrink-0 text-danger-50"
-          strokeWidth={1.75}
-        />
-      </NavLink>
+      {page == 'group' && (
+        <NavLink
+          to="/home"
+          className={`${theme.focusOutlineClass} flex h-10.5 w-full items-center gap-2.5 rounded-xl border-[1.5px] border-danger-50 bg-danger-10 px-3.5 py-2.25 no-underline transition-opacity hover:opacity-95`}
+        >
+          <Home
+            className="pointer-events-none h-4.5 w-4.5 shrink-0 text-danger-50"
+            strokeWidth={1.75}
+          />
+          <span className="min-w-0 flex-1 truncate text-right text-xs leading-5 font-medium tracking-normal text-danger-50">
+            {SIDEBAR_BACK_LABEL}
+          </span>
+          <ArrowLeft
+            className="pointer-events-none h-4.5 w-4.5 shrink-0 text-danger-50"
+            strokeWidth={1.75}
+          />
+        </NavLink>
+      )}
     </div>
   );
 
   return (
     <>
       {/* =====================================================================
-          1. DESKTOP SIDEBAR (≥ 1024px)
+1. DESKTOP SIDEBAR (≥ 1024px)
       ===================================================================== */}
       <aside
         dir="rtl"
@@ -294,15 +298,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 type="button"
                 onClick={() => handleSetCollapsed(false)}
                 aria-label="باز کردن منو"
+                title="باز کردن منو"
                 aria-expanded={!isCollapsed}
-                className={`${theme.focusOutlineClass} relative m-0 flex h-12 w-11 cursor-pointer items-center justify-center rounded-xl border-0 bg-transparent p-0 transition-opacity hover:opacity-90`}
+                className={`${theme.focusOutlineClass} group relative m-0 flex h-12 w-11 cursor-pointer items-center justify-center rounded-xl border-0 bg-transparent p-0 text-white transition-colors duration-150 hover:bg-white/10`}
               >
                 <img
                   src={closedLogoSrc}
                   alt=""
                   draggable={false}
-                  className="pointer-events-none h-12 w-11 object-contain"
+                  className="pointer-events-none h-12 w-11 object-contain transition-all duration-150 group-hover:scale-90 group-hover:opacity-0 group-focus-visible:scale-90 group-focus-visible:opacity-0 motion-reduce:transition-none"
                 />
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 flex scale-90 items-center justify-center opacity-0 transition-all duration-150 group-hover:scale-100 group-hover:opacity-100 group-focus-visible:scale-100 group-focus-visible:opacity-100 motion-reduce:transition-none"
+                >
+                  <PanelRightOpen className="h-5 w-5 stroke-[1.75]" />
+                </span>
               </button>
 
               <nav
@@ -341,23 +352,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </nav>
             </div>
 
-            <NavLink
-              to={backHref}
-              aria-label={SIDEBAR_BACK_LABEL}
-              title={SIDEBAR_BACK_LABEL}
-              className={`${theme.focusOutlineClass} flex h-11 w-11 items-center justify-center rounded-2xl border-[1.5px] border-danger-50 bg-danger-10 no-underline transition-opacity hover:opacity-95`}
-            >
-              <Home
-                className="pointer-events-none h-4.5 w-4.5 text-danger-50"
-                strokeWidth={1.75}
-              />
-            </NavLink>
+            {page == 'group' && (
+              <NavLink
+                to="/home"
+                aria-label={SIDEBAR_BACK_LABEL}
+                title={SIDEBAR_BACK_LABEL}
+                className={`${theme.focusOutlineClass} flex h-11 w-11 items-center justify-center rounded-2xl border-[1.5px] border-danger-50 bg-danger-10 no-underline transition-opacity hover:opacity-95`}
+              >
+                <Home
+                  className="pointer-events-none h-4.5 w-4.5 text-danger-50"
+                  strokeWidth={1.75}
+                />
+              </NavLink>
+            )}
           </div>
         </div>
       </aside>
 
       {/* =====================================================================
-          2. MOBILE DRAWER (< 1024px)
+2. MOBILE DRAWER (< 1024px)
       ===================================================================== */}
       <div
         dir="rtl"

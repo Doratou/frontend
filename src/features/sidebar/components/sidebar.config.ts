@@ -24,7 +24,7 @@ export interface SidebarNavItem {
 }
 
 export const FIRST_HOMEPAGE_ITEM_LABEL = 'داشبورد';
-export const SIDEBAR_BACK_LABEL = 'بازگشت به اکیپ‌ها';
+export const SIDEBAR_BACK_LABEL = 'بازگشت به خانه';
 
 export const SIDEBAR_NAV_ITEMS: Record<SidebarPage, SidebarNavItem[]> = {
   homepage: [
