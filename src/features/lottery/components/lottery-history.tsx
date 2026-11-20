@@ -73,7 +73,9 @@ function RowActions({
   const buttonClass = stretch ? 'w-full' : '';
 
   return (
-    <div className={stretch ? 'grid grid-cols-2 gap-2' : 'flex gap-2'}>
+    <div
+      className={stretch ? 'grid grid-cols-2 gap-2' : 'flex justify-end gap-2'}
+    >
       <Button
         variant="outline"
         tone="secondary"
@@ -165,7 +167,7 @@ export function LotteryHistory({
                 ))}
                 <th
                   scope="col"
-                  className="sticky top-0 z-10 bg-card px-3 pb-1"
+                  className="sticky top-0 z-10 w-px bg-card px-3 pb-1"
                 >
                   <span className="sr-only">عملیات</span>
                 </th>
@@ -193,7 +195,7 @@ export function LotteryHistory({
                       {formatLotteryTime(entry.drawnAt)}
                     </span>
                   </td>
-                  <td className={`${CELL} whitespace-nowrap`}>
+                  <td className={`${CELL} w-px whitespace-nowrap`}>
                     <RowActions entry={entry} {...actions} />
                   </td>
                 </tr>
