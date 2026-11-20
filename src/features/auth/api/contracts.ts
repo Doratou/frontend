@@ -1,21 +1,29 @@
 import { z } from 'zod';
 import { AuthError } from '@/features/auth/api/auth-error';
-import type { AuthTokens, SessionUser } from '@/features/auth/types';
+import type {
+  AuthTokens,
+  SessionUser,
+  SystemRole,
+} from '@/features/auth/types';
 
 export const authEnvelopeSchema = z.object({
   success: z.literal(true),
   data: z.unknown(),
 });
 
-function parseDateToMs(val: string | number): number {
+export function parseDateToMs(
+  val: string | number | undefined,
+  fallbackMs: number = Date.now() + 3600 * 1000,
+): number {
+  if (val === undefined) return fallbackMs;
   if (typeof val === 'number') {
     return val < 10_000_000_000 ? val * 1000 : val;
   }
   const parsed = Date.parse(val);
-  return Number.isFinite(parsed) ? parsed : Date.now() + 3600 * 1000;
+  return Number.isFinite(parsed) ? parsed : fallbackMs;
 }
 
-const userDtoSchema = z.object({
+export const userDtoSchema = z.object({
   id: z.union([z.number().int().positive(), z.string().min(1)]),
   name: z.string().nullable().optional(),
   friend_code: z.string().nullable().optional(),
@@ -23,10 +31,7 @@ const userDtoSchema = z.object({
   phone: z.string().nullable().optional(),
   is_email_verified: z.boolean().optional(),
   is_phone_verified: z.boolean().optional(),
-  avatar_attachment_id: z
-    .union([z.number(), z.string()])
-    .nullable()
-    .optional(),
+  avatar_attachment_id: z.union([z.number(), z.string()]).nullable().optional(),
   system_role: z
     .string()
     .transform((val) => val.toUpperCase())
@@ -40,6 +45,8 @@ const userDtoSchema = z.object({
   created_at: z.string().optional(),
 });
 
+export type UserDto = z.infer<typeof userDtoSchema>;
+
 const tokenDtoSchema = z.object({
   access_token: z.string().min(1),
   access_token_expires_at: z.union([z.string(), z.number()]),
@@ -48,38 +55,57 @@ const tokenDtoSchema = z.object({
   expires_at: z.union([z.string(), z.number()]).optional(),
 });
 
-function toTokens(data: z.infer<typeof tokenDtoSchema>): AuthTokens {
+export function toTokens(data: z.infer<typeof tokenDtoSchema>): AuthTokens {
   return {
     accessToken: data.access_token,
-    accessTokenExpiresAt: parseDateToMs(data.access_token_expires_at),
+    accessTokenExpiresAt: parseDateToMs(
+      data.access_token_expires_at,
+      Date.now() + 3600 * 1000,
+    ),
     refreshToken: data.refresh_token,
-    refreshTokenExpiresAt: parseDateToMs(data.refresh_token_expires_at),
+    refreshTokenExpiresAt: parseDateToMs(
+      data.refresh_token_expires_at,
+      Date.now() + 7 * 86400 * 1000,
+    ),
+  };
+}
+
+export function mapUserDtoToSessionUser(
+  user: Partial<UserDto> | undefined,
+  fallback?: {
+    id?: string;
+    displayName?: string;
+    systemRole?: SystemRole;
+    email?: string | null;
+  },
+): SessionUser {
+  if (user?.status === 'INACTIVE') {
+    throw new AuthError('account_inactive');
+  }
+  const email = user?.email?.trim() || fallback?.email || null;
+  const phone = user?.phone?.trim() || null;
+  const name = user?.name?.trim() || null;
+  return {
+    id: user?.id !== undefined ? String(user.id) : (fallback?.id ?? 'USER'),
+    displayName:
+      name || email || phone || fallback?.displayName || 'کاربر دوراتو',
+    systemRole: user?.system_role ?? fallback?.systemRole ?? 'USER',
+    status: user?.status ?? 'ACTIVE',
+    email,
+    phone,
+    friendCode: user?.friend_code?.trim() || null,
+    avatarAttachmentId: user?.avatar_attachment_id ?? null,
+    wallet: typeof user?.wallet === 'number' ? user.wallet : undefined,
   };
 }
 
 export const tokenPairSchema = tokenDtoSchema.transform(toTokens);
 export const signedInSchema = tokenDtoSchema
   .extend({ user: userDtoSchema })
-  .transform((data) => {
-    if (data.user.status === 'INACTIVE') {
-      throw new AuthError('account_inactive');
-    }
-    return {
-      tokens: toTokens(data),
-      user: {
-        id: String(data.user.id),
-        displayName:
-          data.user.name || data.user.email || data.user.phone || 'کاربر',
-        systemRole: data.user.system_role,
-        status: data.user.status ?? 'ACTIVE',
-        email: data.user.email ?? null,
-        phone: data.user.phone ?? null,
-        friendCode: data.user.friend_code ?? null,
-        avatarAttachmentId: data.user.avatar_attachment_id ?? null,
-        wallet: data.user.wallet,
-      } satisfies SessionUser,
-    };
-  });
+  .transform((data) => ({
+    tokens: toTokens(data),
+    user: mapUserDtoToSessionUser(data.user),
+  }));
 
 export const otpDeliverySchema = z.object({
   expires_in_seconds: z.number().int().min(1).max(86400),

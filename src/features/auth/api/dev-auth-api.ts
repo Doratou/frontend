@@ -1,15 +1,8 @@
-import type { SessionUser } from '@/features/auth/types';
 import { env } from '@/lib/api/env';
 import { useAuthStore } from '@/features/auth/stores/auth-store';
 import { AuthError } from './auth-error';
 import type { AuthApi, OtpChallenge } from './contracts';
-
-const previewUser: SessionUser = {
-  id: 'preview-user',
-  displayName: 'کاربر نمونه',
-  systemRole: 'USER',
-  status: 'ACTIVE',
-};
+import { createPreviewTokens, previewUser } from './preview-session';
 
 // shortcut: preview state resets on reload; remove this adapter when backend integration is ready.
 let currentChallenge: OtpChallenge | null = null;
@@ -62,13 +55,7 @@ export const devAuthApi: AuthApi = {
     verifiedIdentifier = null;
     return Promise.resolve(previewUser);
   },
-  refreshSession: () =>
-    Promise.resolve({
-      accessToken: 'preview-access-token',
-      accessTokenExpiresAt: Date.now() + 3_600_000,
-      refreshToken: 'preview-refresh-token',
-      refreshTokenExpiresAt: Date.now() + 86_400_000,
-    }),
+  refreshSession: () => Promise.resolve(createPreviewTokens()),
   changePassword() {
     if (!useAuthStore.getState().user) throw new AuthError('session_expired');
     return Promise.resolve();

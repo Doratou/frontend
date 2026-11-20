@@ -7,9 +7,10 @@ import type { z } from 'zod';
 import { apiClient } from '@/lib/api/client';
 import { env } from '@/lib/api/env';
 import { useAuthStore } from '@/features/auth/stores/auth-store';
-import type { AuthTokens } from '@/features/auth/types';
+import type { AuthTokens, SessionUser } from '@/features/auth/types';
 import { AuthError, toAuthError } from './auth-error';
 import { devAuthApi } from './dev-auth-api';
+import { isAuthPreview } from './preview-session';
 import {
   authEnvelopeSchema,
   authMessageSchema,
@@ -107,6 +108,7 @@ const publicPaths = new Set([
   '/auth/otp/verify',
   '/auth/refresh',
   '/auth/password/reset',
+  '/auth/google/callback',
   '/captcha/generate',
 ]);
 
@@ -131,17 +133,19 @@ export function installAuthHeaders() {
   const root = new URL(env.VITE_API_BASE_URL, window.location.origin);
   const prefix = root.pathname.replace(/\/$/, '');
 
+  const isProtectedApiRequest = (
+    config: InternalAxiosRequestConfig,
+  ): boolean => {
+    const url = new URL(apiClient.getUri(config), window.location.origin);
+    if (url.origin !== root.origin || !url.pathname.startsWith(`${prefix}/`)) {
+      return false;
+    }
+    return !publicPaths.has(url.pathname.slice(prefix.length));
+  };
+
   const requestInterceptor = apiClient.interceptors.request.use(
     async (request) => {
-      const url = new URL(apiClient.getUri(request), window.location.origin);
-      if (
-        url.origin !== root.origin ||
-        !url.pathname.startsWith(`${prefix}/`)
-      ) {
-        request.headers.delete('Authorization');
-        return request;
-      }
-      if (publicPaths.has(url.pathname.slice(prefix.length))) {
+      if (!isProtectedApiRequest(request)) {
         request.headers.delete('Authorization');
         return request;
       }
@@ -166,23 +170,11 @@ export function installAuthHeaders() {
 
       const originalRequest = axiosError.config as
         (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined;
-      if (!originalRequest || originalRequest._retry) {
-        return Promise.reject(toRejectError(error));
-      }
-
-      const url = new URL(
-        apiClient.getUri(originalRequest),
-        window.location.origin,
-      );
       if (
-        url.origin !== root.origin ||
-        !url.pathname.startsWith(`${prefix}/`)
+        !originalRequest ||
+        originalRequest._retry ||
+        !isProtectedApiRequest(originalRequest)
       ) {
-        return Promise.reject(toRejectError(error));
-      }
-
-      const relativePath = url.pathname.slice(prefix.length);
-      if (publicPaths.has(relativePath)) {
         return Promise.reject(toRejectError(error));
       }
 
@@ -210,7 +202,7 @@ export function installAuthHeaders() {
   };
 }
 
-export const isAuthPreview = import.meta.env.DEV && !env.VITE_AUTH_API_ENABLED;
+export { isAuthPreview };
 
 const backendAuthApi: AuthApi = {
   signIn: (input, signal) => createSession('/auth/login', input, signal),
@@ -276,5 +268,23 @@ const backendAuthApi: AuthApi = {
     }
   },
 };
+
+export async function completeGoogleCallback(
+  search: string,
+  signal?: AbortSignal,
+): Promise<{ user: SessionUser; tokens: AuthTokens }> {
+  if (!env.VITE_AUTH_API_ENABLED) throw new AuthError('unavailable');
+  try {
+    const query = search.startsWith('?') ? search : search ? `?${search}` : '';
+    const response = await apiClient.get<unknown>(
+      `/auth/google/callback${query}`,
+      { signal },
+    );
+    const envelope = authEnvelopeSchema.parse(response.data);
+    return signedInSchema.parse(envelope.data);
+  } catch (error) {
+    throw toAuthError(error);
+  }
+}
 
 export const authApi: AuthApi = isAuthPreview ? devAuthApi : backendAuthApi;

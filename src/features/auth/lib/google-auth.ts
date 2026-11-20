@@ -1,23 +1,17 @@
 import { env } from '@/lib/api/env';
-import { isAuthPreview } from '@/features/auth/api/auth-api';
+import {
+  GoogleAuthError,
+  type GoogleAuthErrorKind,
+} from '@/features/auth/api/auth-error';
+import {
+  createPreviewTokens,
+  isAuthPreview,
+  previewUser,
+} from '@/features/auth/api/preview-session';
+import { parseOAuthPayload } from '@/features/auth/lib/oauth-callback-parser';
 import type { AuthTokens, SessionUser } from '@/features/auth/types';
 
-export type GoogleAuthErrorKind =
-  | 'cancelled'
-  | 'timeout'
-  | 'access_denied'
-  | 'disallowed_useragent'
-  | 'unknown';
-
-export class GoogleAuthError extends Error {
-  readonly kind: GoogleAuthErrorKind;
-
-  constructor(kind: GoogleAuthErrorKind, message?: string) {
-    super(message ?? kind);
-    this.name = 'GoogleAuthError';
-    this.kind = kind;
-  }
-}
+export { GoogleAuthError, type GoogleAuthErrorKind };
 
 export function isEmbeddedBrowser(): boolean {
   if (typeof window === 'undefined' || !window.navigator?.userAgent) {
@@ -54,19 +48,10 @@ export function startGoogleBackendFlow(): Promise<{
   }
 
   if (isAuthPreview) {
-    const previewTokens: AuthTokens = {
-      accessToken: 'preview-access-token',
-      accessTokenExpiresAt: Date.now() + 3_600_000,
-      refreshToken: 'preview-refresh-token',
-      refreshTokenExpiresAt: Date.now() + 86_400_000,
-    };
-    const previewUser: SessionUser = {
-      id: 'preview-user',
-      displayName: 'کاربر نمونه',
-      systemRole: 'USER',
-      status: 'ACTIVE',
-    };
-    return Promise.resolve({ user: previewUser, tokens: previewTokens });
+    return Promise.resolve({
+      user: previewUser,
+      tokens: createPreviewTokens(),
+    });
   }
 
   const loginUrl = buildGoogleBackendLoginUrl();
@@ -100,29 +85,63 @@ export function startGoogleBackendFlow(): Promise<{
         window.removeEventListener('message', handleMessage);
       };
 
+      const allowedOrigins = new Set([
+        window.location.origin,
+        new URL(env.VITE_API_BASE_URL, window.location.origin).origin,
+      ]);
+
+      const settleWithPayload = (raw: unknown) => {
+        try {
+          const parsed = parseOAuthPayload(raw);
+          if (parsed) {
+            settled = true;
+            cleanup();
+            resolve(parsed);
+          }
+        } catch (error) {
+          settled = true;
+          cleanup();
+          reject(
+            error instanceof Error
+              ? error
+              : new GoogleAuthError('unknown', 'ورود با حساب گوگل ناموفق بود.'),
+          );
+        }
+      };
+
       const handleMessage = (event: MessageEvent) => {
-        if (event.origin !== window.location.origin || settled) return;
+        if (!allowedOrigins.has(event.origin) || settled) return;
         const data = event.data as
           | {
-              type: 'DORATO_GOOGLE_AUTH_SUCCESS';
-              payload: { user: SessionUser; tokens: AuthTokens };
-            }
-          | {
-              type: 'DORATO_GOOGLE_AUTH_ERROR';
-              message: string;
+              type?: string;
+              payload?: { user: SessionUser; tokens: AuthTokens };
+              data?: unknown;
+              message?: string;
+              success?: boolean;
             }
           | undefined;
 
         if (!data || typeof data !== 'object') return;
 
         if (data.type === 'DORATO_GOOGLE_AUTH_SUCCESS') {
-          settled = true;
-          cleanup();
-          resolve(data.payload);
+          if (data.payload?.user && data.payload?.tokens) {
+            settled = true;
+            cleanup();
+            resolve(data.payload);
+            return;
+          }
+          settleWithPayload(data.data ?? data.payload ?? data);
         } else if (data.type === 'DORATO_GOOGLE_AUTH_ERROR') {
           settled = true;
           cleanup();
-          reject(new GoogleAuthError('unknown', data.message));
+          reject(
+            new GoogleAuthError(
+              'unknown',
+              data.message ?? 'ورود با حساب گوگل ناموفق بود.',
+            ),
+          );
+        } else if (data.success === true && data.data) {
+          settleWithPayload(data);
         }
       };
 

@@ -1,7 +1,23 @@
 import axios from 'axios';
 import { z } from 'zod';
 import { ApiError } from '@/lib/api/error';
-import { GoogleAuthError } from '@/features/auth/lib/google-auth';
+
+export type GoogleAuthErrorKind =
+  | 'cancelled'
+  | 'timeout'
+  | 'access_denied'
+  | 'disallowed_useragent'
+  | 'unknown';
+
+export class GoogleAuthError extends Error {
+  readonly kind: GoogleAuthErrorKind;
+
+  constructor(kind: GoogleAuthErrorKind, message?: string) {
+    super(message ?? kind);
+    this.name = 'GoogleAuthError';
+    this.kind = kind;
+  }
+}
 
 const messages = {
   invalid_credentials: 'ایمیل، شماره موبایل یا رمز عبور درست نیست.',
@@ -139,7 +155,10 @@ export function authErrorMessage(error: unknown): string | undefined {
   if (!error || axios.isCancel(error)) return undefined;
   if (error instanceof GoogleAuthError) {
     if (error.kind === 'cancelled') return undefined;
-    if (error.kind === 'unknown') return messages.unavailable;
+    if (error.kind === 'unknown')
+      return error.message && error.message !== 'unknown'
+        ? error.message
+        : messages.unavailable;
     return messages[error.kind];
   }
   return error instanceof AuthError ? error.message : messages.unavailable;
