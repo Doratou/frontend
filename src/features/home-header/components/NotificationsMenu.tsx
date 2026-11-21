@@ -1,125 +1,187 @@
+import { Link } from 'react-router';
 import { Plus, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import type { HeaderNotificationItem } from '../types';
+import { useHomeHeaderMenu } from './home-header-context';
 
 export interface NotificationsMenuProps {
-  id: string;
   notifications: HeaderNotificationItem[];
-  onNotificationClick?: (notification: HeaderNotificationItem) => void;
+  allNotificationsHref?: string;
+  getNotificationHref?: (notification: HeaderNotificationItem) => string;
+  onNotificationSelect?: (notification: HeaderNotificationItem) => void;
   onAcceptJoinRequest?: (notification: HeaderNotificationItem) => void;
   onRejectJoinRequest?: (notification: HeaderNotificationItem) => void;
-  onShowAllNotifications?: () => void;
 }
 
 const ITEM_SURFACE_CLASS =
-  'flex w-full shrink-0 flex-col gap-0.5 rounded-xl bg-primary-10 px-2.5 py-2 text-right';
+  'flex w-full shrink-0 flex-col gap-0.5 rounded-xl px-2.5 py-2 text-start transition-colors';
 
 function NotificationText({
   title,
   description,
-}: Pick<HeaderNotificationItem, 'title' | 'description'>) {
+  unread,
+}: Pick<HeaderNotificationItem, 'title' | 'description' | 'unread'>) {
   return (
     <>
-      <p
+      <span className="flex w-full items-center gap-1.5">
+        {unread ? (
+          <span
+            aria-hidden="true"
+            className="size-1.75 shrink-0 rounded-full bg-danger-40"
+          />
+        ) : null}
+        <span
+          dir="auto"
+          className={cn(
+            'min-w-0 flex-1 truncate text-caption leading-5',
+            unread
+              ? 'font-bold text-primary-80 dark:text-primary-10'
+              : 'font-medium text-neutral-70 dark:text-neutral-20',
+          )}
+        >
+          {title}
+        </span>
+      </span>
+      <span
         dir="auto"
-        className="w-full truncate text-[13px] leading-5 font-bold text-primary-80"
-      >
-        {title}
-      </p>
-      <p
-        dir="auto"
-        className="w-full truncate text-[11px] leading-4.5 font-normal text-neutral-60"
+        className="w-full truncate text-caption text-muted-foreground"
       >
         {description}
-      </p>
+      </span>
     </>
   );
 }
 
 export function NotificationsMenu({
-  id,
   notifications,
-  onNotificationClick,
+  allNotificationsHref = '/home/notification',
+  getNotificationHref = (item) =>
+    `/home/notification?id=${encodeURIComponent(item.id)}`,
+  onNotificationSelect,
   onAcceptJoinRequest,
   onRejectJoinRequest,
-  onShowAllNotifications,
 }: NotificationsMenuProps) {
+  const menu = useHomeHeaderMenu();
+
   return (
-    <div
-      id={id}
-      role="dialog"
+    <section
+      id={menu?.notificationsMenuId}
       aria-label="اعلان ها"
-      className="flex w-[min(300px,calc(100vw-16px))] flex-col gap-2 rounded-2xl border border-primary-20 bg-white p-2.5 shadow-[0_4px_8px_-2px_rgba(0,0,0,0.12)] md:w-78"
+      className="flex w-[min(300px,calc(100vw-16px))] flex-col gap-2 rounded-2xl border border-primary-20 bg-card p-2.5 shadow-[0_4px_8px_-2px_rgba(0,0,0,0.12)] md:w-78 dark:border-primary-50/40"
     >
-      <h2 className="w-full text-right text-xs leading-5 font-bold text-neutral-70">
+      <h2 className="w-full text-start text-caption font-bold text-neutral-70 dark:text-neutral-20">
         اعلان ها
       </h2>
 
       {notifications.length === 0 ? (
-        <div className="w-full rounded-xl bg-primary-10 px-3 py-5 text-center text-caption text-neutral-60">
+        <div className="w-full rounded-xl bg-primary-10 px-3 py-5 text-center text-caption text-muted-foreground dark:bg-muted">
           اعلان جدیدی وجود ندارد.
         </div>
       ) : (
-        <div className="flex max-h-[60vh] w-full flex-col gap-1.5 overflow-y-auto">
-          {notifications.map((item) =>
-            item.type === 'join_request' ? (
-              <div key={item.id} className={ITEM_SURFACE_CLASS}>
-                <NotificationText
-                  title={item.title}
-                  description={item.description}
-                />
+        <div className="flex max-h-[60vh] w-full flex-col gap-1.5 overflow-y-auto overscroll-contain">
+          {notifications.map((item) => {
+            const href = getNotificationHref(item);
+            const surfaceTone = item.unread
+              ? 'bg-primary-10 dark:bg-primary-70/30'
+              : 'bg-muted/50 dark:bg-muted/40';
 
-                <div className="flex w-full items-center justify-end gap-1.5 pt-1.5">
-                  <button
-                    type="button"
-                    onClick={() => onAcceptJoinRequest?.(item)}
-                    className="flex h-7.5 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-success-60 px-2.5 text-xs font-medium text-white transition-colors hover:bg-success-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-success-50"
+            if (item.type === 'join_request') {
+              return (
+                <div
+                  key={item.id}
+                  className={cn(ITEM_SURFACE_CLASS, surfaceTone)}
+                >
+                  <Link
+                    to={href}
+                    onClick={() => {
+                      menu?.closeMenu();
+                      onNotificationSelect?.(item);
+                    }}
+                    className="flex w-full touch-manipulation flex-col gap-0.5 rounded-lg no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                   >
-                    <span className="whitespace-nowrap">تایید</span>
-                    <Plus
-                      aria-hidden="true"
-                      className="size-3.5 shrink-0"
-                      strokeWidth={2}
+                    <NotificationText
+                      title={item.title}
+                      description={item.description}
+                      unread={item.unread}
                     />
-                  </button>
+                  </Link>
 
-                  <button
-                    type="button"
-                    onClick={() => onRejectJoinRequest?.(item)}
-                    className="flex h-7.5 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-danger-50 bg-transparent px-2.5 text-xs font-medium text-danger-50 transition-colors hover:bg-danger-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-danger-40"
-                  >
-                    <span className="whitespace-nowrap">رد</span>
-                    <X
-                      aria-hidden="true"
-                      className="size-3.5 shrink-0"
-                      strokeWidth={2}
-                    />
-                  </button>
+                  <div className="flex w-full items-center justify-end gap-1.5 pt-1.5">
+                    <Button
+                      type="button"
+                      size="md"
+                      radius="lg"
+                      onClick={() => onAcceptJoinRequest?.(item)}
+                      endIcon={
+                        <Plus
+                          aria-hidden="true"
+                          className="size-3.5!"
+                          strokeWidth={2}
+                        />
+                      }
+                      className="h-7.5 touch-manipulation gap-1.5 rounded-lg bg-success-60 px-2.5 text-caption font-medium text-white hover:bg-success-50 active:bg-success-60"
+                    >
+                      تایید
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="md"
+                      radius="lg"
+                      onClick={() => onRejectJoinRequest?.(item)}
+                      endIcon={
+                        <X
+                          aria-hidden="true"
+                          className="size-3.5!"
+                          strokeWidth={2}
+                        />
+                      }
+                      className="h-7.5 touch-manipulation gap-1.5 rounded-lg border-danger-50 bg-transparent px-2.5 text-caption font-medium text-danger-50 hover:bg-danger-10 active:bg-danger-10 dark:border-danger-30 dark:text-danger-20 dark:hover:bg-danger-60/30"
+                    >
+                      رد
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <button
+              );
+            }
+
+            return (
+              <Link
                 key={item.id}
-                type="button"
-                onClick={() => onNotificationClick?.(item)}
-                className={`${ITEM_SURFACE_CLASS} transition-colors hover:bg-primary-20/45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-60`}
+                to={href}
+                onClick={() => {
+                  menu?.closeMenu();
+                  onNotificationSelect?.(item);
+                }}
+                className={cn(
+                  ITEM_SURFACE_CLASS,
+                  surfaceTone,
+                  'touch-manipulation no-underline hover:bg-primary-20/45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring dark:hover:bg-primary-70/50',
+                )}
               >
                 <NotificationText
                   title={item.title}
                   description={item.description}
+                  unread={item.unread}
                 />
-              </button>
-            ),
-          )}
+              </Link>
+            );
+          })}
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={onShowAllNotifications}
-        className="flex h-8 w-full items-center justify-center rounded-[10px] bg-primary-70 px-2.5 text-xs font-medium whitespace-nowrap text-neutral-10 transition-colors hover:bg-primary-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-60 md:h-9 md:text-button-sm"
+      <Button
+        asChild
+        size="md"
+        radius="lg"
+        className="h-8 w-full touch-manipulation rounded-[10px] text-caption font-medium md:h-9 md:text-button-sm"
       >
-        نمایش همه اعلان‌ها
-      </button>
-    </div>
+        <Link to={allNotificationsHref} onClick={() => menu?.closeMenu()}>
+          نمایش همه اعلان‌ها
+        </Link>
+      </Button>
+    </section>
   );
 }

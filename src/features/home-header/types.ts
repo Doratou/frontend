@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 
 export interface HomeHeaderUser {
@@ -20,15 +21,9 @@ export interface HomeHeaderProps {
   title?: string;
   icon?: LucideIcon;
   user: HomeHeaderUser;
-  notifications?: HeaderNotificationItem[];
-  isLoggingOut?: boolean;
+  hasUnread?: boolean;
   onOpenMobileMenu?: () => void;
-  onProfileClick?: () => void;
-  onWalletClick?: () => void;
-  onLogout?: () => void;
-  onNotificationClick?: (notification: HeaderNotificationItem) => void;
-  onAcceptJoinRequest?: (notification: HeaderNotificationItem) => void;
-  onRejectJoinRequest?: (notification: HeaderNotificationItem) => void;
-  onShowAllNotifications?: () => void;
+  profileMenu?: ReactNode;
+  notificationsMenu?: ReactNode;
   className?: string;
 }
