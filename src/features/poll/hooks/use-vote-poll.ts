@@ -7,9 +7,10 @@ import { getApiErrorMessage } from '@/lib/api/error';
 import type { Poll } from '@/features/poll/types';
 
 /**
- * Casts, changes or removes the current user's vote.
- * `optionId: null` removes the vote. The cache is updated optimistically so the
- * UI reacts instantly; it rolls back on error and refetches once settled.
+ * Saves the current user's whole selection for a poll: `optionIds` replaces any
+ * earlier choice and an empty list withdraws every vote. The cache is updated
+ * optimistically so the UI reacts instantly; it rolls back on error and refetches
+ * once settled. Callers should not start a second save while one is pending.
  */
 export function useVotePoll(groupId: string) {
   const queryClient = useQueryClient();
@@ -18,21 +19,21 @@ export function useVotePoll(groupId: string) {
   return useMutation({
     mutationFn: ({
       pollId,
-      optionId,
+      optionIds,
     }: {
       pollId: string;
-      optionId: string | null;
+      optionIds: string[];
     }) =>
-      optionId === null
+      optionIds.length === 0
         ? retractVote({ groupId, pollId })
-        : votePoll({ groupId, pollId, optionId }),
-    onMutate: async ({ pollId, optionId }) => {
+        : votePoll({ groupId, pollId, optionIds }),
+    onMutate: async ({ pollId, optionIds }) => {
       // Stop in-flight refetches so they cannot overwrite the optimistic state.
       await queryClient.cancelQueries({ queryKey });
       const previous = queryClient.getQueryData<Poll[]>(queryKey);
       queryClient.setQueryData<Poll[]>(queryKey, (polls) =>
         polls?.map((poll) =>
-          poll.id === pollId ? withVote(poll, optionId) : poll,
+          poll.id === pollId ? withVote(poll, optionIds) : poll,
         ),
       );
       return { previous };
