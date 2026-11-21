@@ -31,7 +31,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { dateToApi, inIran } from '@/lib/persian-date';
 import { cn } from '@/lib/utils';
 import { formatNumber } from '@/utils/format';
-import bgGroupOpen from '@/assets/sidebar/group-open.svg';
+import settingsNavBg from '@/assets/group/settings-nav-bg.svg';
 import { getGroupErrorMessage } from '../api/group-error';
 import {
   getUtf8ByteLength,
@@ -232,7 +232,9 @@ function NavItem({
       className={cn(
         'group relative flex h-11 w-full cursor-pointer items-center overflow-hidden rounded-2xl border-[1.5px] transition-[background-color,border-color,box-shadow] duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary-60 motion-reduce:transition-none',
         danger
-          ? 'border-danger-50 bg-danger-10 hover:bg-danger-20/55'
+          ? active
+            ? 'border-danger-50 bg-danger-20/75 shadow-xs'
+            : 'border-danger-40 bg-danger-10 hover:border-danger-50 hover:bg-danger-20/55'
           : active
             ? 'border-transparent bg-secondary-20'
             : 'border-transparent bg-transparent hover:bg-secondary-20/50',
@@ -258,10 +260,8 @@ function NavItem({
 
       <span
         className={cn(
-          'flex min-w-0 flex-1 items-center gap-2 pl-3',
-          danger
-            ? 'text-xs leading-5 font-medium text-danger-50'
-            : 'text-sm leading-5.5 font-medium text-primary-80',
+          'flex min-w-0 flex-1 items-center gap-2 pl-3 text-sm leading-5.5 font-medium',
+          danger ? 'text-danger-50' : 'text-primary-80',
         )}
       >
         <span className="min-w-0 flex-1 truncate text-right">{label}</span>
@@ -1164,15 +1164,15 @@ function GroupSettingsContent({
         className="relative hidden min-h-0 flex-col overflow-hidden border-l border-neutral-20 bg-secondary-10 p-3 md:flex"
       >
         <img
-          src={bgGroupOpen}
+          src={settingsNavBg}
           alt=""
           aria-hidden="true"
           draggable={false}
-          className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover"
+          className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover object-bottom"
         />
 
         <div className="relative z-10 flex min-h-0 flex-1 flex-col">
-          <div className="flex flex-col items-center px-2 pt-7 pb-4 text-center">
+          <div className="flex flex-col items-center px-2 pt-5 pb-3 text-center">
             <GroupAvatar group={group} className="size-18 shrink-0 text-2xl" />
             <h3 className="mt-3 line-clamp-1 w-full text-heading-5 font-black text-primary-80">
               {group.title}
@@ -1183,30 +1183,27 @@ function GroupSettingsContent({
           </div>
 
           <ul className="flex flex-col gap-1">
-            {sections
-              .filter((s) => s.id !== 'archive')
-              .map(({ id, label }) => (
+            {sections.map(({ id, label }) => {
+              const isDanger = id === 'archive';
+              const icon = isDanger
+                ? isOwner
+                  ? Archive
+                  : LogOut
+                : SECTION_ICONS[id];
+              return (
                 <li key={id}>
                   <NavItem
                     label={label}
-                    icon={SECTION_ICONS[id]}
+                    icon={icon}
                     active={section === id}
+                    danger={isDanger}
                     count={id === 'members' ? memberCount : undefined}
                     onClick={() => onSectionChange(id)}
                   />
                 </li>
-              ))}
+              );
+            })}
           </ul>
-
-          <div className="mt-auto flex flex-col gap-1 pt-3">
-            <NavItem
-              label={dangerLabel}
-              icon={isOwner ? Archive : LogOut}
-              active={section === 'archive'}
-              danger
-              onClick={() => onSectionChange('archive')}
-            />
-          </div>
         </div>
       </nav>
 
@@ -1227,11 +1224,11 @@ function GroupSettingsContent({
         <div className="shrink-0 md:hidden">
           <div className="relative overflow-hidden border-b border-secondary-20/70 bg-secondary-10/75 px-4 py-3.5">
             <img
-              src={bgGroupOpen}
+              src={settingsNavBg}
               alt=""
               aria-hidden="true"
               draggable={false}
-              className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover opacity-80"
+              className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover object-top opacity-85"
             />
             <div className="relative z-10 flex items-center gap-3">
               <GroupAvatar
