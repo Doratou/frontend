@@ -78,7 +78,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
     <RoleGuard>
       <div
         dir="rtl"
-        className="box-border flex h-dvh items-stretch gap-0 bg-white p-2 md:gap-2.5 md:p-4"
+        className="box-border flex h-dvh items-stretch gap-0 bg-white p-2 md:gap-2.5 md:p-4 dark:bg-background"
       >
         {/* Sidebar container: desktop rail visible >= md, mobile drawer rendered as fixed overlay */}
         <div className="h-full shrink-0">
