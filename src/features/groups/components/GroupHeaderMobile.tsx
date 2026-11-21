@@ -25,6 +25,7 @@ export const GroupHeaderMobile: React.FC<GroupHeaderProps> = ({
   title,
   description,
   groupPhotoSrc = GROUP_HEADER_ASSETS.groupPhotoSample,
+  onGroupPhotoError,
   members = [],
   maxVisibleMembers = 3,
   storage,
@@ -129,6 +130,7 @@ export const GroupHeaderMobile: React.FC<GroupHeaderProps> = ({
             <img
               src={groupPhotoSrc}
               alt={title}
+              onError={onGroupPhotoError}
               draggable={false}
               className="h-full w-full flex-1 rounded-xl object-cover"
             />

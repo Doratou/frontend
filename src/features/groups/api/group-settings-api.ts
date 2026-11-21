@@ -1,190 +1,410 @@
-import { dateToApi, inIran } from '@/lib/persian-date';
-import type { FriendItem, GroupSettingsData } from '../types';
+import { queryOptions } from '@tanstack/react-query';
+import type { z } from 'zod';
+import { apiClient } from '@/lib/api/client';
+import { dateFromApi, dateTimeToApi } from '@/lib/persian-date';
+import type {
+  DirectInviteResult,
+  FriendItem,
+  GroupInviteLink,
+  GroupSettingsData,
+} from '../types';
+import {
+  directInviteResponseSchema,
+  friendsListDtoSchema,
+  groupDetailDtoSchema,
+  groupEnvelopeSchema,
+  groupMessageSchema,
+  inviteLinkDtoSchema,
+  inviteLinkListDtoSchema,
+  mapDirectInviteResponse,
+  mapFriendDto,
+  mapGroupDtoToSettingsData,
+  mapInviteLinkDto,
+  uploadedAttachmentDtoSchema,
+} from './contracts';
+import { GroupError, toGroupError } from './group-error';
+import { groupKeys } from './query-keys';
 
-// v2: previous previews stored an invalid jalali-formatted expiry; a fresh
-// storage namespace keeps the initial data authoritative.
-const STORAGE_KEY_PREFIX = 'dorato_group_settings_v2_';
-
-const initialGroupData: GroupSettingsData = {
-  id: 'shomal1405',
-  title: 'اکیپ سفر شمال ۱۴۰۵',
-  description: 'هماهنگی سفر، دنگ، چک‌لیست و خاطره‌ها',
-  status: 'ACTIVE',
-  plan: 'NORMAL',
-  groupPhotoSrc: '',
-  creator: {
-    id: '1',
-    name: 'امیر رضایی',
-  },
-  createdDateLabel: '۲۵ خرداد ۱۴۰۵',
-  dateRangeLabel: 'از ۲۵ تا ۲۹ خرداد ۱۴۰۵',
-  storage: {
-    usedGb: 1.2,
-    totalGb: 5,
-  },
-  members: [
-    { id: '1', name: 'امیر رضایی', role: 'OWNER' },
-    { id: '2', name: 'سارا محمدی', role: 'MEMBER' },
-    { id: '3', name: 'نیما کاظمی', role: 'MEMBER' },
-    { id: '4', name: 'مینا احمدی', role: 'MEMBER' },
-    { id: '5', name: 'رضا نادری', role: 'MEMBER' },
-    { id: '6', name: 'نگار حسینی', role: 'MEMBER' },
-  ],
-  linkSettings: {
-    inviteUrl: 'https://dorato.app/join/shomal1405?key=8829',
-    password: '88291405',
-    maxUses: 50,
-    // The picker expects a gregorian ISO date (YYYY-MM-DD) and renders it jalali.
-    expiryDate: dateToApi(inIran()),
-  },
-};
-
-const initialFriends: FriendItem[] = [
-  { id: 'arman.k', name: 'آرمان کریمی', handle: 'arman.k' },
-  { id: 'hasti.m', name: 'هستی مرادی', handle: 'hasti.m' },
-  { id: 'parsa.y', name: 'پارسا یوسفی', handle: 'parsa.y' },
-  { id: 'reyhaneh.s', name: 'ریحانه صالحی', handle: 'reyhaneh.s' },
-  { id: 'sepehr.n', name: 'سپهر نوری', handle: 'sepehr.n' },
-];
-
-function delay(ms = 120): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+function groupPath(groupId: string, suffix = ''): string {
+  return `/groups/${encodeURIComponent(groupId)}${suffix}`;
 }
 
-function loadState(groupId: string): GroupSettingsData {
-  try {
-    const raw = localStorage.getItem(`${STORAGE_KEY_PREFIX}${groupId}`);
-    if (raw) {
-      return JSON.parse(raw) as GroupSettingsData;
-    }
-  } catch {
-    // Local storage unavailable or corrupt; use default
-  }
-  return { ...initialGroupData, id: groupId };
-}
-
-function saveState(groupId: string, data: GroupSettingsData): void {
-  try {
-    localStorage.setItem(`${STORAGE_KEY_PREFIX}${groupId}`, JSON.stringify(data));
-  } catch {
-    // Non-fatal
-  }
-}
-
-export async function getGroupSettings(groupId: string): Promise<GroupSettingsData> {
-  await delay();
-  return loadState(groupId);
-}
-
-export async function updateGroupInfo(
+function inviteLinksPath(
   groupId: string,
-  data: { title: string; description: string },
-): Promise<GroupSettingsData> {
-  await delay();
-  const current = loadState(groupId);
-  const updated: GroupSettingsData = {
-    ...current,
-    title: data.title.trim() || current.title,
-    description: data.description.trim(),
-  };
-  saveState(groupId, updated);
-  return updated;
+  inviteId?: string,
+  suffix = '',
+): string {
+  const base = `/invites/links/groups/${encodeURIComponent(groupId)}`;
+  return inviteId ? `${base}/${encodeURIComponent(inviteId)}${suffix}` : base;
 }
 
-export async function removeGroupMember(
+function parseEnvelope<T>(payload: unknown, schema: z.ZodType<T>): T {
+  const envelope = groupEnvelopeSchema.parse(payload);
+  return schema.parse(envelope.data);
+}
+
+async function withGroupError<T>(run: () => Promise<T>): Promise<T> {
+  try {
+    return await run();
+  } catch (error) {
+    throw toGroupError(error);
+  }
+}
+
+function toPositiveInt(value: string, errorCode: string): number {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new GroupError(errorCode, 'شناسه معتبر نیست.', 400);
+  }
+  return parsed;
+}
+
+function toExpiryIso(
+  expiryDate: string | null | undefined,
+): string | undefined {
+  if (!expiryDate) return undefined;
+  const parsed = dateFromApi(expiryDate);
+  if (!parsed) {
+    throw new GroupError(
+      'INVITE_INVALID_EXPIRATION',
+      'تاریخ انقضای واردشده معتبر نیست.',
+      400,
+    );
+  }
+  return dateTimeToApi(parsed, { hour: 23, minute: 59, second: 59 });
+}
+
+export function downloadGroupAttachment(
+  attachmentId: string,
+  signal?: AbortSignal,
+): Promise<Blob> {
+  return withGroupError(async () => {
+    const response = await apiClient.get<Blob>(
+      `/attachments/${encodeURIComponent(attachmentId)}/download`,
+      { responseType: 'blob', signal },
+    );
+    return response.data;
+  });
+}
+
+export const groupCoverBlobQueryOptions = (
+  attachmentId: string | null | undefined,
+  enabled = true,
+) =>
+  queryOptions({
+    queryKey: groupKeys.coverBlob(attachmentId ?? ''),
+    queryFn: ({ signal }) =>
+      downloadGroupAttachment(attachmentId ?? '', signal),
+    enabled: Boolean(attachmentId) && enabled,
+    staleTime: 30 * 60_000,
+  });
+
+export function getGroupSettings(
+  groupId: string,
+  signal?: AbortSignal,
+): Promise<GroupSettingsData> {
+  return withGroupError(async () => {
+    const response = await apiClient.get<unknown>(groupPath(groupId), {
+      signal,
+    });
+    const dto = parseEnvelope(response.data, groupDetailDtoSchema);
+    return mapGroupDtoToSettingsData(dto);
+  });
+}
+
+export const groupSettingsQueryOptions = (groupId: string, enabled = true) =>
+  queryOptions({
+    queryKey: groupKeys.settings(groupId),
+    queryFn: ({ signal }) => getGroupSettings(groupId, signal),
+    enabled: Boolean(groupId) && enabled,
+  });
+
+export function updateGroupInfo(
+  groupId: string,
+  data: { title?: string; description?: string },
+  signal?: AbortSignal,
+): Promise<GroupSettingsData> {
+  const payload: { title?: string; description?: string } = {};
+  if (data.title !== undefined) payload.title = data.title.trim();
+  if (data.description !== undefined)
+    payload.description = data.description.trim();
+
+  if (payload.title === undefined && payload.description === undefined) {
+    return Promise.reject(
+      new GroupError(
+        'GROUP_NO_FIELDS_TO_UPDATE',
+        'تغییری برای ذخیره وجود ندارد.',
+        400,
+      ),
+    );
+  }
+
+  return withGroupError(async () => {
+    const response = await apiClient.patch<unknown>(
+      groupPath(groupId),
+      payload,
+      { signal },
+    );
+    return mapGroupDtoToSettingsData(
+      parseEnvelope(response.data, groupDetailDtoSchema),
+    );
+  });
+}
+
+export function updateGroupCover(
+  groupId: string,
+  file: File,
+  signal?: AbortSignal,
+): Promise<GroupSettingsData> {
+  return withGroupError(async () => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', 'GROUP_COVER');
+    formData.append('group_id', groupId);
+    formData.append('is_public', 'true');
+
+    const uploadResponse = await apiClient.post<unknown>(
+      '/attachments/upload',
+      formData,
+      { signal },
+    );
+    const uploaded = parseEnvelope(
+      uploadResponse.data,
+      uploadedAttachmentDtoSchema,
+    );
+
+    const coverResponse = await apiClient.patch<unknown>(
+      groupPath(groupId, '/cover'),
+      { cover_attachment_id: uploaded.id },
+      { signal },
+    );
+    const dto = parseEnvelope(coverResponse.data, groupDetailDtoSchema);
+    return mapGroupDtoToSettingsData(dto, {
+      url: uploaded.access_url ?? undefined,
+      attachmentId: String(uploaded.id),
+    });
+  });
+}
+
+export function removeGroupMember(
   groupId: string,
   memberId: string,
-): Promise<GroupSettingsData> {
-  await delay();
-  const current = loadState(groupId);
-  const updated: GroupSettingsData = {
-    ...current,
-    members: current.members.filter((m) => m.id !== memberId),
-  };
-  saveState(groupId, updated);
-  return updated;
+  signal?: AbortSignal,
+): Promise<void> {
+  return withGroupError(async () => {
+    const response = await apiClient.delete<unknown>(
+      groupPath(groupId, `/members/${encodeURIComponent(memberId)}`),
+      { signal },
+    );
+    parseEnvelope(response.data, groupMessageSchema);
+  });
 }
 
-export async function inviteGroupMembers(
+export function leaveGroup(
   groupId: string,
-  friendIds: string[],
-): Promise<GroupSettingsData> {
-  await delay();
-  const current = loadState(groupId);
-  const newMembers = initialFriends
-    .filter((f) => friendIds.includes(f.id))
-    .filter((f) => !current.members.some((m) => m.name === f.name || m.id === f.id))
-    .map((f) => ({
-      id: f.id,
-      name: f.name,
-      handle: f.handle,
-      role: 'MEMBER' as const,
-    }));
-
-  const updated: GroupSettingsData = {
-    ...current,
-    members: [...current.members, ...newMembers],
-  };
-  saveState(groupId, updated);
-  return updated;
+  signal?: AbortSignal,
+): Promise<void> {
+  return withGroupError(async () => {
+    const response = await apiClient.delete<unknown>(
+      groupPath(groupId, '/leave'),
+      { signal },
+    );
+    parseEnvelope(response.data, groupMessageSchema);
+  });
 }
 
-export async function updateGroupPhoto(
+export function transferGroupOwnership(
   groupId: string,
-  photoSrc: string,
-): Promise<GroupSettingsData> {
-  await delay();
-  const current = loadState(groupId);
-  // An empty src clears the photo and falls back to the letter avatar.
-  const updated: GroupSettingsData = { ...current, groupPhotoSrc: photoSrc || undefined };
-  saveState(groupId, updated);
-  return updated;
+  newOwnerUserId: string,
+  signal?: AbortSignal,
+): Promise<void> {
+  const newOwnerId = toPositiveInt(newOwnerUserId, 'GROUP_INVALID_MEMBER_ID');
+  return withGroupError(async () => {
+    const response = await apiClient.post<unknown>(
+      groupPath(groupId, '/transfer-ownership'),
+      { new_owner_id: newOwnerId },
+      { signal },
+    );
+    groupEnvelopeSchema.parse(response.data);
+  });
 }
 
-export async function updateGroupLink(
+export function archiveGroup(
   groupId: string,
-  data: { password?: string; maxUses?: number | null; expiryDate?: string | null },
-): Promise<GroupSettingsData> {
-  await delay();
-  const current = loadState(groupId);
-  const updated: GroupSettingsData = {
-    ...current,
-    linkSettings: {
-      ...current.linkSettings,
-      ...(data.password !== undefined && { password: data.password }),
-      ...(data.maxUses !== undefined && { maxUses: data.maxUses }),
-      ...(data.expiryDate !== undefined && { expiryDate: data.expiryDate }),
-    },
-  };
-  saveState(groupId, updated);
-  return updated;
+  signal?: AbortSignal,
+): Promise<void> {
+  return withGroupError(async () => {
+    const response = await apiClient.post<unknown>(
+      groupPath(groupId, '/archive'),
+      undefined,
+      { signal },
+    );
+    parseEnvelope(response.data, groupMessageSchema);
+  });
 }
 
-export async function archiveGroup(
+export function deleteGroup(
   groupId: string,
-  archive: boolean,
-): Promise<GroupSettingsData> {
-  await delay();
-  const current = loadState(groupId);
-  const updated: GroupSettingsData = {
-    ...current,
-    status: archive ? 'ARCHIVED' : 'ACTIVE',
-  };
-  saveState(groupId, updated);
-  return updated;
+  signal?: AbortSignal,
+): Promise<void> {
+  return withGroupError(async () => {
+    const response = await apiClient.delete<unknown>(groupPath(groupId), {
+      signal,
+    });
+    parseEnvelope(response.data, groupMessageSchema);
+  });
 }
 
-export async function deleteGroup(groupId: string): Promise<void> {
-  await delay();
-  const current = loadState(groupId);
-  const updated: GroupSettingsData = {
-    ...current,
-    members: [],
-  };
-  saveState(groupId, updated);
+export function getGroupInviteLinks(
+  groupId: string,
+  signal?: AbortSignal,
+): Promise<GroupInviteLink[]> {
+  return withGroupError(async () => {
+    const response = await apiClient.get<unknown>(inviteLinksPath(groupId), {
+      signal,
+    });
+    const data = parseEnvelope(response.data, inviteLinkListDtoSchema);
+    return data.items.map(mapInviteLinkDto);
+  });
 }
 
-export async function getFriendsList(): Promise<FriendItem[]> {
-  await delay();
-  return initialFriends;
+export const groupInviteLinksQueryOptions = (groupId: string, enabled = true) =>
+  queryOptions({
+    queryKey: groupKeys.inviteLinks(groupId),
+    queryFn: ({ signal }) => getGroupInviteLinks(groupId, signal),
+    enabled: Boolean(groupId) && enabled,
+  });
+
+export function createGroupInviteLink(
+  groupId: string,
+  data: {
+    password: string;
+    maxUses?: number | null;
+    expiryDate?: string | null;
+  },
+  signal?: AbortSignal,
+): Promise<GroupInviteLink> {
+  const payload: {
+    password: string;
+    expires_at?: string;
+    max_uses?: number;
+  } = { password: data.password };
+
+  const expiresAt = toExpiryIso(data.expiryDate);
+  if (expiresAt !== undefined) payload.expires_at = expiresAt;
+  if (data.maxUses != null) payload.max_uses = data.maxUses;
+
+  return withGroupError(async () => {
+    const response = await apiClient.post<unknown>(
+      inviteLinksPath(groupId),
+      payload,
+      { signal },
+    );
+    return mapInviteLinkDto(parseEnvelope(response.data, inviteLinkDtoSchema));
+  });
+}
+
+export function updateGroupInviteLinkInfo(
+  groupId: string,
+  inviteId: string,
+  data: {
+    maxUses?: number | null;
+    expiryDate?: string | null;
+  },
+  signal?: AbortSignal,
+): Promise<GroupInviteLink> {
+  const payload: { expires_at?: string; max_uses?: number } = {};
+  const expiresAt = toExpiryIso(data.expiryDate);
+  if (expiresAt !== undefined) payload.expires_at = expiresAt;
+  if (data.maxUses != null) payload.max_uses = data.maxUses;
+
+  if (payload.expires_at === undefined && payload.max_uses === undefined) {
+    return Promise.reject(
+      new GroupError(
+        'INVITE_NO_FIELDS_TO_UPDATE',
+        'تغییری برای ذخیره در تنظیمات لینک وجود ندارد.',
+        400,
+      ),
+    );
+  }
+
+  return withGroupError(async () => {
+    const response = await apiClient.patch<unknown>(
+      inviteLinksPath(groupId, inviteId),
+      payload,
+      { signal },
+    );
+    return mapInviteLinkDto(parseEnvelope(response.data, inviteLinkDtoSchema));
+  });
+}
+
+export function changeGroupInviteLinkPassword(
+  groupId: string,
+  inviteId: string,
+  password: string,
+  signal?: AbortSignal,
+): Promise<void> {
+  return withGroupError(async () => {
+    const response = await apiClient.patch<unknown>(
+      inviteLinksPath(groupId, inviteId, '/password'),
+      { password },
+      { signal },
+    );
+    parseEnvelope(response.data, groupMessageSchema);
+  });
+}
+
+export function deactivateGroupInviteLink(
+  groupId: string,
+  inviteId: string,
+  signal?: AbortSignal,
+): Promise<void> {
+  return withGroupError(async () => {
+    const response = await apiClient.delete<unknown>(
+      inviteLinksPath(groupId, inviteId),
+      { signal },
+    );
+    parseEnvelope(response.data, groupMessageSchema);
+  });
+}
+
+export function getFriendsList(signal?: AbortSignal): Promise<FriendItem[]> {
+  return withGroupError(async () => {
+    const response = await apiClient.get<unknown>('/friendships', {
+      params: { page: 1, limit: 100 },
+      signal,
+    });
+    const data = parseEnvelope(response.data, friendsListDtoSchema);
+    return data.items.map(mapFriendDto);
+  });
+}
+
+export const friendsListQueryOptions = (enabled = true) =>
+  queryOptions({
+    queryKey: groupKeys.friends(),
+    queryFn: ({ signal }) => getFriendsList(signal),
+    enabled,
+  });
+
+export function inviteGroupMembers(
+  groupId: string,
+  userIds: string[],
+  signal?: AbortSignal,
+): Promise<DirectInviteResult> {
+  const numericGroupId = toPositiveInt(groupId, 'GROUP_INVALID_ID');
+  const numericUserIds = userIds.map((id) =>
+    toPositiveInt(id, 'DIRECT_INVITE_INVALID_PAYLOAD'),
+  );
+  return withGroupError(async () => {
+    const response = await apiClient.post<unknown>(
+      '/invites/direct',
+      {
+        group_id: numericGroupId,
+        user_ids: numericUserIds,
+      },
+      { signal },
+    );
+    const data = parseEnvelope(response.data, directInviteResponseSchema);
+    return mapDirectInviteResponse(data);
+  });
 }

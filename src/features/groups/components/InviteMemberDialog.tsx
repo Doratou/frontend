@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  ArrowLeft,
   Check,
   ChevronLeft,
   ChevronRight,
   Search,
+  Send,
   UserPlus,
   Users,
   X,
@@ -17,7 +19,9 @@ import {
   DialogDescription,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Spinner } from '@/components/ui/spinner';
 import { formatNumber } from '@/utils/format';
+import { getGroupErrorMessage } from '../api/group-error';
 import {
   useFriendsList,
   useInviteGroupMembers,
@@ -30,6 +34,7 @@ interface InviteMemberDialogProps {
   existingMembers: GroupMemberItem[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onBack?: () => void;
 }
 
 export function InviteMemberDialog({
@@ -37,8 +42,15 @@ export function InviteMemberDialog({
   existingMembers,
   open,
   onOpenChange,
+  onBack,
 }: InviteMemberDialogProps) {
-  const { data: friends = [] } = useFriendsList();
+  const {
+    data: friends = [],
+    isLoading: isLoadingFriends,
+    isError: isFriendsError,
+    error: friendsError,
+    refetch: refetchFriends,
+  } = useFriendsList(open);
   const inviteMutation = useInviteGroupMembers(groupId);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -52,25 +64,19 @@ export function InviteMemberDialog({
   // Track previous count to auto-scroll when new items are added
   const prevSelectedCountRef = useRef(0);
 
-  // Friends who are not already members
+  // Friends who are not already active members of this group
   const availableFriends = useMemo(() => {
     return friends.filter(
       (friend) =>
-        !existingMembers.some(
-          (member) => member.id === friend.id || member.name === friend.name,
-        ),
+        !existingMembers.some((member) => member.userId === friend.id),
     );
   }, [friends, existingMembers]);
 
-  // Filtered by search query (handle or name)
+  // Filtered by search query (name)
   const filteredFriends = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase().replace(/^@/, '');
+    const q = searchQuery.trim().toLowerCase();
     if (!q) return availableFriends;
-    return availableFriends.filter(
-      (f) =>
-        f.name.toLowerCase().includes(q) ||
-        f.handle.toLowerCase().includes(q),
-    );
+    return availableFriends.filter((f) => f.name.toLowerCase().includes(q));
   }, [availableFriends, searchQuery]);
 
   const toggleSelection = (friendId: string) => {
@@ -118,7 +124,6 @@ export function InviteMemberDialog({
     if (!el) return;
 
     if (selectedFriends.length > prevSelectedCountRef.current) {
-      // New friend added: scroll smoothly towards the end of the strip
       el.scrollTo({ left: -el.scrollWidth, behavior: 'smooth' });
     }
     prevSelectedCountRef.current = selectedFriends.length;
@@ -147,13 +152,23 @@ export function InviteMemberDialog({
     }
   };
 
+  const handleReturn = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      onOpenChange(false);
+    }
+  };
+
   const handleAdd = () => {
     if (selectedIds.length === 0) return;
     inviteMutation.mutate(selectedIds, {
-      onSuccess: () => {
-        setSelectedIds([]);
-        setSearchQuery('');
-        onOpenChange(false);
+      onSuccess: (result) => {
+        if (result.succeededCount > 0) {
+          setSelectedIds([]);
+          setSearchQuery('');
+          handleReturn();
+        }
       },
     });
   };
@@ -162,50 +177,66 @@ export function InviteMemberDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[492px] overflow-hidden rounded-2xl p-0 font-sans">
+      <DialogContent className="flex max-h-[86dvh] w-[calc(100%-1.5rem)] max-w-[492px] flex-col overflow-hidden rounded-2xl p-0 font-sans sm:w-[calc(100%-2.5rem)]">
         {/* Header matching Dorato foundations */}
-        <header className="relative flex items-center justify-between border-b border-neutral-20 bg-white p-5">
-          <div className="flex items-center gap-3">
+        <header className="relative flex items-center justify-between gap-2 border-b border-neutral-20 bg-white px-4 py-4 sm:p-5">
+          <div className="flex min-w-0 items-center gap-3">
             <span
               aria-hidden="true"
-              className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-secondary-10 text-secondary-70"
+              className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-secondary-10 text-secondary-70 sm:size-11"
             >
-              <UserPlus className="size-6" />
+              <UserPlus className="size-5 sm:size-6" />
             </span>
-            <div>
-              <DialogTitle className="text-heading-5 font-bold text-primary-80">
+            <div className="min-w-0">
+              <DialogTitle className="truncate text-heading-6 font-bold text-primary-80 sm:text-heading-5">
                 دعوت عضو جدید
               </DialogTitle>
-              <DialogDescription className="text-caption text-neutral-60">
-                از فهرست دوستان، افراد موردنظر را انتخاب کنید.
+              <DialogDescription className="line-clamp-2 text-caption text-neutral-60">
+                از فهرست دوستان، افراد موردنظر را برای ارسال دعوتنامه انتخاب
+                کنید.
               </DialogDescription>
             </div>
           </div>
 
-          {selectedCount > 0 && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary-10 px-2.5 py-1 text-xs font-bold text-secondary-80 shadow-xs">
-              <span className="grid size-4 place-items-center rounded-full bg-secondary-70 text-white">
-                <Check className="size-2.5 stroke-[3]" />
+          <div className="flex shrink-0 items-center gap-1.5">
+            {selectedCount > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-secondary-10 px-2.5 py-1 text-xs font-bold text-secondary-80 shadow-xs">
+                <span className="grid size-4 place-items-center rounded-full bg-secondary-70 text-white">
+                  <Check className="size-2.5 stroke-[3]" />
+                </span>
+                {formatNumber(selectedCount)}
               </span>
-              {formatNumber(selectedCount)} نفر انتخاب شده
-            </span>
-          )}
+            )}
+            {onBack && (
+              <Button
+                type="button"
+                variant="outline"
+                tone="secondary"
+                size="icon-md"
+                radius="md"
+                onClick={handleReturn}
+                aria-label="بازگشت به تنظیمات"
+                title="بازگشت به تنظیمات"
+                className="size-9 rounded-xl border-neutral-20 text-neutral-60 hover:border-secondary-30 hover:bg-secondary-10/60 hover:text-secondary-80"
+              >
+                <ArrowLeft className="size-4.5" />
+              </Button>
+            )}
+          </div>
         </header>
 
         {/* Body */}
-        <div className="flex flex-col gap-3 p-5">
+        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4 sm:p-5">
           {/* Search Field */}
           <TextField
-            label="جست‌وجو با شناسهٔ دوست"
+            label="جست‌وجو در فهرست دوستان"
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             startAdornment={<Search className="size-4.25 text-neutral-50" />}
           />
 
-          {/* ============================================================
-              Selected Friends Horizontal Strip (Positioned clean beside chips)
-          ============================================================ */}
+          {/* Selected Friends Horizontal Strip */}
           {selectedFriends.length > 0 && (
             <section
               aria-labelledby="selected-friends-title"
@@ -219,12 +250,7 @@ export function InviteMemberDialog({
                 افراد انتخاب‌شده
               </h3>
 
-              {/*
-                Arrows stay mounted and just fade when they hit an edge, so the
-                strip never shifts layout. Gradient fades hint at overflow.
-              */}
               <div className="relative flex items-center gap-1">
-                {/* Back arrow (RTL start edge) */}
                 <button
                   type="button"
                   onClick={handleScrollRight}
@@ -235,13 +261,12 @@ export function InviteMemberDialog({
                   <ChevronRight className="size-4 stroke-[2.5]" />
                 </button>
 
-                {/* Horizontal chips strip with soft edge fades */}
                 <div className="relative min-w-0 flex-1">
                   <ul
                     ref={stripRef}
                     onScroll={updateScrollArrows}
                     onWheel={handleWheel}
-                    className="flex items-center gap-2 overflow-x-auto px-0.5 py-1 scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                    className="flex [scrollbar-width:none] items-center gap-2 overflow-x-auto scroll-smooth px-0.5 py-1 [&::-webkit-scrollbar]:hidden"
                   >
                     {selectedFriends.map((friend) => (
                       <li key={friend.id} className="shrink-0">
@@ -252,17 +277,22 @@ export function InviteMemberDialog({
                           className="group flex h-7.5 cursor-pointer items-center gap-1.5 rounded-full border border-secondary-30 bg-white pr-1 pl-2.5 text-caption font-bold text-secondary-80 shadow-2xs transition-all hover:border-secondary-50 hover:bg-secondary-10 active:scale-95"
                         >
                           <MemberAvatar
-                            member={{ id: friend.id, name: friend.name }}
+                            member={{
+                              id: friend.id,
+                              name: friend.name,
+                              avatarSrc: friend.avatarSrc,
+                            }}
                             className="size-5.5 text-[11px]"
                           />
-                          <span className="max-w-[120px] truncate">{friend.name}</span>
+                          <span className="max-w-[120px] truncate">
+                            {friend.name}
+                          </span>
                           <X className="size-3.5 text-secondary-60 transition-colors group-hover:text-danger-50" />
                         </button>
                       </li>
                     ))}
                   </ul>
 
-                  {/* Overflow hints (fade in only while that edge has hidden chips) */}
                   <div
                     aria-hidden="true"
                     className={`pointer-events-none absolute inset-y-0 left-0 w-7 bg-gradient-to-r from-secondary-10 to-transparent transition-opacity duration-150 ${
@@ -277,7 +307,6 @@ export function InviteMemberDialog({
                   />
                 </div>
 
-                {/* Forward arrow (RTL end edge) */}
                 <button
                   type="button"
                   onClick={handleScrollLeft}
@@ -295,11 +324,35 @@ export function InviteMemberDialog({
           <div
             role="group"
             aria-label="فهرست دوستان"
-            className="flex max-h-60 flex-col gap-1.5 overflow-y-auto pr-0.5 pl-1 [scrollbar-width:thin]"
+            className="flex max-h-60 [scrollbar-width:thin] flex-col gap-1.5 overflow-y-auto pr-0.5 pl-1"
           >
-            {filteredFriends.length === 0 ? (
+            {isLoadingFriends ? (
+              <div className="flex items-center justify-center py-8">
+                <Spinner className="size-5 text-secondary-70" />
+              </div>
+            ) : isFriendsError ? (
+              <div className="flex flex-col items-center gap-2 py-6 text-center">
+                <p className="text-paragraph-sm text-danger-50">
+                  {getGroupErrorMessage(
+                    friendsError,
+                    'دریافت فهرست دوستان انجام نشد.',
+                  )}
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  tone="secondary"
+                  size="md"
+                  onClick={() => void refetchFriends()}
+                >
+                  تلاش مجدد
+                </Button>
+              </div>
+            ) : filteredFriends.length === 0 ? (
               <p className="py-6 text-center text-paragraph-sm text-neutral-60">
-                دوستی با این شناسه پیدا نشد.
+                {availableFriends.length === 0
+                  ? 'دوست قابل دعوتی در فهرست شما نیست.'
+                  : 'دوستی با این نام پیدا نشد.'}
               </p>
             ) : (
               filteredFriends.map((friend) => {
@@ -317,19 +370,23 @@ export function InviteMemberDialog({
                   >
                     <div className="flex items-center gap-3">
                       <MemberAvatar
-                        member={{ id: friend.id, name: friend.name }}
+                        member={{
+                          id: friend.id,
+                          name: friend.name,
+                          avatarSrc: friend.avatarSrc,
+                        }}
                         className="size-9"
                       />
                       <div className="flex flex-col">
                         <span className="text-paragraph-sm font-bold text-primary-80">
                           {friend.name}
                         </span>
-                        <span
-                          dir="ltr"
-                          className="text-right text-caption text-neutral-60"
-                        >
-                          @{friend.handle}
-                        </span>
+                        {friend.mutualGroupCount !== undefined &&
+                          friend.mutualGroupCount > 0 && (
+                            <span className="text-caption text-neutral-60">
+                              {formatNumber(friend.mutualGroupCount)} اکیپ مشترک
+                            </span>
+                          )}
                       </div>
                     </div>
 
@@ -346,29 +403,21 @@ export function InviteMemberDialog({
           </div>
         </div>
 
-        {/* Footer: matching Prototype button styles & simplified text */}
-        <footer className="flex items-center justify-end gap-3 border-t border-neutral-20 bg-neutral-10/50 p-4">
-          <Button
-            type="button"
-            tone="secondary"
-            variant="outline"
-            size="lg"
-            onClick={() => onOpenChange(false)}
-            className="h-10 min-w-20 rounded-lg"
-          >
-            بستن
-          </Button>
+        {/* Footer */}
+        <footer className="flex items-center justify-end border-t border-neutral-20/80 bg-neutral-10/40 px-4 py-3.5 sm:px-5">
           <LoadingButton
             type="button"
             tone="secondary"
-            size="lg"
+            size="md"
+            radius="md"
             disabled={selectedCount === 0}
             isLoading={inviteMutation.isPending}
-            loadingText="در حال افزودن…"
+            loadingText="در حال ارسال…"
+            startIcon={<Send className="size-3.5 shrink-0" />}
             onClick={handleAdd}
-            className="h-10 rounded-lg "
+            className="h-9 gap-1.5 rounded-xl px-4 text-xs font-bold shadow-2xs disabled:bg-neutral-20/80 disabled:text-neutral-50 disabled:shadow-none"
           >
-            افزودن
+            ارسال دعوتنامه
           </LoadingButton>
         </footer>
       </DialogContent>

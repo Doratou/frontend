@@ -1,11 +1,13 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Archive,
   Camera,
   Check,
   Copy,
+  Crown,
   Info,
   Link as LinkIcon,
+  LogOut,
   Save,
   Trash2,
   UserPlus,
@@ -26,43 +28,47 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Spinner } from '@/components/ui/spinner';
-import { formatNumber } from '@/utils/format';
+import { dateToApi, inIran } from '@/lib/persian-date';
 import { cn } from '@/lib/utils';
+import { formatNumber } from '@/utils/format';
 import bgGroupOpen from '@/assets/sidebar/group-open.svg';
+import { getGroupErrorMessage } from '../api/group-error';
+import {
+  getUtf8ByteLength,
+  GROUP_COVER_MAX_BYTES,
+  GROUP_DESCRIPTION_MAX_LENGTH,
+  GROUP_STATUS_LABELS,
+  GROUP_TITLE_MAX_LENGTH,
+  INVITE_PASSWORD_MAX_BYTES,
+  INVITE_PASSWORD_MIN_BYTES,
+} from '../constants';
 import {
   useArchiveGroup,
+  useDeactivateGroupInviteLink,
   useDeleteGroup,
+  useGroupCoverImage,
+  useGroupInviteLinks,
   useGroupSettings,
+  useLeaveGroup,
   useRemoveGroupMember,
+  useSaveGroupInviteLink,
+  useTransferGroupOwnership,
+  useUpdateGroupCover,
   useUpdateGroupInfo,
-  useUpdateGroupLink,
-  useUpdateGroupPhoto,
 } from '../hooks/use-group-settings';
-import type { GroupSettingsData } from '../types';
+import type { GroupInviteLink, GroupSettingsData, GroupStatus } from '../types';
 import { InviteMemberDialog } from './InviteMemberDialog';
 import { MemberAvatar } from './MemberAvatar';
 
 interface GroupSettingsDialogProps {
   groupId: string;
+  currentUserId?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onGroupExit?: () => void;
 }
 
 type SettingsSection = 'overview' | 'members' | 'link' | 'archive';
-
-const SECTIONS: { id: SettingsSection; label: string }[] = [
-  { id: 'overview', label: 'اطلاعات اکیپ' },
-  { id: 'members', label: 'اعضا' },
-  { id: 'link', label: 'لینک و رمز' },
-  { id: 'archive', label: 'آرشیو و حذف' },
-];
-
-const SECTION_TITLES: Record<SettingsSection, string> = {
-  overview: 'اطلاعات اکیپ',
-  members: 'اعضای اکیپ',
-  link: 'لینک و رمز دعوت',
-  archive: 'آرشیو و حذف',
-};
 
 const SECTION_ICONS: Record<SettingsSection, typeof Users> = {
   overview: Info,
@@ -71,18 +77,19 @@ const SECTION_ICONS: Record<SettingsSection, typeof Users> = {
   archive: Archive,
 };
 
-function StatusChip({ isArchived }: { isArchived: boolean }) {
+function StatusChip({ status }: { status: GroupStatus }) {
+  const isActive = status === 'ACTIVE';
   return (
     <span
       className={cn(
         'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-caption font-bold shadow-2xs ring-1',
-        isArchived
+        !isActive
           ? 'bg-white/70 text-neutral-60 ring-neutral-30/60'
           : 'bg-white/70 text-secondary-80 ring-secondary-30/60',
       )}
     >
       <span className="relative flex size-2">
-        {!isArchived && (
+        {isActive && (
           <span
             aria-hidden="true"
             className="absolute inline-flex h-full w-full animate-ping rounded-full bg-secondary-60 opacity-60 motion-reduce:hidden"
@@ -91,11 +98,11 @@ function StatusChip({ isArchived }: { isArchived: boolean }) {
         <span
           className={cn(
             'relative inline-flex size-2 rounded-full',
-            isArchived ? 'bg-neutral-40' : 'bg-secondary-60',
+            isActive ? 'bg-secondary-60' : 'bg-neutral-40',
           )}
         />
       </span>
-      {isArchived ? 'آرشیوشده' : 'فعال'}
+      {GROUP_STATUS_LABELS[status]}
     </span>
   );
 }
@@ -107,26 +114,95 @@ function GroupAvatar({
   group: GroupSettingsData;
   className?: string;
 }) {
-  if (group.groupPhotoSrc) {
-    return (
-      <img
-        src={group.groupPhotoSrc}
-        alt={group.title}
-        draggable={false}
-        className={cn('rounded-[18px] object-cover', className)}
-      />
-    );
-  }
+  const { src, onError } = useGroupCoverImage(group);
+  const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
+  const isLoaded = Boolean(src && loadedSrc === src);
 
   return (
     <div
-      aria-hidden="true"
       className={cn(
-        'grid place-items-center rounded-[18px] border border-neutral-30/80 bg-white text-secondary-70 shadow-xs',
+        'relative grid shrink-0 place-items-center overflow-hidden rounded-[18px] border border-neutral-30/80 bg-white text-secondary-70 shadow-xs',
         className,
       )}
     >
-      <span className="font-black">{group.title.charAt(0)}</span>
+      <span aria-hidden="true" className="font-black">
+        {group.title.charAt(0)}
+      </span>
+      {src && (
+        <img
+          src={src}
+          alt=""
+          onLoad={() => setLoadedSrc(src)}
+          onError={onError}
+          draggable={false}
+          className={cn(
+            'absolute inset-0 h-full w-full object-cover transition-opacity duration-200',
+            isLoaded ? 'opacity-100' : 'opacity-0',
+          )}
+        />
+      )}
+    </div>
+  );
+}
+
+interface InlineConfirmProps {
+  prompt: string;
+  confirmLabel: string;
+  loadingLabel: string;
+  cancelAriaLabel: string;
+  isLoading: boolean;
+  tone?: 'danger' | 'accent';
+  compact?: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+function InlineConfirm({
+  prompt,
+  confirmLabel,
+  loadingLabel,
+  cancelAriaLabel,
+  isLoading,
+  tone = 'danger',
+  compact = false,
+  onConfirm,
+  onCancel,
+}: InlineConfirmProps) {
+  const isAccent = tone === 'accent';
+  return (
+    <div
+      className={cn(
+        'flex animate-in items-center gap-2 text-xs font-bold duration-150 fade-in slide-in-from-right-2',
+        isAccent ? 'text-accent-80' : 'text-danger-50',
+        !compact && 'rounded-xl bg-white p-2 shadow-xs',
+      )}
+    >
+      <span>{prompt}</span>
+      <LoadingButton
+        type="button"
+        size="md"
+        radius="lg"
+        isLoading={isLoading}
+        loadingText={loadingLabel}
+        onClick={onConfirm}
+        className={cn(
+          'text-white',
+          compact && 'h-7 px-2.5 text-xs',
+          isAccent
+            ? 'bg-accent-60 hover:bg-accent-70 active:bg-accent-80'
+            : 'bg-danger-40 hover:bg-danger-50 active:bg-danger-60',
+        )}
+      >
+        {confirmLabel}
+      </LoadingButton>
+      <button
+        type="button"
+        onClick={onCancel}
+        aria-label={cancelAriaLabel}
+        className="hover:text-neutral-90 grid size-7 cursor-pointer place-items-center rounded-md text-neutral-60 hover:bg-neutral-20/70"
+      >
+        <X className="size-4" />
+      </button>
     </div>
   );
 }
@@ -140,14 +216,21 @@ interface NavItemProps {
   onClick: () => void;
 }
 
-function NavItem({ label, icon: Icon, active, danger = false, count, onClick }: NavItemProps) {
+function NavItem({
+  label,
+  icon: Icon,
+  active,
+  danger = false,
+  count,
+  onClick,
+}: NavItemProps) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-current={active || undefined}
       className={cn(
-        'group relative flex h-11 w-full cursor-pointer items-center overflow-hidden rounded-2xl border-[1.5px] transition-[background-color,border-color,box-shadow] duration-200 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary-60',
+        'group relative flex h-11 w-full cursor-pointer items-center overflow-hidden rounded-2xl border-[1.5px] transition-[background-color,border-color,box-shadow] duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary-60 motion-reduce:transition-none',
         danger
           ? 'border-danger-50 bg-danger-10 hover:bg-danger-20/55'
           : active
@@ -155,11 +238,10 @@ function NavItem({ label, icon: Icon, active, danger = false, count, onClick }: 
             : 'border-transparent bg-transparent hover:bg-secondary-20/50',
       )}
     >
-      {/* Sidebar-style start-edge indicator for the active item */}
       <span
         aria-hidden="true"
         className={cn(
-          'absolute top-1/2 right-0.5 h-5.5 w-0.9 -translate-y-1/2 rounded-xs bg-secondary-60 transition-opacity duration-200 motion-reduce:transition-none',
+          'w-0.9 absolute top-1/2 right-0.5 h-5.5 -translate-y-1/2 rounded-xs bg-secondary-60 transition-opacity duration-200 motion-reduce:transition-none',
           active && !danger ? 'opacity-100' : 'opacity-0',
         )}
       />
@@ -193,81 +275,66 @@ function NavItem({ label, icon: Icon, active, danger = false, count, onClick }: 
   );
 }
 
-// Resize + compress the picked image so the data URL fits comfortably in
-// localStorage-backed mock storage.
-function readImageAsDataUrl(file: File, maxSize = 320): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = new Image();
-      img.onload = () => {
-        const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
-        const canvas = document.createElement('canvas');
-        canvas.width = Math.round(img.width * scale);
-        canvas.height = Math.round(img.height * scale);
-        const context = canvas.getContext('2d');
-        if (!context) {
-          resolve(reader.result as string);
-          return;
-        }
-        context.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', 0.85));
-      };
-      img.onerror = () => reject(new Error('invalid_image'));
-      img.src = reader.result as string;
-    };
-    reader.onerror = () => reject(new Error('read_failed'));
-    reader.readAsDataURL(file);
-  });
-}
-
 // ============================================================
 // SECTION: Overview — group info form + read-only meta
 // ============================================================
-function OverviewView({ group }: { group: GroupSettingsData }) {
+function OverviewView({
+  group,
+  isOwner,
+}: {
+  group: GroupSettingsData;
+  isOwner: boolean;
+}) {
   const updateInfoMutation = useUpdateGroupInfo(group.id);
-  const updatePhotoMutation = useUpdateGroupPhoto(group.id);
+  const updateCoverMutation = useUpdateGroupCover(group.id);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState(group.title);
   const [description, setDescription] = useState(group.description);
 
-  const isArchived = group.status === 'ARCHIVED';
+  const isClosed = group.status === 'CLOSED';
+  const canEdit = isOwner && !isClosed;
+  const hasChanges =
+    title.trim() !== group.title.trim() ||
+    description.trim() !== group.description.trim();
 
-  const handlePhotoSelect = async (file: File | undefined) => {
+  const handlePhotoSelect = (file: File | undefined) => {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       toast.error('لطفاً یک فایل تصویری انتخاب کنید');
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > GROUP_COVER_MAX_BYTES) {
       toast.error('حجم عکس باید کمتر از ۵ مگابایت باشد');
       return;
     }
-    try {
-      const dataUrl = await readImageAsDataUrl(file);
-      updatePhotoMutation.mutate(dataUrl);
-    } catch {
-      toast.error('خواندن فایل عکس انجام نشد');
-    }
+    updateCoverMutation.mutate(file);
   };
 
   const handleSave = () => {
-    if (!title.trim()) {
+    const trimmedTitle = title.trim();
+    const trimmedDescription = description.trim();
+    if (!trimmedTitle) {
       toast.error('نام اکیپ نمی‌تواند خالی باشد');
       return;
     }
-    updateInfoMutation.mutate({ title, description });
+    const payload: { title?: string; description?: string } = {};
+    if (trimmedTitle !== group.title.trim()) payload.title = trimmedTitle;
+    if (trimmedDescription !== group.description.trim())
+      payload.description = trimmedDescription;
+    if (payload.title === undefined && payload.description === undefined)
+      return;
+    updateInfoMutation.mutate(payload);
   };
 
   const metaRows = [
-    { label: 'وضعیت', value: isArchived ? 'آرشیوشده' : 'فعال' },
+    { label: 'وضعیت', value: GROUP_STATUS_LABELS[group.status] },
     {
       label: 'نوع اکیپ',
       value: group.plan === 'PREMIUM' ? 'گروه پریمیوم' : 'گروه عادی',
     },
     { label: 'ساخته شده توسط', value: group.creator.name },
     { label: 'تاریخ ساخت', value: group.createdDateLabel },
-    { label: 'بازه سفر', value: group.dateRangeLabel },
+    { label: 'تعداد اعضا', value: `${formatNumber(group.memberCount)} نفر` },
   ];
 
   return (
@@ -276,105 +343,109 @@ function OverviewView({ group }: { group: GroupSettingsData }) {
       <div className="flex items-center gap-4">
         <div className="relative shrink-0">
           <GroupAvatar group={group} className="size-16 text-2xl" />
-          <button
-            type="button"
-            onClick={() => photoInputRef.current?.click()}
-            aria-label="تغییر عکس اکیپ"
-            className="absolute -bottom-1 -left-1 grid size-7 cursor-pointer place-items-center rounded-full bg-secondary-70 text-white shadow-xs ring-2 ring-white transition-all hover:bg-secondary-80 active:scale-95"
-          >
-            {updatePhotoMutation.isPending ? (
-              <Spinner className="size-3.5" />
-            ) : (
-              <Camera className="size-3.5" />
-            )}
-          </button>
-          <input
-            ref={photoInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              void handlePhotoSelect(e.target.files?.[0]);
-              e.target.value = '';
-            }}
-          />
+          {canEdit && (
+            <>
+              <button
+                type="button"
+                onClick={() => photoInputRef.current?.click()}
+                disabled={updateCoverMutation.isPending}
+                aria-label="تغییر عکس اکیپ"
+                className="absolute -bottom-1 -left-1 grid size-7 cursor-pointer place-items-center rounded-full bg-secondary-70 text-white shadow-xs ring-2 ring-white transition-all hover:bg-secondary-80 active:scale-95 disabled:opacity-60"
+              >
+                {updateCoverMutation.isPending ? (
+                  <Spinner className="size-3.5" />
+                ) : (
+                  <Camera className="size-3.5" />
+                )}
+              </button>
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  handlePhotoSelect(e.target.files?.[0]);
+                  e.target.value = '';
+                }}
+              />
+            </>
+          )}
         </div>
         <div className="min-w-0">
-          <DialogTitle className="line-clamp-1 text-heading-5 font-black text-primary-80">
+          <h3 className="line-clamp-1 text-heading-5 font-black text-primary-80">
             {group.title}
-          </DialogTitle>
-          <DialogDescription className="mt-1 line-clamp-2 text-caption text-neutral-60">
+          </h3>
+          <p className="mt-1 line-clamp-2 text-caption text-neutral-60">
             {group.description || 'بدون توضیحات'}
-          </DialogDescription>
-          {group.groupPhotoSrc && (
-            <button
-              type="button"
-              onClick={() => updatePhotoMutation.mutate('')}
-              className="mt-1.5 inline-flex cursor-pointer items-center gap-1 text-caption font-bold text-danger-50 transition-colors hover:text-danger-60"
-            >
-              <Trash2 className="size-3" />
-              حذف عکس
-            </button>
-          )}
+          </p>
         </div>
       </div>
 
-      {/* Editable info form */}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          handleSave();
-        }}
-        className="flex flex-col gap-3 rounded-2xl border border-neutral-20 bg-neutral-10/50 p-4"
-      >
-        <TextField
-          label="نام اکیپ"
-          value={title}
-          disabled={isArchived}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-        <TextField
-          label="توضیحات"
-          value={description}
-          disabled={isArchived}
-          onChange={(e) => setDescription(e.target.value)}
-        />
+      {/* Editable info form (owner only) */}
+      {isOwner && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSave();
+          }}
+          className="flex flex-col gap-3 rounded-2xl border border-neutral-20 bg-neutral-10/50 p-4"
+        >
+          <TextField
+            label="نام اکیپ"
+            value={title}
+            maxLength={GROUP_TITLE_MAX_LENGTH}
+            disabled={!canEdit}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
+          <TextField
+            label="توضیحات"
+            value={description}
+            maxLength={GROUP_DESCRIPTION_MAX_LENGTH}
+            disabled={!canEdit}
+            onChange={(e) => setDescription(e.target.value)}
+          />
 
-        <div className="flex items-center justify-between pt-1">
-          <Button
-            type="button"
-            variant="ghost"
-            tone="secondary"
-            size="md"
-            disabled={title === group.title && description === group.description}
-            onClick={() => {
-              setTitle(group.title);
-              setDescription(group.description);
-            }}
-          >
-            بازگردانی
-          </Button>
-          <LoadingButton
-            type="submit"
-            tone="secondary"
-            size="md"
-            disabled={isArchived}
-            isLoading={updateInfoMutation.isPending}
-            loadingText="در حال ذخیره…"
-            startIcon={<Save className="size-4 shrink-0" />}
-          >
-            ذخیره تغییرات
-          </LoadingButton>
-        </div>
-      </form>
+          <div className="flex items-center justify-between pt-1">
+            <Button
+              type="button"
+              variant="ghost"
+              tone="secondary"
+              size="md"
+              disabled={!hasChanges}
+              onClick={() => {
+                setTitle(group.title);
+                setDescription(group.description);
+              }}
+            >
+              بازگردانی
+            </Button>
+            <LoadingButton
+              type="submit"
+              tone="secondary"
+              size="md"
+              disabled={!canEdit || !hasChanges}
+              isLoading={updateInfoMutation.isPending}
+              loadingText="در حال ذخیره…"
+              startIcon={<Save className="size-4 shrink-0" />}
+            >
+              ذخیره تغییرات
+            </LoadingButton>
+          </div>
+        </form>
+      )}
 
       {/* Read-only meta */}
       <dl className="flex flex-col divide-y divide-neutral-20 rounded-2xl border border-neutral-20 bg-white">
         {metaRows.map(({ label, value }) => (
-          <div key={label} className="flex items-center justify-between px-4 py-3">
+          <div
+            key={label}
+            className="flex items-center justify-between px-4 py-3"
+          >
             <dt className="text-caption text-neutral-60">{label}</dt>
-            <dd className="text-paragraph-sm font-bold text-primary-80">{value}</dd>
+            <dd className="text-paragraph-sm font-bold text-primary-80">
+              {value}
+            </dd>
           </div>
         ))}
       </dl>
@@ -383,61 +454,81 @@ function OverviewView({ group }: { group: GroupSettingsData }) {
 }
 
 // ============================================================
-// SECTION: Members — searchable list + inline delete confirm
+// SECTION: Members — list + inline delete & transfer ownership
 // ============================================================
-function MembersView({ group, onInvite }: { group: GroupSettingsData; onInvite: () => void }) {
+function MembersView({
+  group,
+  isOwner,
+  onInvite,
+}: {
+  group: GroupSettingsData;
+  isOwner: boolean;
+  onInvite: () => void;
+}) {
   const removeMemberMutation = useRemoveGroupMember(group.id);
-  const [pendingDeleteMemberId, setPendingDeleteMemberId] = useState<string | null>(null);
+  const transferOwnershipMutation = useTransferGroupOwnership(group.id);
+  const [pendingAction, setPendingAction] = useState<{
+    memberId: string;
+    type: 'remove' | 'transfer';
+  } | null>(null);
 
-  const isArchived = group.status === 'ARCHIVED';
-
-  const handleConfirmDeleteMember = (memberId: string) => {
-    removeMemberMutation.mutate(memberId, {
-      onSuccess: () => {
-        setPendingDeleteMemberId(null);
-      },
-    });
-  };
+  const isClosed = group.status === 'CLOSED';
+  const canInvite = isOwner && group.status === 'ACTIVE';
+  const canManageMembers = isOwner && !isClosed;
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex justify-start">
-        {/* Expanding invite button: a 36px circle whose label slides out on
-            hover / keyboard focus. */}
-        <button
-          type="button"
-          onClick={onInvite}
-          disabled={isArchived}
-          aria-label="افزودن اعضا"
-          className="group flex h-9 shrink-0 cursor-pointer items-center rounded-full border border-secondary-60 bg-white text-secondary-70 shadow-2xs transition-colors duration-200 hover:border-secondary-50 hover:bg-secondary-10 hover:text-secondary-80 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary-30 disabled:pointer-events-none disabled:opacity-50"
-        >
-          <span className="grid size-9 shrink-0 place-items-center">
-            <UserPlus className="size-4" />
-          </span>
-          <span className="max-w-0 overflow-hidden whitespace-nowrap text-xs font-bold opacity-0 transition-[max-width,padding,opacity] duration-300 ease-out group-focus-visible:max-w-36 group-focus-visible:pe-3.5 group-focus-visible:ps-2 group-focus-visible:opacity-100 group-hover:max-w-36 group-hover:pe-3.5 group-hover:ps-2 group-hover:opacity-100 motion-reduce:transition-none">
-            افزودن اعضا
-          </span>
-        </button>
-      </div>
+      {isOwner && (
+        <div className="flex justify-start">
+          <button
+            type="button"
+            onClick={onInvite}
+            disabled={!canInvite}
+            aria-label="افزودن اعضا"
+            className="group flex h-9 shrink-0 cursor-pointer items-center rounded-full border border-secondary-60 bg-white text-secondary-70 shadow-2xs transition-colors duration-200 hover:border-secondary-50 hover:bg-secondary-10 hover:text-secondary-80 focus-visible:ring-2 focus-visible:ring-secondary-30 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50"
+          >
+            <span className="grid size-9 shrink-0 place-items-center">
+              <UserPlus className="size-4" />
+            </span>
+            <span className="max-w-36 overflow-hidden ps-1 pe-3.5 text-xs font-bold whitespace-nowrap opacity-100 transition-[max-width,padding,opacity] duration-300 ease-out motion-reduce:transition-none md:max-w-0 md:ps-0 md:pe-0 md:opacity-0 md:group-hover:max-w-36 md:group-hover:ps-1 md:group-hover:pe-3.5 md:group-hover:opacity-100 md:group-focus-visible:max-w-36 md:group-focus-visible:ps-1 md:group-focus-visible:pe-3.5 md:group-focus-visible:opacity-100">
+              افزودن اعضا
+            </span>
+          </button>
+        </div>
+      )}
 
       <ul className="flex flex-col divide-y divide-neutral-20 overflow-hidden rounded-2xl border border-neutral-20 bg-white">
         {group.members.map((member) => {
-          const isOwner = member.role === 'OWNER';
-          const isConfirming = pendingDeleteMemberId === member.id;
+          const isMemberOwner = member.role === 'OWNER';
+          const isConfirmingRemove =
+            pendingAction?.memberId === member.memberId &&
+            pendingAction.type === 'remove';
+          const isConfirmingTransfer =
+            pendingAction?.memberId === member.memberId &&
+            pendingAction.type === 'transfer';
 
           return (
             <li
-              key={member.id}
+              key={member.memberId}
               className={cn(
                 'flex min-h-13 items-center justify-between gap-3 px-3 py-1.5 transition-colors',
-                isOwner ? 'bg-secondary-10/70' : 'hover:bg-neutral-10/60',
+                isMemberOwner ? 'bg-secondary-10/70' : 'hover:bg-neutral-10/60',
               )}
             >
               <div className="flex min-w-0 items-center gap-3">
-                <MemberAvatar member={{ id: member.id, name: member.name }} className="size-9" />
+                <MemberAvatar
+                  member={{
+                    id: member.memberId,
+                    name: member.name,
+                    avatarSrc: member.avatarSrc,
+                  }}
+                  className="size-9"
+                />
                 <div className="flex min-w-0 items-center gap-2">
-                  <span className="truncate text-paragraph-sm text-primary-80">{member.name}</span>
-                  {isOwner && (
+                  <span className="truncate text-paragraph-sm text-primary-80">
+                    {member.name}
+                  </span>
+                  {isMemberOwner && (
                     <span className="shrink-0 rounded-full bg-secondary-20 px-2.5 py-0.5 text-caption font-bold text-secondary-80">
                       مالک
                     </span>
@@ -445,38 +536,71 @@ function MembersView({ group, onInvite }: { group: GroupSettingsData; onInvite: 
                 </div>
               </div>
 
-              {/* Inline delete control (non-owner only) */}
-              {!isOwner && !isArchived && (
-                <div className="flex shrink-0 items-center">
-                  {!isConfirming ? (
-                    <button
-                      type="button"
-                      onClick={() => setPendingDeleteMemberId(member.id)}
-                      aria-label={`حذف ${member.name}`}
-                      className="grid size-8 cursor-pointer place-items-center rounded-lg text-neutral-50 transition-colors hover:bg-danger-10 hover:text-danger-50"
-                    >
-                      <Trash2 className="size-4" />
-                    </button>
+              {!isMemberOwner && canManageMembers && (
+                <div className="flex shrink-0 items-center gap-1">
+                  {isConfirmingTransfer ? (
+                    <InlineConfirm
+                      prompt="انتقال مالکیت؟"
+                      confirmLabel="تأیید"
+                      loadingLabel="در حال انتقال…"
+                      cancelAriaLabel="لغو انتقال مالکیت"
+                      isLoading={transferOwnershipMutation.isPending}
+                      tone="accent"
+                      compact
+                      onConfirm={() =>
+                        transferOwnershipMutation.mutate(member.userId, {
+                          onSuccess: () => setPendingAction(null),
+                        })
+                      }
+                      onCancel={() => setPendingAction(null)}
+                    />
+                  ) : isConfirmingRemove ? (
+                    <InlineConfirm
+                      prompt="مطمئنی؟"
+                      confirmLabel="حذف"
+                      loadingLabel="در حال حذف…"
+                      cancelAriaLabel="لغو حذف"
+                      isLoading={removeMemberMutation.isPending}
+                      tone="danger"
+                      compact
+                      onConfirm={() =>
+                        removeMemberMutation.mutate(member.memberId, {
+                          onSuccess: () => setPendingAction(null),
+                        })
+                      }
+                      onCancel={() => setPendingAction(null)}
+                    />
                   ) : (
-                    <div className="flex items-center gap-2 text-xs font-bold text-danger-50 animate-in fade-in slide-in-from-right-2 duration-150">
-                      <span>مطمئنی؟</span>
+                    <>
                       <button
                         type="button"
-                        onClick={() => handleConfirmDeleteMember(member.id)}
-                        disabled={removeMemberMutation.isPending}
-                        className="cursor-pointer rounded-lg bg-danger-40 px-2.5 py-1 text-xs font-bold text-white transition-colors hover:bg-danger-50"
+                        onClick={() =>
+                          setPendingAction({
+                            memberId: member.memberId,
+                            type: 'transfer',
+                          })
+                        }
+                        aria-label={`انتقال مالکیت به ${member.name}`}
+                        title="انتقال مالکیت"
+                        className="grid size-8 cursor-pointer place-items-center rounded-lg text-neutral-50 transition-colors hover:bg-accent-10 hover:text-accent-70"
                       >
-                        حذف
+                        <Crown className="size-4" />
                       </button>
                       <button
                         type="button"
-                        onClick={() => setPendingDeleteMemberId(null)}
-                        aria-label="لغو حذف"
-                        className="grid size-7 cursor-pointer place-items-center rounded-md text-neutral-50 hover:bg-neutral-20 hover:text-neutral-70"
+                        onClick={() =>
+                          setPendingAction({
+                            memberId: member.memberId,
+                            type: 'remove',
+                          })
+                        }
+                        aria-label={`حذف ${member.name}`}
+                        title="حذف عضو"
+                        className="grid size-8 cursor-pointer place-items-center rounded-lg text-neutral-50 transition-colors hover:bg-danger-10 hover:text-danger-50"
                       >
-                        <X className="size-4" />
+                        <Trash2 className="size-4" />
                       </button>
-                    </div>
+                    </>
                   )}
                 </div>
               )}
@@ -489,228 +613,502 @@ function MembersView({ group, onInvite }: { group: GroupSettingsData; onInvite: 
 }
 
 // ============================================================
-// SECTION: Link — invite link + password / max uses / expiry
+// SECTION: Link — invite link + password / max uses / expiry / revoke
 // ============================================================
-function LinkView({ group }: { group: GroupSettingsData }) {
-  const updateLinkMutation = useUpdateGroupLink(group.id);
-  const [password, setPassword] = useState(group.linkSettings.password);
-  const [maxUses, setMaxUses] = useState<number | null>(group.linkSettings.maxUses);
-  const [expiryDate, setExpiryDate] = useState<string | null>(group.linkSettings.expiryDate);
-  const [copiedLink, setCopiedLink] = useState(false);
+function LinkForm({
+  group,
+  activeLink,
+  isOwner,
+}: {
+  group: GroupSettingsData;
+  activeLink: GroupInviteLink | null;
+  isOwner: boolean;
+}) {
+  const saveLinkMutation = useSaveGroupInviteLink(group.id);
+  const deactivateLinkMutation = useDeactivateGroupInviteLink(group.id);
 
-  const isArchived = group.status === 'ARCHIVED';
+  const [password, setPassword] = useState('');
+  const [maxUses, setMaxUses] = useState<number | null>(
+    activeLink?.maxUses ?? null,
+  );
+  const [expiryDate, setExpiryDate] = useState<string | null>(
+    activeLink?.expiryDate ?? null,
+  );
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [confirmDeactivate, setConfirmDeactivate] = useState(false);
+  const copyTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current !== null) {
+        window.clearTimeout(copyTimerRef.current);
+      }
+    };
+  }, []);
+
+  const isClosed = group.status === 'CLOSED';
+  const isInactive = group.status !== 'ACTIVE';
+  const canEdit = isOwner && !isClosed;
+  const minExpiryDate = dateToApi(inIran());
 
   const handleCopyLink = async () => {
+    if (!activeLink?.inviteUrl) return;
     try {
-      await navigator.clipboard.writeText(group.linkSettings.inviteUrl);
+      await navigator.clipboard.writeText(activeLink.inviteUrl);
       setCopiedLink(true);
       toast.success('لینک دعوت با موفقیت کپی شد');
-      setTimeout(() => setCopiedLink(false), 2500);
+      if (copyTimerRef.current !== null) {
+        window.clearTimeout(copyTimerRef.current);
+      }
+      copyTimerRef.current = window.setTimeout(() => {
+        setCopiedLink(false);
+      }, 2500);
     } catch {
       toast.error('کپی لینک انجام نشد');
     }
   };
 
+  const validateInvitePassword = (value: string): string | null => {
+    const bytes = getUtf8ByteLength(value);
+    if (bytes < INVITE_PASSWORD_MIN_BYTES) {
+      return 'رمز عبور باید حداقل ۸ کاراکتر باشد.';
+    }
+    if (bytes > INVITE_PASSWORD_MAX_BYTES) {
+      return 'رمز عبور بیش از حد مجاز طولانی است (حداکثر ۷۲ کاراکتر).';
+    }
+    return null;
+  };
+
+  const handleSave = () => {
+    if (!activeLink) {
+      const passwordError = validateInvitePassword(password);
+      if (passwordError) {
+        toast.error(passwordError);
+        return;
+      }
+      saveLinkMutation.mutate(
+        {
+          password,
+          maxUses,
+          expiryDate,
+        },
+        {
+          onSuccess: () => setPassword(''),
+        },
+      );
+      return;
+    }
+
+    if (password.length > 0) {
+      const passwordError = validateInvitePassword(password);
+      if (passwordError) {
+        toast.error(passwordError);
+        return;
+      }
+    }
+
+    const maxUsesChanged = maxUses !== activeLink.maxUses;
+    const expiryDateChanged = expiryDate !== activeLink.expiryDate;
+    const hasSendableInfoChange =
+      (maxUsesChanged && maxUses != null) ||
+      (expiryDateChanged && Boolean(expiryDate));
+
+    if (!hasSendableInfoChange && password.length === 0) {
+      toast.error(
+        maxUsesChanged || expiryDateChanged
+          ? 'برای تغییر محدودیت لینک، مقدار جدیدی وارد کنید یا لینک را ابطال کنید'
+          : 'تغییری برای ذخیره وجود ندارد',
+      );
+      return;
+    }
+
+    saveLinkMutation.mutate(
+      {
+        inviteId: activeLink.id,
+        password: password.length > 0 ? password : undefined,
+        maxUses,
+        expiryDate,
+        maxUsesChanged,
+        expiryDateChanged,
+      },
+      {
+        onSuccess: () => setPassword(''),
+      },
+    );
+  };
+
   return (
     <div className="flex flex-col gap-3">
-      {/* Invite link card */}
-      <div className="flex flex-col gap-2 rounded-2xl border border-secondary-20 bg-secondary-10/70 p-4">
-        <h4 className="flex items-center gap-1.5 text-paragraph-sm font-bold text-secondary-80">
-          <LinkIcon className="size-4 text-secondary-70" />
-          لینک اختصاصی دعوت به اکیپ
-        </h4>
-        <p className="text-caption text-secondary-70">
-          {isArchived
-            ? 'دعوت اعضا برای اکیپ آرشیوشده غیرفعال است.'
-            : 'هر فرد با این لینک و رمز عبور می‌تواند به اکیپ ملحق شود.'}
-        </p>
-        <div className="mt-1 flex items-center gap-2">
-          <div className="flex-1">
-            <input
-              type="text"
-              readOnly
-              dir="ltr"
-              value={group.linkSettings.inviteUrl}
-              className="h-10 w-full rounded-xl border border-secondary-30 bg-white px-3 font-mono text-xs text-secondary-80 outline-hidden select-all"
+      {activeLink ? (
+        <div className="flex flex-col gap-2 rounded-2xl border border-secondary-20 bg-secondary-10/70 p-4">
+          <div className="flex items-center justify-between gap-2">
+            <h4 className="flex items-center gap-1.5 text-paragraph-sm font-bold text-secondary-80">
+              <LinkIcon className="size-4 text-secondary-70" />
+              لینک اختصاصی دعوت به اکیپ
+            </h4>
+            <span className="rounded-full bg-white/80 px-2.5 py-0.5 text-caption font-bold text-secondary-80">
+              {activeLink.maxUses !== null
+                ? `${formatNumber(activeLink.usedCount)} از ${formatNumber(activeLink.maxUses)} استفاده`
+                : `${formatNumber(activeLink.usedCount)} بار استفاده‌شده`}
+            </span>
+          </div>
+          <p className="text-caption text-secondary-70">
+            {isInactive
+              ? 'عضویت با لینک برای اکیپ غیرفعال ممکن نیست.'
+              : 'هر فرد با این لینک و رمز عبور می‌تواند به اکیپ ملحق شود.'}
+          </p>
+          <div className="mt-1 flex items-center gap-1.5">
+            <div className="min-w-0 flex-1">
+              <input
+                type="text"
+                readOnly
+                dir="ltr"
+                value={activeLink.inviteUrl}
+                className="h-9 w-full rounded-xl border border-secondary-30 bg-white px-3 font-mono text-xs text-secondary-80 outline-hidden select-all"
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              tone="secondary"
+              size="md"
+              radius="md"
+              disabled={!activeLink.inviteUrl}
+              onClick={handleCopyLink}
+              className="h-9 shrink-0 rounded-xl border-secondary-30 bg-white px-2.5 text-xs font-medium text-secondary-80 hover:bg-secondary-20/40"
+            >
+              <span className="grid grid-cols-1">
+                <span
+                  className={`col-start-1 row-start-1 flex items-center justify-center gap-1 transition-opacity duration-150 ${
+                    copiedLink ? 'invisible opacity-0' : 'visible opacity-100'
+                  }`}
+                >
+                  <Copy className="size-3.5 shrink-0" />
+                  <span>کپی</span>
+                </span>
+                <span
+                  className={`col-start-1 row-start-1 flex items-center justify-center gap-1 transition-opacity duration-150 ${
+                    copiedLink ? 'visible opacity-100' : 'invisible opacity-0'
+                  }`}
+                >
+                  <Check className="size-3.5 shrink-0" />
+                  <span>کپی شد</span>
+                </span>
+              </span>
+            </Button>
+            {canEdit && (
+              <button
+                type="button"
+                onClick={() => setConfirmDeactivate((prev) => !prev)}
+                aria-label="ابطال و غیرفعال کردن لینک"
+                title="ابطال لینک"
+                className={cn(
+                  'grid size-9 shrink-0 cursor-pointer place-items-center rounded-xl border transition-colors',
+                  confirmDeactivate
+                    ? 'border-danger-30 bg-danger-10 text-danger-60'
+                    : 'border-danger-20 bg-white text-danger-50 hover:border-danger-30 hover:bg-danger-10',
+                )}
+              >
+                <Trash2 className="size-4" />
+              </button>
+            )}
+          </div>
+
+          {canEdit && confirmDeactivate && (
+            <div className="mt-1.5 flex items-center justify-end border-t border-secondary-20/70 pt-2">
+              <InlineConfirm
+                prompt="لینک فعلی غیرفعال شود؟"
+                confirmLabel="تأیید ابطال"
+                loadingLabel="در حال ابطال…"
+                cancelAriaLabel="لغو ابطال لینک"
+                isLoading={deactivateLinkMutation.isPending}
+                tone="danger"
+                compact
+                onConfirm={() =>
+                  deactivateLinkMutation.mutate(activeLink.id, {
+                    onSuccess: () => setConfirmDeactivate(false),
+                  })
+                }
+                onCancel={() => setConfirmDeactivate(false)}
+              />
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-1.5 rounded-2xl border border-neutral-20 bg-neutral-10/60 p-4">
+          <h4 className="flex items-center gap-1.5 text-paragraph-sm font-bold text-primary-80">
+            <LinkIcon className="size-4 text-secondary-70" />
+            لینک دعوت فعالی وجود ندارد
+          </h4>
+          <p className="text-caption text-neutral-60">
+            {canEdit
+              ? 'برای ساخت لینک دعوت جدید، یک رمز عبور حداقل ۸ کاراکتری تعیین و ذخیره کنید.'
+              : 'مالک اکیپ هنوز لینک دعوت فعالی ایجاد نکرده است.'}
+          </p>
+        </div>
+      )}
+
+      {isOwner && (
+        <div className="flex flex-col gap-5 rounded-2xl border border-neutral-20 bg-neutral-10/40 p-4">
+          <PasswordField
+            label={activeLink ? 'رمز عبور جدید (اختیاری)' : 'رمز عبور لینک'}
+            placeholder="••••••••"
+            description="حداقل ۸ و حداکثر ۷۲ کاراکتر (حروف انگلیسی یا عدد)"
+            error={
+              getUtf8ByteLength(password) > INVITE_PASSWORD_MAX_BYTES
+                ? 'رمز عبور بیش از حد مجاز طولانی است (حداکثر ۷۲ کاراکتر).'
+                : undefined
+            }
+            fieldSize="lg"
+            value={password}
+            disabled={!canEdit}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <NumberField
+              label="حداکثر استفاده"
+              fieldSize="lg"
+              value={maxUses ?? undefined}
+              disabled={!canEdit}
+              onValueChange={(val: number | null) => setMaxUses(val)}
+              min={Math.max(1, activeLink?.usedCount ?? 1)}
+              step={1}
+            />
+            <PersianDatePicker
+              label="تاریخ ابطال"
+              fieldSize="lg"
+              value={expiryDate}
+              min={minExpiryDate}
+              disabled={!canEdit}
+              onValueChange={(val: string | null) => setExpiryDate(val)}
             />
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            tone="secondary"
-            size="md"
-            radius="lg"
-            disabled={isArchived}
-            onClick={handleCopyLink}
-            className="h-10 shrink-0 rounded-xl px-4 font-bold"
-          >
-            {/* Both labels stack in one grid cell, so the button width is
-                always sized by the widest state and never jumps. */}
-            <span className="grid grid-cols-1">
-              <span
-                className={`col-start-1 row-start-1 flex items-center justify-center gap-1.5 transition-opacity duration-150 ${
-                  copiedLink ? 'invisible opacity-0' : 'visible opacity-100'
-                }`}
-              >
-                <Copy className="size-4 shrink-0" />
-                <span>کپی</span>
-              </span>
-              <span
-                className={`col-start-1 row-start-1 flex items-center justify-center gap-1.5 transition-opacity duration-150 ${
-                  copiedLink ? 'visible opacity-100' : 'invisible opacity-0'
-                }`}
-              >
-                <Check className="size-4 shrink-0" />
-                <span>کپی شد</span>
-              </span>
-            </span>
-          </Button>
+
+          <div className="flex justify-end pt-1">
+            <LoadingButton
+              type="button"
+              tone="secondary"
+              size="md"
+              radius="md"
+              disabled={!canEdit}
+              isLoading={saveLinkMutation.isPending}
+              loadingText="در حال ذخیره…"
+              onClick={handleSave}
+              className="h-9 rounded-xl px-4 text-xs font-bold"
+            >
+              {activeLink ? 'ذخیره تغییرات لینک' : 'ساخت لینک دعوت'}
+            </LoadingButton>
+          </div>
         </div>
-      </div>
-
-      {/* Settings inputs */}
-      <div className="flex flex-col gap-3">
-        <PasswordField
-          label="رمز عبور"
-          fieldSize="md"
-          value={password}
-          disabled={isArchived}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <NumberField
-          label="حداکثر استفاده"
-          fieldSize="md"
-          value={maxUses ?? undefined}
-          disabled={isArchived}
-          onValueChange={(val: number | null) => setMaxUses(val)}
-          min={1}
-          step={1}
-        />
-        <PersianDatePicker
-          label="تاریخ ابطال"
-          fieldSize="md"
-          value={expiryDate}
-          disabled={isArchived}
-          onValueChange={(val: string | null) => setExpiryDate(val)}
-        />
-      </div>
-
-      <div className="flex justify-end pt-2">
-        <LoadingButton
-          type="button"
-          tone="secondary"
-          size="md"
-          disabled={isArchived}
-          isLoading={updateLinkMutation.isPending}
-          loadingText="در حال ذخیره…"
-          onClick={() =>
-            updateLinkMutation.mutate({
-              password,
-              maxUses,
-              expiryDate,
-            })
-          }
-        >
-          ذخیره تغییرات لینک
-        </LoadingButton>
-      </div>
+      )}
     </div>
   );
 }
 
+function LinkView({
+  group,
+  isOwner,
+}: {
+  group: GroupSettingsData;
+  isOwner: boolean;
+}) {
+  const {
+    data: links,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useGroupInviteLinks(group.id, true);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Spinner className="size-6 text-secondary-70" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-10 text-center">
+        <p className="text-paragraph-sm text-danger-50">
+          {getGroupErrorMessage(error, 'دریافت لینک‌های دعوت انجام نشد.')}
+        </p>
+        <Button
+          type="button"
+          variant="outline"
+          tone="secondary"
+          size="md"
+          onClick={() => void refetch()}
+        >
+          تلاش مجدد
+        </Button>
+      </div>
+    );
+  }
+
+  const activeLink =
+    links?.find((link) => link.isActive && Boolean(link.token)) ?? null;
+
+  return (
+    <LinkForm
+      key={`${activeLink?.id ?? 'new'}-${activeLink?.maxUses ?? 'none'}-${activeLink?.expiryDate ?? 'none'}`}
+      group={group}
+      activeLink={activeLink}
+      isOwner={isOwner}
+    />
+  );
+}
+
 // ============================================================
-// SECTION: Archive — toggle archive + permanent delete
+// SECTION: Archive & Delete (owner) / Leave Group (member)
 // ============================================================
-function ArchiveView({ group, onClose }: { group: GroupSettingsData; onClose: () => void }) {
+function ArchiveView({
+  group,
+  isOwner,
+  onClose,
+  onGroupExit,
+}: {
+  group: GroupSettingsData;
+  isOwner: boolean;
+  onClose: () => void;
+  onGroupExit?: () => void;
+}) {
   const archiveMutation = useArchiveGroup(group.id);
   const deleteMutation = useDeleteGroup(group.id);
+  const leaveMutation = useLeaveGroup(group.id);
   const [isConfirmingDeleteGroup, setIsConfirmingDeleteGroup] = useState(false);
+  const [isConfirmingLeaveGroup, setIsConfirmingLeaveGroup] = useState(false);
 
-  const isArchived = group.status === 'ARCHIVED';
+  const isActive = group.status === 'ACTIVE';
+  const isClosed = group.status === 'CLOSED';
+
+  if (!isOwner) {
+    return (
+      <div className="flex flex-col gap-4">
+        <article className="flex flex-col gap-2 rounded-2xl border border-danger-20 bg-danger-10 p-4 text-danger-50">
+          <h4 className="flex items-center gap-1.5 text-paragraph-sm font-bold">
+            <LogOut className="size-4.5 text-danger-40" />
+            خروج از اکیپ
+          </h4>
+          <p className="text-caption leading-relaxed text-danger-50">
+            {isClosed
+              ? 'این اکیپ بسته شده و امکان خروج از آن وجود ندارد.'
+              : 'با خروج از اکیپ، دسترسی شما به این اکیپ قطع می‌شود و تسویه‌های ورودی در انتظار شما لغو خواهند شد.'}
+          </p>
+          {!isClosed && (
+            <div className="mt-2 flex items-center">
+              {!isConfirmingLeaveGroup ? (
+                <Button
+                  type="button"
+                  size="md"
+                  radius="lg"
+                  onClick={() => setIsConfirmingLeaveGroup(true)}
+                  className="bg-danger-40 text-white hover:bg-danger-50 active:bg-danger-60"
+                >
+                  خروج از اکیپ
+                </Button>
+              ) : (
+                <InlineConfirm
+                  prompt="آیا از خروج مطمئنید؟"
+                  confirmLabel="تأیید خروج"
+                  loadingLabel="در حال خروج…"
+                  cancelAriaLabel="لغو خروج از اکیپ"
+                  isLoading={leaveMutation.isPending}
+                  onConfirm={() =>
+                    leaveMutation.mutate(undefined, {
+                      onSuccess: () => {
+                        setIsConfirmingLeaveGroup(false);
+                        onClose();
+                        onGroupExit?.();
+                      },
+                    })
+                  }
+                  onCancel={() => setIsConfirmingLeaveGroup(false)}
+                />
+              )}
+            </div>
+          )}
+        </article>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Warning / archive card */}
       <article className="flex flex-col gap-2 rounded-2xl border border-accent-30 bg-accent-10 p-4 text-accent-80">
         <h4 className="flex items-center gap-1.5 text-paragraph-sm font-bold">
           <Archive className="size-4.5 text-accent-70" />
-          {isArchived ? 'بازگرداندن اکیپ از آرشیو' : 'آرشیو کردن اکیپ'}
+          {isActive ? 'آرشیو کردن اکیپ' : 'وضعیت آرشیو اکیپ'}
         </h4>
         <p className="text-caption leading-relaxed">
-          {isArchived
-            ? 'اکیپ به صفحهٔ اصلی برمی‌گردد و امکان ویرایش دوباره فعال می‌شود.'
-            : 'با آرشیو کردن، ویرایش اکیپ غیرفعال می‌شود. اعضا همچنان می‌توانند خاطره‌ها و تصاویر را مرور کنند.'}
+          {isActive
+            ? 'با آرشیو کردن، اکیپ وارد وضعیت تسویه می‌شود و ثبت هزینه، نظرسنجی و قرعه‌کشی جدید غیرفعال می‌گردد؛ تسویه‌ها و مرور تاریخچه همچنان در دسترس می‌مانند. این تغییر یک‌طرفه است.'
+            : isClosed
+              ? 'این اکیپ به‌صورت کامل بسته شده و تمام بخش‌های آن فقط‌خواندنی هستند.'
+              : 'این اکیپ آرشیو شده و در وضعیت تسویه قرار دارد. امکان بازگرداندن به حالت فعال وجود ندارد.'}
         </p>
-        <div className="mt-2 flex justify-start">
-          <LoadingButton
-            type="button"
-            variant="outline"
-            tone="accent"
-            size="md"
-            radius="lg"
-            isLoading={archiveMutation.isPending}
-            loadingText="در حال اعمال…"
-            onClick={() => archiveMutation.mutate(!isArchived)}
-          >
-            {isArchived ? 'بازگرداندن اکیپ' : 'آرشیو کردن این اکیپ'}
-          </LoadingButton>
-        </div>
+        {isActive && (
+          <div className="mt-2 flex justify-start">
+            <LoadingButton
+              type="button"
+              variant="outline"
+              tone="accent"
+              size="md"
+              radius="lg"
+              isLoading={archiveMutation.isPending}
+              loadingText="در حال اعمال…"
+              onClick={() => archiveMutation.mutate()}
+            >
+              آرشیو کردن این اکیپ
+            </LoadingButton>
+          </div>
+        )}
       </article>
 
-      {/* Danger / delete card */}
       <article className="flex flex-col gap-2 rounded-2xl border border-danger-20 bg-danger-10 p-4 text-danger-50">
         <h4 className="flex items-center gap-1.5 text-paragraph-sm font-bold">
           <Trash2 className="size-4.5 text-danger-40" />
           حذف کامل اکیپ
         </h4>
         <p className="text-caption leading-relaxed text-danger-50">
-          این اقدام قابل بازگشت نیست. با حذف اکیپ، چک‌لیست‌ها، تراکنش‌ها و تصاویر آن پاک می‌شوند.
+          {isClosed
+            ? 'اکیپ بسته‌شده قابل حذف نیست.'
+            : 'این اقدام قابل بازگشت نیست. اکیپ‌هایی که سابقه تسویه دارند قابل حذف نیستند.'}
         </p>
-        <div className="mt-2 flex items-center">
-          {!isConfirmingDeleteGroup ? (
-            <Button
-              type="button"
-              size="md"
-              radius="lg"
-              onClick={() => setIsConfirmingDeleteGroup(true)}
-              className="bg-danger-40 text-white hover:bg-danger-50 active:bg-danger-60"
-            >
-              حذف دائم اکیپ
-            </Button>
-          ) : (
-            <div className="flex items-center gap-2 rounded-xl bg-white p-2 shadow-xs animate-in fade-in slide-in-from-right-2 duration-150">
-              <span className="text-xs font-bold text-danger-50">آیا از حذف دائم مطمئنید؟</span>
-              <LoadingButton
+        {!isClosed && (
+          <div className="mt-2 flex items-center">
+            {!isConfirmingDeleteGroup ? (
+              <Button
                 type="button"
                 size="md"
                 radius="lg"
+                onClick={() => setIsConfirmingDeleteGroup(true)}
+                className="bg-danger-40 text-white hover:bg-danger-50 active:bg-danger-60"
+              >
+                حذف دائم اکیپ
+              </Button>
+            ) : (
+              <InlineConfirm
+                prompt="آیا از حذف دائم مطمئنید؟"
+                confirmLabel="حذف دائم"
+                loadingLabel="در حال حذف…"
+                cancelAriaLabel="لغو حذف اکیپ"
                 isLoading={deleteMutation.isPending}
-                loadingText="در حال حذف…"
-                onClick={() =>
+                onConfirm={() =>
                   deleteMutation.mutate(undefined, {
                     onSuccess: () => {
                       setIsConfirmingDeleteGroup(false);
                       onClose();
+                      onGroupExit?.();
                     },
                   })
                 }
-                className="bg-danger-40 text-white hover:bg-danger-50 active:bg-danger-60"
-              >
-                حذف دائم
-              </LoadingButton>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-md"
-                onClick={() => setIsConfirmingDeleteGroup(false)}
-                aria-label="لغو حذف اکیپ"
-                className="text-neutral-60 hover:text-neutral-90"
-              >
-                <X className="size-4" />
-              </Button>
-            </div>
-          )}
-        </div>
+                onCancel={() => setIsConfirmingDeleteGroup(false)}
+              />
+            )}
+          </div>
+        )}
       </article>
     </div>
   );
@@ -721,28 +1119,50 @@ function ArchiveView({ group, onClose }: { group: GroupSettingsData; onClose: ()
 // ============================================================
 function GroupSettingsContent({
   group,
+  isOwner,
+  section,
+  onSectionChange,
+  onOpenInvite,
   onClose,
+  onGroupExit,
 }: {
   group: GroupSettingsData;
+  isOwner: boolean;
+  section: SettingsSection;
+  onSectionChange: (section: SettingsSection) => void;
+  onOpenInvite: () => void;
   onClose: () => void;
+  onGroupExit?: () => void;
 }) {
-  const [section, setSection] = useState<SettingsSection>('members');
-  const [isInviteOpen, setIsInviteOpen] = useState(false);
-
-  const isArchived = group.status === 'ARCHIVED';
   const memberCount = group.members.length;
+  const dangerLabel = isOwner ? 'آرشیو و حذف' : 'خروج از اکیپ';
+
+  const sections: { id: SettingsSection; label: string }[] = [
+    { id: 'overview', label: 'اطلاعات اکیپ' },
+    { id: 'members', label: 'اعضا' },
+    { id: 'link', label: 'لینک و رمز' },
+    { id: 'archive', label: dangerLabel },
+  ];
+
+  const sectionTitles: Record<SettingsSection, string> = {
+    overview: 'اطلاعات اکیپ',
+    members: 'اعضای اکیپ',
+    link: 'لینک و رمز دعوت',
+    archive: dangerLabel,
+  };
 
   return (
     <div className="grid h-full min-h-0 grid-cols-1 overflow-hidden font-sans md:grid-cols-[248px_1fr]">
-      {/* ==========================================================
-          Settings nav (desktop; RTL grid puts this column on the right).
-          Styled after the app sidebar (group theme artwork + pills).
-      ========================================================== */}
+      <DialogTitle className="sr-only">تنظیمات اکیپ {group.title}</DialogTitle>
+      <DialogDescription className="sr-only">
+        مدیریت اطلاعات اکیپ، اعضا، لینک دعوت و وضعیت اکیپ
+      </DialogDescription>
+
+      {/* Settings nav (desktop) */}
       <nav
         aria-label="بخش‌های تنظیمات"
         className="relative hidden min-h-0 flex-col overflow-hidden border-l border-neutral-20 bg-secondary-10 p-3 md:flex"
       >
-        {/* Sidebar-style themed artwork (same asset the group sidebar uses) */}
         <img
           src={bgGroupOpen}
           alt=""
@@ -751,155 +1171,285 @@ function GroupSettingsContent({
           className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover"
         />
 
-        <div className="relative z-10 flex min-h-0 flex-col">
-          {/* Compact group profile */}
-          <div className="flex flex-col items-center px-2 pb-4 pt-7 text-center">
+        <div className="relative z-10 flex min-h-0 flex-1 flex-col">
+          <div className="flex flex-col items-center px-2 pt-7 pb-4 text-center">
             <GroupAvatar group={group} className="size-18 shrink-0 text-2xl" />
             <h3 className="mt-3 line-clamp-1 w-full text-heading-5 font-black text-primary-80">
               {group.title}
             </h3>
             <div className="mt-2.5">
-              <StatusChip isArchived={isArchived} />
+              <StatusChip status={group.status} />
             </div>
           </div>
 
           <ul className="flex flex-col gap-1">
-            {SECTIONS.filter((s) => s.id !== 'archive').map(({ id, label }) => (
-              <li key={id}>
-                <NavItem
-                  label={label}
-                  icon={SECTION_ICONS[id]}
-                  active={section === id}
-                  count={id === 'members' ? memberCount : undefined}
-                  onClick={() => setSection(id)}
-                />
-              </li>
-            ))}
+            {sections
+              .filter((s) => s.id !== 'archive')
+              .map(({ id, label }) => (
+                <li key={id}>
+                  <NavItem
+                    label={label}
+                    icon={SECTION_ICONS[id]}
+                    active={section === id}
+                    count={id === 'members' ? memberCount : undefined}
+                    onClick={() => onSectionChange(id)}
+                  />
+                </li>
+              ))}
           </ul>
 
-          {/* Danger zone pinned to the bottom (sidebar danger pill style) */}
           <div className="mt-auto flex flex-col gap-1 pt-3">
             <NavItem
-              label="آرشیو و حذف"
-              icon={SECTION_ICONS.archive}
+              label={dangerLabel}
+              icon={isOwner ? Archive : LogOut}
               active={section === 'archive'}
               danger
-              onClick={() => setSection('archive')}
+              onClick={() => onSectionChange('archive')}
             />
           </div>
         </div>
       </nav>
 
-      {/* ==========================================================
-          Content pane
-      ========================================================== */}
+      {/* Content pane */}
       <main className="relative flex min-h-0 min-w-0 flex-1 flex-col bg-white">
-        {/* Close button (desktop; sits in the corner away from the nav) */}
         <Button
           type="button"
           variant="ghost"
           size="icon-md"
           onClick={onClose}
           aria-label="بستن تنظیمات"
-          className="absolute top-2.5 left-2.5 z-10 hidden text-neutral-60 hover:text-neutral-90 md:grid"
+          className="hover:text-neutral-90 absolute top-2.5 left-2.5 z-10 hidden text-neutral-60 md:grid"
         >
           <X className="size-5" />
         </Button>
 
-        {/* Mobile: compact profile + horizontal section pills */}
-        <div className="md:hidden">
-          <div className="flex items-center gap-3 border-b border-neutral-20 px-4 py-3">
-            <GroupAvatar group={group} className="size-11 shrink-0 rounded-xl text-base" />
-            <div className="min-w-0 flex-1">
-              <h3 className="line-clamp-1 text-heading-6 font-black text-primary-80">
-                {group.title}
-              </h3>
-              <div className="mt-1">
-                <StatusChip isArchived={isArchived} />
+        {/* Mobile: themed header card + icon-segmented navigation bar */}
+        <div className="shrink-0 md:hidden">
+          <div className="relative overflow-hidden border-b border-secondary-20/70 bg-secondary-10/75 px-4 py-3.5">
+            <img
+              src={bgGroupOpen}
+              alt=""
+              aria-hidden="true"
+              draggable={false}
+              className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover opacity-80"
+            />
+            <div className="relative z-10 flex items-center gap-3">
+              <GroupAvatar
+                group={group}
+                className="size-12 shrink-0 rounded-2xl text-base"
+              />
+              <div className="min-w-0 flex-1">
+                <h3 className="line-clamp-1 text-heading-6 font-black text-primary-80">
+                  {group.title}
+                </h3>
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                  <StatusChip status={group.status} />
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white/75 px-2 py-0.5 text-caption font-bold text-primary-70 ring-1 ring-neutral-30/50">
+                    <Users className="size-3 text-secondary-70" />
+                    {formatNumber(memberCount)} نفر
+                  </span>
+                </div>
               </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-md"
+                onClick={onClose}
+                aria-label="بستن تنظیمات"
+                className="size-9 shrink-0 rounded-xl bg-white/75 text-neutral-70 shadow-2xs ring-1 ring-neutral-30/50 backdrop-blur-xs hover:bg-white"
+              >
+                <X className="size-4.5" />
+              </Button>
             </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-md"
-              onClick={onClose}
-              aria-label="بستن تنظیمات"
-              className="shrink-0 text-neutral-60 hover:text-neutral-90"
-            >
-              <X className="size-5" />
-            </Button>
           </div>
 
-          <div className="flex gap-1.5 overflow-x-auto border-b border-neutral-20 px-3 py-2">
-            {SECTIONS.map(({ id, label }) => (
-              <button
-                key={id}
-                type="button"
-                aria-current={section === id || undefined}
-                onClick={() => setSection(id)}
-                className={cn(
-                  'shrink-0 cursor-pointer rounded-full px-3.5 py-1.5 text-caption font-bold transition-colors',
-                  id === 'archive' && 'text-danger-50',
-                  section === id
-                    ? id === 'archive'
-                      ? 'bg-danger-10 text-danger-50'
-                      : 'bg-secondary-10 text-secondary-80'
-                    : 'bg-neutral-10 text-neutral-60 hover:bg-neutral-20/60',
-                )}
-              >
-                {label}
-              </button>
-            ))}
+          <div className="border-b border-neutral-20/80 bg-white px-3 py-2.5">
+            <div
+              role="tablist"
+              aria-label="بخش‌های تنظیمات"
+              className="flex [scrollbar-width:none] items-center gap-1 overflow-x-auto rounded-2xl bg-neutral-10/90 p-1 [&::-webkit-scrollbar]:hidden"
+            >
+              {sections.map(({ id, label }) => {
+                const Icon =
+                  id === 'archive'
+                    ? isOwner
+                      ? Archive
+                      : LogOut
+                    : SECTION_ICONS[id];
+                const isActive = section === id;
+                const isDanger = id === 'archive';
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => onSectionChange(id)}
+                    className={cn(
+                      'inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition-all',
+                      isActive
+                        ? isDanger
+                          ? 'bg-danger-10 text-danger-50 shadow-2xs ring-1 ring-danger-20'
+                          : 'bg-white text-secondary-80 shadow-2xs ring-1 ring-secondary-20/80'
+                        : isDanger
+                          ? 'text-danger-50/85 hover:bg-danger-10/50 hover:text-danger-50'
+                          : 'text-neutral-60 hover:bg-white/60 hover:text-primary-80',
+                    )}
+                  >
+                    <Icon className="size-3.5 shrink-0" strokeWidth={2} />
+                    <span>{label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
         {/* Desktop: section header */}
         <header className="hidden items-center border-b border-neutral-20 px-6 py-4 pl-12 md:flex">
           <h2 className="text-heading-5 font-black text-primary-80">
-            {SECTION_TITLES[section]}
+            {sectionTitles[section]}
           </h2>
         </header>
 
         {/* Section body */}
-        <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
-          {section === 'overview' && <OverviewView group={group} />}
-          {section === 'members' && (
-            <MembersView group={group} onInvite={() => setIsInviteOpen(true)} />
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5 md:p-6">
+          {section === 'overview' && (
+            <OverviewView
+              key={`${group.id}-${group.title}-${group.description}`}
+              group={group}
+              isOwner={isOwner}
+            />
           )}
-          {section === 'link' && <LinkView group={group} />}
-          {section === 'archive' && <ArchiveView group={group} onClose={onClose} />}
+          {section === 'members' && (
+            <MembersView
+              group={group}
+              isOwner={isOwner}
+              onInvite={onOpenInvite}
+            />
+          )}
+          {section === 'link' && <LinkView group={group} isOwner={isOwner} />}
+          {section === 'archive' && (
+            <ArchiveView
+              group={group}
+              isOwner={isOwner}
+              onClose={onClose}
+              onGroupExit={onGroupExit}
+            />
+          )}
         </div>
       </main>
-
-      {/* Invite member dialog */}
-      <InviteMemberDialog
-        groupId={group.id}
-        existingMembers={group.members}
-        open={isInviteOpen}
-        onOpenChange={setIsInviteOpen}
-      />
     </div>
   );
 }
 
 export function GroupSettingsDialog({
   groupId,
+  currentUserId,
   open,
   onOpenChange,
+  onGroupExit,
 }: GroupSettingsDialogProps) {
-  const { data: group } = useGroupSettings(groupId);
+  const [section, setSection] = useState<SettingsSection>('members');
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
 
-  if (!open || !group) return null;
+  const {
+    data: group,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useGroupSettings(groupId, open);
+
+  if (!open) return null;
+
+  const isOwner = Boolean(
+    currentUserId &&
+    group?.members.some(
+      (member) => member.userId === currentUserId && member.role === 'OWNER',
+    ),
+  );
+
+  const handleSettingsOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      setIsInviteOpen(false);
+    }
+    onOpenChange(nextOpen);
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-[860px] overflow-hidden rounded-2xl p-0 font-sans md:h-[580px] md:max-h-[calc(100dvh-2rem)]">
-        <GroupSettingsContent
-          key={groupId}
-          group={group}
-          onClose={() => onOpenChange(false)}
+    <>
+      <Dialog
+        open={open && !isInviteOpen}
+        onOpenChange={handleSettingsOpenChange}
+      >
+        <DialogContent className="h-[min(86dvh,640px)] w-[calc(100%-1.5rem)] max-w-[860px] overflow-hidden rounded-2xl p-0 font-sans sm:w-[calc(100%-2.5rem)] md:h-[580px] md:max-h-[calc(100dvh-2rem)]">
+          {isLoading ? (
+            <div className="flex h-full min-h-[280px] flex-col items-center justify-center gap-3 p-6">
+              <DialogTitle className="sr-only">تنظیمات اکیپ</DialogTitle>
+              <DialogDescription className="sr-only">
+                در حال بارگذاری اطلاعات اکیپ
+              </DialogDescription>
+              <Spinner className="size-7 text-secondary-70" />
+              <p className="text-paragraph-sm text-neutral-60">
+                در حال دریافت اطلاعات اکیپ…
+              </p>
+            </div>
+          ) : isError || !group ? (
+            <div className="flex h-full min-h-[280px] flex-col items-center justify-center gap-3 p-6 text-center">
+              <DialogTitle className="text-heading-5 font-bold text-primary-80">
+                خطا در دریافت تنظیمات اکیپ
+              </DialogTitle>
+              <DialogDescription className="text-paragraph-sm text-danger-50">
+                {getGroupErrorMessage(error, 'اطلاعات اکیپ در دسترس نیست.')}
+              </DialogDescription>
+              <div className="mt-2 flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  tone="secondary"
+                  size="md"
+                  onClick={() => void refetch()}
+                >
+                  تلاش مجدد
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  tone="secondary"
+                  size="md"
+                  onClick={() => handleSettingsOpenChange(false)}
+                >
+                  بستن
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <GroupSettingsContent
+              key={groupId}
+              group={group}
+              isOwner={isOwner}
+              section={section}
+              onSectionChange={setSection}
+              onOpenInvite={() => setIsInviteOpen(true)}
+              onClose={() => handleSettingsOpenChange(false)}
+              onGroupExit={onGroupExit}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {isOwner && group && (
+        <InviteMemberDialog
+          groupId={group.id}
+          existingMembers={group.members}
+          open={open && isInviteOpen}
+          onOpenChange={(nextOpen) => {
+            if (!nextOpen) setIsInviteOpen(false);
+          }}
+          onBack={() => setIsInviteOpen(false)}
         />
-      </DialogContent>
-    </Dialog>
+      )}
+    </>
   );
 }

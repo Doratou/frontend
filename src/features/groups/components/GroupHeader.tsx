@@ -24,6 +24,7 @@ export interface GroupHeaderProps {
   statusLabel: string;
   typeLabel: string;
   groupPhotoSrc?: string;
+  onGroupPhotoError?: () => void;
   members: GroupMemberItem[];
   maxVisibleMembers?: number;
   storage: { usedGb: number; totalGb: number };
@@ -51,6 +52,7 @@ export const GroupHeader: React.FC<GroupHeaderProps> = ({
   statusLabel,
   typeLabel,
   groupPhotoSrc = GROUP_HEADER_ASSETS.groupPhotoSample,
+  onGroupPhotoError,
   members = [],
   maxVisibleMembers = 3,
   storage,
@@ -232,6 +234,7 @@ export const GroupHeader: React.FC<GroupHeaderProps> = ({
             <img
               src={groupPhotoSrc}
               alt={title}
+              onError={onGroupPhotoError}
               draggable={false}
               className="h-full w-full rounded-xl object-cover"
             />
