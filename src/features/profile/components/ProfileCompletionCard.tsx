@@ -1,4 +1,14 @@
-import { Check, Gift } from 'lucide-react';
+import {
+  Check,
+  Gift,
+  Image,
+  Mail,
+  Phone,
+  Send,
+  User,
+  type LucideIcon,
+} from 'lucide-react';
+import completionGiftIcon from '@/assets/profile/completion-gift.webp';
 import { cn } from '@/lib/utils';
 import { formatNumber } from '@/utils/format';
 
@@ -19,6 +29,7 @@ interface CompletionStepItem {
   id: string;
   label: string;
   completed: boolean;
+  icon: LucideIcon;
   actionLabel: string;
   onAction: () => void;
 }
@@ -40,6 +51,7 @@ export function ProfileCompletionCard({
       id: 'name',
       label: 'نام و نام خانوادگی',
       completed: hasDisplayName,
+      icon: User,
       actionLabel: 'ثبت',
       onAction: onEditName,
     },
@@ -47,6 +59,7 @@ export function ProfileCompletionCard({
       id: 'avatar',
       label: 'تصویر پروفایل',
       completed: hasAvatar,
+      icon: Image,
       actionLabel: 'ثبت',
       onAction: onUploadAvatar,
     },
@@ -54,6 +67,7 @@ export function ProfileCompletionCard({
       id: 'phone',
       label: 'تأیید شماره تلفن',
       completed: hasVerifiedPhone,
+      icon: Phone,
       actionLabel: 'ثبت',
       onAction: onEditPhone,
     },
@@ -61,6 +75,7 @@ export function ProfileCompletionCard({
       id: 'email',
       label: 'ثبت ایمیل',
       completed: hasEmail,
+      icon: Mail,
       actionLabel: 'ثبت',
       onAction: onEditEmail,
     },
@@ -68,6 +83,7 @@ export function ProfileCompletionCard({
       id: 'telegram',
       label: 'اتصال تلگرام',
       completed: isTelegramConnected,
+      icon: Send,
       actionLabel: 'اتصال',
       onAction: onConnectTelegram,
     },
@@ -79,134 +95,125 @@ export function ProfileCompletionCard({
   const allCompleted = completedCount === totalCount;
 
   return (
-    <section
-      aria-label="تکمیل پروفایل"
-      className="flex h-full flex-col gap-3.5 rounded-[20px] border border-primary-20 bg-white p-4.5 md:gap-4 md:p-5 dark:border-border dark:bg-card"
-    >
-      {/* Purple gradient header panel */}
-      <div
-        className="relative flex flex-col gap-3 overflow-hidden rounded-2xl px-4 py-3.5 text-white md:px-4.5 md:py-4"
-        style={{
-          backgroundImage: 'linear-gradient(135deg, #3a3587 0%, #8075e0 90%)',
-        }}
-      >
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute -end-12 -top-14 size-36 rounded-full border border-white/10"
-        />
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute -end-20 -top-24 size-56 rounded-full border border-white/8"
-        />
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute -start-10 -top-16 size-40 rounded-full border border-white/10"
-        />
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute end-[34%] top-3 size-1.5 rounded-full bg-accent-30/80"
-        />
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute start-[38%] top-6 size-1 rounded-full bg-white/70"
-        />
-
-        <div className="relative flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <h2 className="text-heading-6 text-white md:text-heading-5">
-              تکمیل پروفایل
-            </h2>
-            <p className="text-caption text-white/80">
-              {allCompleted
-                ? 'تبریک! همه‌ی مراحل تکمیل شد و ۳ توکن هدیه دریافت کردید'
-                : 'با تکمیل همه‌ی مراحل ۳ توکن هدیه می‌گیرید'}
-            </p>
+    <section aria-label="تکمیل پروفایل" className="flex h-full flex-col gap-3">
+      {/* Airy bright white-lavender completion banner with 3D gift box */}
+      <div className="relative flex items-center justify-between gap-4 overflow-hidden rounded-[20px] border border-white bg-gradient-to-l from-white via-[#faf9ff] to-[#f4f1ff] px-4 py-4 shadow-[0_6px_18px_rgba(58,53,135,0.06)] sm:px-5 sm:py-4.5 dark:border-border dark:from-muted/60 dark:via-muted/45 dark:to-card dark:shadow-none">
+        {/* Start side: Title, subtitle, large percentage & violet progress bar */}
+        <div className="relative flex min-w-0 flex-1 flex-col gap-2">
+          <div className="flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="text-heading-5 text-primary-80 sm:text-heading-4 dark:text-foreground">
+                تکمیل پروفایل
+              </h2>
+              <p className="text-caption text-primary-70/80 sm:text-paragraph-sm dark:text-muted-foreground">
+                {allCompleted
+                  ? 'تبریک! همه‌ی مراحل تکمیل شد و ۳ توکن هدیه دریافت کردید'
+                  : 'با تکمیل همه‌ی مراحل ۳ توکن هدیه می‌گیرید'}
+              </p>
+            </div>
+            <span className="shrink-0 text-heading-3 leading-none font-bold text-primary-70 tabular-nums sm:text-heading-2 dark:text-primary-20">
+              {formatNumber(percentage)}٪
+            </span>
           </div>
-          <span className="shrink-0 text-heading-4 text-white tabular-nums md:text-heading-3">
-            {formatNumber(percentage)}٪
-          </span>
-        </div>
 
-        <div
-          role="progressbar"
-          aria-label="درصد تکمیل پروفایل"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={percentage}
-          className="relative h-2.5 w-full overflow-hidden rounded-full bg-white/22"
-        >
-          <div
-            className="h-full rounded-full bg-gradient-to-l from-[#fccc73] to-[#f9b233] transition-[width] duration-300 motion-reduce:transition-none"
-            style={{ width: `${percentage}%` }}
-          />
-        </div>
-
-        <p className="relative text-caption text-white/85 tabular-nums">
-          {formatNumber(completedCount)} از {formatNumber(totalCount)} مرحله
-          انجام شده
-        </p>
-      </div>
-
-      {/* Steps + Reward grid */}
-      <div className="grid flex-1 auto-rows-fr grid-cols-1 gap-2.5 sm:grid-cols-2">
-        {steps.map((step) => (
-          <div
-            key={step.id}
-            className={cn(
-              'flex items-center justify-between gap-2.5 rounded-xl border px-3 py-2.5 transition-colors',
-              step.completed
-                ? 'border-success-20 bg-success-10 dark:border-success-50/35 dark:bg-success-60/15'
-                : 'border-primary-20 bg-white dark:border-border dark:bg-muted/35',
-            )}
-          >
-            <div className="flex min-w-0 items-center gap-2.5">
-              <span
-                aria-hidden="true"
-                className={cn(
-                  'flex size-5.5 shrink-0 items-center justify-center rounded-full',
-                  step.completed
-                    ? 'bg-success-50 text-white'
-                    : 'border-[1.5px] border-primary-30 dark:border-primary-40',
-                )}
-              >
-                {step.completed && (
-                  <Check className="size-3.5" strokeWidth={2.5} />
-                )}
-              </span>
-              <span className="truncate text-button-sm text-neutral-80 dark:text-foreground">
-                {step.label}
-              </span>
+          <div className="flex flex-col gap-1.5 pt-0.5">
+            <div
+              role="progressbar"
+              aria-label="درصد تکمیل پروفایل"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={percentage}
+              className="h-2.5 w-full overflow-hidden rounded-full bg-[#dbd5ff] dark:bg-primary-80/50"
+            >
+              <div
+                className="h-full rounded-full bg-gradient-to-l from-[#8b5cf6] to-[#6347f5] transition-[width] duration-300 motion-reduce:transition-none"
+                style={{ width: `${percentage}%` }}
+              />
             </div>
 
-            {!step.completed && (
-              <button
-                type="button"
-                onClick={step.onAction}
-                className="shrink-0 touch-manipulation rounded-full bg-primary-10 px-2.5 py-1 text-caption font-medium text-primary-70 transition-colors hover:bg-primary-20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring dark:bg-primary-80/50 dark:text-primary-20 dark:hover:bg-primary-70/60"
-              >
-                {step.actionLabel}
-              </button>
-            )}
+            <p className="text-caption text-neutral-60 tabular-nums dark:text-muted-foreground">
+              {formatNumber(completedCount)} از {formatNumber(totalCount)} مرحله
+              انجام شده
+            </p>
           </div>
-        ))}
+        </div>
+
+        {/* End side: 3D Gift Box illustration */}
+        <img
+          src={completionGiftIcon}
+          alt=""
+          aria-hidden="true"
+          width={96}
+          height={96}
+          className="relative size-18 shrink-0 object-contain drop-shadow-[0_8px_16px_rgba(124,92,255,0.18)] sm:size-23"
+        />
+      </div>
+
+      {/* Floating frosted-white step pills directly on lavender canvas */}
+      <div className="grid flex-1 auto-rows-fr grid-cols-1 gap-2.5 sm:grid-cols-2">
+        {steps.map((step) => {
+          const StepIcon = step.icon;
+          return (
+            <div
+              key={step.id}
+              className={cn(
+                'flex items-center justify-between gap-2.5 rounded-2xl border px-3.5 py-2.5 shadow-[0_4px_12px_rgba(58,53,135,0.05)] transition-colors dark:shadow-none',
+                step.completed
+                  ? 'border-success-20 bg-white/95 dark:border-success-50/35 dark:bg-success-60/15'
+                  : 'border-white bg-white/90 dark:border-border dark:bg-muted/45',
+              )}
+            >
+              <div className="flex min-w-0 items-center gap-2.5">
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    'flex size-8 shrink-0 items-center justify-center rounded-xl',
+                    step.completed
+                      ? 'bg-success-10 text-success-50 dark:bg-success-60/25 dark:text-success-20'
+                      : 'bg-primary-10 text-primary-60 dark:bg-primary-80/50 dark:text-primary-20',
+                  )}
+                >
+                  {step.completed ? (
+                    <Check className="size-4" strokeWidth={2.5} />
+                  ) : (
+                    <StepIcon className="size-4" />
+                  )}
+                </span>
+                <span className="truncate text-button-sm text-neutral-80 dark:text-foreground">
+                  {step.label}
+                </span>
+              </div>
+
+              {!step.completed && (
+                <button
+                  type="button"
+                  onClick={step.onAction}
+                  className="shrink-0 touch-manipulation rounded-full bg-primary-10 px-2.5 py-1 text-caption font-medium text-primary-70 transition-colors hover:bg-primary-20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring dark:bg-primary-80/50 dark:text-primary-20 dark:hover:bg-primary-70/60"
+                >
+                  {step.actionLabel}
+                </button>
+              )}
+            </div>
+          );
+        })}
 
         {/* Reward pill */}
         <div
           className={cn(
-            'flex items-center gap-2.5 rounded-xl border px-3 py-2.5',
+            'flex items-center gap-2.5 rounded-2xl border px-3.5 py-2.5 shadow-[0_4px_12px_rgba(58,53,135,0.05)] dark:shadow-none',
             allCompleted
               ? 'border-success-30 bg-success-10 text-success-60 dark:border-success-50/40 dark:bg-success-60/20 dark:text-success-20'
-              : 'border-accent-30 bg-accent-10 text-accent-80 dark:border-accent-50/40 dark:bg-accent-80/25 dark:text-accent-20',
+              : 'border-accent-20 bg-[#fff9ef] text-accent-80 dark:border-accent-50/40 dark:bg-accent-80/25 dark:text-accent-20',
           )}
         >
           <span
             aria-hidden="true"
             className={cn(
-              'flex size-5.5 shrink-0 items-center justify-center rounded-full text-white',
+              'flex size-8 shrink-0 items-center justify-center rounded-xl text-white',
               allCompleted ? 'bg-success-50' : 'bg-accent-40',
             )}
           >
-            <Gift className="size-3.5" />
+            <Gift className="size-4" />
           </span>
           <span className="truncate text-button-sm">
             {allCompleted ? '۳ توکن هدیه دریافت شد' : '۳ توکن هدیه پس از تکمیل'}

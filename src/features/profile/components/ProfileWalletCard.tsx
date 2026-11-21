@@ -1,5 +1,6 @@
 import { Link } from 'react-router';
-import { Coins, Plus, Wallet } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import walletChestIcon from '@/assets/profile/wallet-chest.webp';
 import { Button } from '@/components/ui/button';
 import { formatNumber } from '@/utils/format';
 
@@ -17,73 +18,66 @@ export function ProfileWalletCard({
   return (
     <section
       aria-label="کیف پول من"
-      className="relative flex flex-col gap-3.5 overflow-hidden rounded-[20px] p-4.5 text-white md:gap-4 md:p-5"
+      className="relative flex flex-col justify-between gap-4 overflow-hidden rounded-[22px] px-5 pt-5 pb-4.5 text-white shadow-[0_14px_30px_rgba(34,24,108,0.28)]"
       style={{
         backgroundImage:
-          'linear-gradient(145deg, #4d45a8 0%, #3a3587 38%, #1f1b54 78%)',
+          'linear-gradient(165deg, #6c47d9 0%, #4d33b8 46%, #312192 78%, #22176e 100%)',
       }}
     >
-      {/* Decorative rings & faint coin watermark */}
+      {/* Ambient violet-pink glow behind top-left chest */}
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute -start-14 -top-20 size-48 rounded-full border border-white/10"
+        className="pointer-events-none absolute -end-6 -top-6 size-40 rounded-full bg-[#b68cff]/35 blur-2xl"
       />
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute -start-22 -top-28 size-64 rounded-full border border-white/8"
-      />
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute -end-12 -bottom-12 size-32 rounded-full border border-white/8"
-      />
-      <Coins
-        aria-hidden="true"
-        strokeWidth={1.25}
-        className="pointer-events-none absolute -end-6 bottom-6 size-36 text-white/[0.06]"
+        className="pointer-events-none absolute end-6 top-10 size-24 rounded-full bg-[#fbd36b]/15 blur-xl"
       />
 
-      {/* Top header row */}
-      <div className="relative flex items-center justify-between gap-2.5">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <div
-            aria-hidden="true"
-            className="flex size-11 shrink-0 items-center justify-center rounded-[14px] bg-gradient-to-b from-[#fcc754] to-[#f9b233] text-primary-80 shadow-[0_4px_12px_rgba(249,178,51,0.4)]"
+      {/* Top & Middle area: Right-aligned text & balance + Top-left 3D chest */}
+      <div className="relative min-h-[116px] pe-24">
+        <div className="flex flex-col items-start">
+          <Link
+            to={walletHref}
+            className="text-heading-3 leading-snug font-bold text-white transition-opacity hover:opacity-90 focus-visible:rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           >
-            <Coins className="size-5.5" />
-          </div>
-          <div className="min-w-0">
-            <h2 className="truncate text-heading-6 text-white">کیف پول من</h2>
-            <p className="truncate text-caption text-white/70">
-              موجودی توکن شما
-            </p>
+            کیف پول من
+          </Link>
+          <p className="mt-0.5 text-caption text-white/75">موجودی توکن شما</p>
+
+          <div className="mt-5 flex items-baseline gap-1.5">
+            <span className="text-[32px] leading-none font-extrabold tracking-tight text-white tabular-nums sm:text-[34px]">
+              {formatNumber(balance)}
+            </span>
+            <span className="text-sm font-bold text-[#f6c453]">توکن</span>
           </div>
         </div>
 
-        <Link
-          to={walletHref}
-          className="inline-flex shrink-0 touch-manipulation items-center gap-1.5 rounded-full border border-white/22 bg-white/14 px-2.5 py-1.5 text-caption text-white transition-colors hover:bg-white/22 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        {/* 3D Chest positioned in top-left (RTL end), facing inward toward the balance */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -end-1.5 -top-2 flex size-29 items-center justify-center sm:size-31"
         >
-          <Wallet aria-hidden="true" className="size-3.5 shrink-0" />
-          <span>رفتن به کیف پول</span>
-        </Link>
+          {/* Soft floor shadow under chest */}
+          <span className="absolute bottom-2 size-20 h-4 rounded-full bg-[#140c47]/55 blur-md" />
+          <img
+            src={walletChestIcon}
+            alt=""
+            width={124}
+            height={124}
+            className="relative size-full -scale-x-100 object-contain drop-shadow-[0_10px_18px_rgba(18,10,60,0.45)]"
+          />
+        </div>
       </div>
 
-      {/* Balance amount */}
-      <div className="relative flex items-baseline gap-2">
-        <span className="text-[34px] leading-11 font-bold text-white tabular-nums md:text-[38px] md:leading-12">
-          {formatNumber(balance)}
-        </span>
-        <span className="text-heading-6 text-accent-30">توکن</span>
-      </div>
-
-      {/* CTA Button */}
+      {/* Bottom full-pill golden button */}
       <Button
         type="button"
         tone="accent"
         size="lg"
         onClick={onIncreaseTokens}
-        startIcon={<Plus className="size-4.5" />}
-        className="relative h-10 w-full touch-manipulation rounded-xl bg-accent-40 text-button-md text-primary-80 hover:bg-accent-30 active:bg-accent-50 dark:text-primary-80"
+        startIcon={<Plus className="size-4.5 stroke-[2.25]" />}
+        className="relative h-10.5 w-full touch-manipulation rounded-full bg-gradient-to-b from-[#ffda6b] to-[#f4b738] text-button-md font-bold text-[#281e62] shadow-[0_6px_18px_rgba(244,183,56,0.32)] hover:brightness-105 active:brightness-95 dark:text-[#281e62]"
       >
         افزایش توکن
       </Button>

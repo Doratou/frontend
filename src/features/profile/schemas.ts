@@ -10,6 +10,13 @@ export function toPersianDigits(value: string): string {
   );
 }
 
+export function normalizeIranPhone(value: string): string {
+  const cleaned = toEnglishDigits(value).replace(/[\s-]/g, '');
+  if (/^\+989\d{9}$/.test(cleaned)) return `0${cleaned.slice(3)}`;
+  if (/^989\d{9}$/.test(cleaned)) return `0${cleaned.slice(2)}`;
+  return cleaned;
+}
+
 export function formatIranPhone(phone: string): string {
   const digits = toEnglishDigits(phone).replace(/\D/g, '');
   if (digits.length === 12 && digits.startsWith('98')) {
@@ -28,13 +35,14 @@ export const displayNameSchema = z
   .string()
   .trim()
   .min(2, 'نام و نام خانوادگی باید حداقل ۲ حرف باشد.')
-  .max(60, 'نام و نام خانوادگی نباید بیشتر از ۶۰ حرف باشد.');
+  .max(100, 'نام و نام خانوادگی نباید بیشتر از ۱۰۰ حرف باشد.');
 
 export const emailFormSchema = z.object({
   value: z
     .string()
     .trim()
     .min(1, 'لطفاً آدرس ایمیل خود را وارد کنید.')
+    .max(254, 'آدرس ایمیل واردشده معتبر نیست.')
     .email('فرمت ایمیل واردشده معتبر نیست.'),
 });
 
@@ -42,7 +50,7 @@ export const phoneFormSchema = z.object({
   value: z
     .string()
     .trim()
-    .transform((val) => toEnglishDigits(val).replace(/[\s-]/g, ''))
+    .transform(normalizeIranPhone)
     .refine((val) => /^09\d{9}$/.test(val), {
       message: 'شماره موبایل معتبر نیست (مثلاً 09121234567).',
     }),

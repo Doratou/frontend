@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router';
-import { Check, Lock, Mail, Pencil, Phone, Plus } from 'lucide-react';
+import { Check, Loader2, Lock, Mail, Pencil, Phone, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { displayNameSchema, formatIranPhone } from '../schemas';
@@ -14,6 +14,7 @@ export interface ProfilePersonalInfoCardProps {
   isPhoneVerified: boolean;
   isEmailVerified: boolean;
   passwordLastChangedLabel: string;
+  isSavingName?: boolean;
   nameInputRef?: React.RefObject<HTMLInputElement | null>;
   onSaveDisplayName: (nextName: string) => void;
   onOpenContactDialog: (field: ContactDialogField) => void;
@@ -32,6 +33,7 @@ export function ProfilePersonalInfoCard({
   isPhoneVerified,
   isEmailVerified,
   passwordLastChangedLabel,
+  isSavingName = false,
   nameInputRef,
   onSaveDisplayName,
   onOpenContactDialog,
@@ -65,7 +67,7 @@ export function ProfilePersonalInfoCard({
   return (
     <section
       aria-label="اطلاعات شخصی"
-      className="flex h-full flex-col gap-4 rounded-[20px] border border-primary-20 bg-white p-4.5 md:p-5 dark:border-border dark:bg-card"
+      className="flex h-full flex-col gap-4 rounded-[20px] border border-white bg-white/95 p-4.5 shadow-[0_4px_14px_rgba(58,53,135,0.05)] md:p-5 dark:border-border dark:bg-muted/45 dark:shadow-none"
     >
       {/* Header */}
       <div className="flex flex-col gap-0.5">
@@ -99,6 +101,7 @@ export function ProfilePersonalInfoCard({
               id="profile-display-name"
               type="text"
               dir="auto"
+              disabled={isSavingName}
               value={currentNameValue}
               onChange={(event) => {
                 setNameDraft(event.target.value);
@@ -124,9 +127,16 @@ export function ProfilePersonalInfoCard({
                 }
               }}
               aria-invalid={Boolean(nameError)}
-              className="min-w-0 flex-1 bg-transparent text-paragraph-sm text-neutral-80 outline-hidden placeholder:text-neutral-50 dark:text-foreground"
+              className="min-w-0 flex-1 bg-transparent text-paragraph-sm text-neutral-80 outline-hidden placeholder:text-neutral-50 disabled:opacity-60 dark:text-foreground"
             />
-            {isNameDirty ? (
+            {isSavingName ? (
+              <span
+                aria-hidden="true"
+                className="flex size-7 shrink-0 items-center justify-center text-primary-60 dark:text-primary-30"
+              >
+                <Loader2 className="size-4 animate-spin motion-reduce:animate-none" />
+              </span>
+            ) : isNameDirty ? (
               <button
                 type="button"
                 onMouseDown={(event) => event.preventDefault()}

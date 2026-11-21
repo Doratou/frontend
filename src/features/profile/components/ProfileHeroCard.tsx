@@ -4,13 +4,15 @@ import {
   Camera,
   Check,
   Copy,
+  Loader2,
   RefreshCw,
   Shield,
   User,
 } from 'lucide-react';
-import { toast } from 'sonner';
 import friendInviteIcon from '@/assets/profile/friend-invite.webp';
 import friendshipCalendarIcon from '@/assets/profile/friendship-calendar.webp';
+import heroBannerBg from '@/assets/profile/hero-banner.webp';
+import { toast } from '@/components/custom/toast';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { formatNumber } from '@/utils/format';
@@ -22,7 +24,10 @@ export interface ProfileHeroCardProps {
   role: ProfileRole;
   joinedAt: string;
   avatarUrl?: string | null;
+  fallbackAvatarUrl?: string | null;
   friendCode: string;
+  isUploadingAvatar?: boolean;
+  isRegeneratingFriendCode?: boolean;
   avatarInputRef?: React.RefObject<HTMLInputElement | null>;
   onAvatarChange: (file: File) => void;
   onRefreshFriendCode: () => void;
@@ -39,11 +44,11 @@ const PERSIAN_MONTH_YEAR = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
 });
 
 function getFriendshipMilestone(joinedAt: string) {
-  const joinedDate = new Date(joinedAt);
-  if (Number.isNaN(joinedDate.getTime())) {
+  const joinedDate = joinedAt ? new Date(joinedAt) : null;
+  if (!joinedDate || Number.isNaN(joinedDate.getTime())) {
     return {
-      monthYear: 'مهر ۱۴۰۴',
-      subtitle: 'بیش از ۱ سال خاطره مشترک',
+      monthYear: '—',
+      subtitle: 'همراه دوراتو',
     };
   }
 
@@ -93,7 +98,10 @@ export function ProfileHeroCard({
   role,
   joinedAt,
   avatarUrl,
+  fallbackAvatarUrl,
   friendCode,
+  isUploadingAvatar = false,
+  isRegeneratingFriendCode = false,
   avatarInputRef,
   onAvatarChange,
   onRefreshFriendCode,
@@ -101,10 +109,18 @@ export function ProfileHeroCard({
   const internalInputRef = useRef<HTMLInputElement>(null);
   const inputRef = avatarInputRef ?? internalInputRef;
 
+  const [failedAvatarUrls, setFailedAvatarUrls] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
   const [isSpinning, setIsSpinning] = useState(false);
   const copyTimerRef = useRef<number | null>(null);
   const spinTimerRef = useRef<number | null>(null);
+
+  const activeAvatarUrl =
+    avatarUrl && !failedAvatarUrls.includes(avatarUrl)
+      ? avatarUrl
+      : fallbackAvatarUrl && !failedAvatarUrls.includes(fallbackAvatarUrl)
+        ? fallbackAvatarUrl
+        : null;
 
   useEffect(() => {
     return () => {
@@ -157,44 +173,53 @@ export function ProfileHeroCard({
   };
 
   return (
-    <section
-      aria-label="اطلاعات اصلی پروفایل"
-      className="overflow-hidden rounded-[20px] border border-primary-20 bg-white dark:border-border dark:bg-card"
-    >
-      {/* Decorative gradient banner */}
-      <div
-        aria-hidden="true"
-        className="relative h-16 w-full overflow-hidden bg-gradient-to-l from-[#2b2675] via-[#4d45a8] via-55% to-[#857ae5] md:h-21"
-      >
-        <span className="pointer-events-none absolute -start-10 -top-16 size-44 rounded-full border border-white/10" />
-        <span className="pointer-events-none absolute -start-20 -top-24 size-64 rounded-full border border-white/10" />
-        <span className="pointer-events-none absolute -end-16 -bottom-24 size-40 rounded-full border border-white/10" />
-        <span className="pointer-events-none absolute -end-28 -bottom-32 size-60 rounded-full border border-white/10" />
-        <span className="pointer-events-none absolute start-1/2 top-9 size-20 rounded-full border border-white/10" />
-        <span className="pointer-events-none absolute start-[28%] top-4 size-1.5 rounded-full bg-accent-30/80" />
-        <span className="pointer-events-none absolute start-[48%] top-11 size-1 rounded-full bg-white/60" />
-        <span className="pointer-events-none absolute end-[26%] top-5 size-2 rounded-full bg-accent-30/70" />
-        <span className="pointer-events-none absolute end-[14%] bottom-4 size-1.5 rounded-full bg-white/45" />
-      </div>
+    <div aria-label="اطلاعات اصلی پروفایل">
+      {/* Top starry aurora wave banner */}
+      <div className="relative flex min-h-[146px] flex-col justify-center px-4 pt-5 pb-8 sm:min-h-[172px] sm:px-6 sm:pt-6 sm:pb-9">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 -bottom-7 overflow-hidden sm:-bottom-6"
+        >
+          <img
+            src={heroBannerBg}
+            alt=""
+            width={1024}
+            height={370}
+            className="size-full object-fill"
+          />
+          {/* Subtle luminous top specular line */}
+          <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+        </div>
 
-      {/* Hero body */}
-      <div className="flex flex-col gap-3 px-4 pt-3 pb-4 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-4 md:px-6 md:pt-3.5 md:pb-4.5">
-        {/* Start side: Overlapping avatar + identity */}
-        <div className="flex shrink-0 items-center gap-3.5 md:gap-4">
-          <div className="relative -mt-11 shrink-0 md:-mt-13">
-            <div className="flex size-20 items-center justify-center overflow-hidden rounded-full bg-white p-1 shadow-[0_6px_14px_rgba(36,31,94,0.18)] md:size-24 dark:bg-card">
-              {avatarUrl ? (
+        {/* Banner inner row: Avatar on start straddling the wave, Name + Greeting centered */}
+        <div className="relative z-10 flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-between">
+          {/* Avatar + soft halo + glossy lavender Camera button */}
+          <div className="relative shrink-0 sm:translate-y-4">
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute -inset-1.5 rounded-full bg-white/18 blur-md dark:bg-primary-30/15"
+            />
+            <div className="relative flex size-22 items-center justify-center overflow-hidden rounded-full bg-[#3d3494] shadow-[0_0_16px_rgba(255,255,255,0.32),0_8px_20px_rgba(25,20,76,0.28)] ring-[3.5px] ring-white sm:size-26 dark:ring-card">
+              {activeAvatarUrl ? (
                 <img
-                  src={avatarUrl}
+                  src={activeAvatarUrl}
                   alt={displayName}
-                  width={88}
-                  height={88}
-                  className="size-full rounded-full object-cover"
+                  width={104}
+                  height={104}
+                  draggable={false}
+                  onError={() =>
+                    setFailedAvatarUrls((prev) =>
+                      prev.includes(activeAvatarUrl)
+                        ? prev
+                        : [...prev, activeAvatarUrl],
+                    )
+                  }
+                  className="size-full object-cover"
                 />
               ) : (
-                <div className="flex size-full items-center justify-center rounded-full bg-primary-60 text-heading-4 text-white">
+                <span className="text-heading-3 font-semibold tracking-wider text-white select-none">
                   {getInitials(displayName)}
-                </div>
+                </span>
               )}
             </div>
 
@@ -208,29 +233,56 @@ export function ProfileHeroCard({
             />
             <button
               type="button"
+              disabled={isUploadingAvatar}
               onClick={() => inputRef.current?.click()}
               aria-label="تغییر تصویر پروفایل"
-              className="absolute -end-0.5 bottom-0 flex size-7.5 touch-manipulation items-center justify-center rounded-full border-2 border-white bg-primary-60 text-white shadow-sm transition-colors hover:bg-primary-70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring md:size-8 dark:border-card"
+              className="absolute -end-0.5 bottom-0.5 z-10 flex size-8.5 touch-manipulation items-center justify-center rounded-full border border-white/85 bg-gradient-to-br from-[#c9bcff] via-[#aa99f8] to-[#8d7aec] text-white shadow-[0_4px_12px_rgba(124,92,232,0.38),inset_0_1px_2px_rgba(255,255,255,0.7)] transition-[filter,transform] hover:brightness-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-75 dark:border-card"
             >
-              <Camera aria-hidden="true" className="size-3.5" />
+              {isUploadingAvatar ? (
+                <Loader2
+                  aria-hidden="true"
+                  className="size-4 animate-spin motion-reduce:animate-none"
+                />
+              ) : (
+                <Camera aria-hidden="true" className="size-4" />
+              )}
             </button>
           </div>
 
-          <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-2 md:flex-col md:items-start md:gap-1.5">
-            <h2 className="truncate text-heading-mobile-2 text-primary-80 md:text-heading-4 dark:text-foreground">
+          {/* Centered Name & Greeting */}
+          <div className="flex min-w-0 flex-1 flex-col items-center gap-0.5 pb-2 text-center sm:pb-3">
+            <h2 className="max-w-full truncate text-heading-mobile-1 leading-tight text-white drop-shadow-[0_2px_12px_rgba(20,16,66,0.38)] sm:text-heading-2 sm:leading-tight">
               <bdi>{displayName}</bdi>
             </h2>
-            <span className="inline-flex h-6.5 shrink-0 items-center gap-1.5 rounded-lg border-[1.5px] border-primary-60 bg-primary-10 px-2.5 text-caption font-semibold text-primary-60 dark:border-primary-30/60 dark:bg-primary-80/30 dark:text-primary-20">
-              <RoleIcon aria-hidden="true" className="size-3.5 shrink-0" />
-              {roleMeta.label}
-            </span>
+            <p className="text-sm leading-5 text-white/90 drop-shadow-[0_1px_6px_rgba(20,16,66,0.35)]">
+              به پنل خودت خوش اومدی!
+            </p>
+            <div aria-hidden="true" className="mt-0.5 flex items-center gap-1">
+              <span className="h-0.75 w-7 rounded-full bg-[#c4b5fd]/90 shadow-[0_0_8px_rgba(196,181,253,0.7)]" />
+              <span className="h-0.75 w-8 rounded-full bg-white/35" />
+              <span className="h-0.75 w-7 rounded-full bg-[#c4b5fd]/90 shadow-[0_0_8px_rgba(196,181,253,0.7)]" />
+            </div>
           </div>
+
+          {/* Symmetric spacer to keep name centered on desktop */}
+          <div aria-hidden="true" className="hidden w-26 shrink-0 sm:block" />
+        </div>
+      </div>
+
+      {/* Bottom soft-lavender body */}
+      <div className="relative z-10 flex flex-col gap-3 px-4 pt-2 pb-4 sm:px-6 sm:pt-3 sm:pb-4 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+        {/* Role pill tucked directly under Avatar on start side */}
+        <div className="-mt-2 flex justify-center sm:-mt-4 lg:w-26 lg:shrink-0 lg:self-start">
+          <span className="inline-flex h-8.5 items-center justify-center gap-1.5 rounded-full border border-[#b7aff5] bg-[#f1edff]/90 px-4.5 text-button-sm font-medium text-[#5c51d6] shadow-[0_2px_8px_rgba(92,81,214,0.08)] dark:border-primary-30/40 dark:bg-muted/60 dark:text-primary-20">
+            <RoleIcon aria-hidden="true" className="size-4 shrink-0" />
+            <span>{roleMeta.label}</span>
+          </span>
         </div>
 
-        {/* End side: Friendship milestone card + Friend code card side-by-side */}
-        <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-stretch md:ms-auto md:justify-end">
+        {/* Paired glass cards: Friendship Milestone + Friend Code */}
+        <div className="flex flex-1 flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-stretch sm:justify-end">
           {/* Friendship Milestone Card */}
-          <div className="flex w-full shrink-0 items-center gap-2.5 rounded-[14px] border border-primary-20 bg-gradient-to-l from-primary-10 via-[#f8f7ff] to-white px-3 py-2 sm:w-auto dark:border-border dark:from-muted/70 dark:via-muted/50 dark:to-card">
+          <div className="flex w-full shrink-0 items-center gap-3 rounded-2xl border border-white bg-white/90 px-3.5 py-2.5 shadow-[0_4px_14px_rgba(58,53,135,0.06)] sm:w-auto dark:border-border dark:bg-muted/45 dark:shadow-none">
             <img
               src={friendshipCalendarIcon}
               alt=""
@@ -239,7 +291,7 @@ export function ProfileHeroCard({
               height={48}
               className="size-11 shrink-0 object-contain drop-shadow-[0_4px_10px_rgba(86,80,176,0.18)] md:size-12"
             />
-            <div className="flex min-w-0 flex-col gap-0.5">
+            <div className="flex min-w-0 flex-col gap-0.5 text-start">
               <p className="text-sm font-bold whitespace-nowrap text-primary-80 dark:text-foreground">
                 آغاز این دوستی: {milestone.monthYear}
               </p>
@@ -253,19 +305,19 @@ export function ProfileHeroCard({
             </div>
           </div>
 
-          {/* Friend Code & Invite Card */}
-          <div className="flex w-full shrink-0 items-center justify-between gap-3 rounded-[14px] border border-secondary-20 bg-gradient-to-l from-secondary-10 via-[#f2fcfc] to-white py-2 ps-3 pe-2.5 sm:w-auto sm:justify-start dark:border-secondary-70/45 dark:from-secondary-80/35 dark:via-secondary-80/20 dark:to-card">
-            <div className="flex min-w-0 items-center gap-2.5">
+          {/* Friend Code Card */}
+          <div className="flex w-full shrink-0 items-center justify-between gap-3 rounded-2xl border border-white bg-white/90 py-2.5 ps-3.5 pe-2.5 shadow-[0_4px_14px_rgba(58,53,135,0.06)] sm:w-auto sm:justify-start dark:border-border dark:bg-muted/45 dark:shadow-none">
+            <div className="flex min-w-0 items-center gap-3">
               <img
                 src={friendInviteIcon}
                 alt=""
                 aria-hidden="true"
                 width={48}
                 height={48}
-                className="size-11 shrink-0 object-contain drop-shadow-[0_4px_10px_rgba(20,184,166,0.22)] md:size-12"
+                className="size-11 shrink-0 object-contain drop-shadow-[0_4px_10px_rgba(20,184,166,0.2)] md:size-12"
               />
               <div className="flex min-w-0 flex-col gap-0.5 text-start">
-                <span className="text-caption whitespace-nowrap text-secondary-80/80 dark:text-secondary-20/80">
+                <span className="text-caption whitespace-nowrap text-neutral-70 dark:text-muted-foreground">
                   کد دوستی شما
                 </span>
                 <span className="truncate text-sm font-bold tracking-wide text-primary-80 tabular-nums md:text-[15px] dark:text-foreground">
@@ -279,10 +331,11 @@ export function ProfileHeroCard({
                 type="button"
                 variant="outline"
                 size="icon-md"
+                disabled={!friendCode || friendCode === '—'}
                 onClick={() => void handleCopyCode()}
                 aria-label="کپی کد دوستی"
                 className={cn(
-                  'size-8.5 touch-manipulation rounded-[10px] border-secondary-70 text-secondary-70 hover:bg-secondary-10 dark:border-secondary-40/60 dark:text-secondary-30 dark:hover:bg-secondary-80/40',
+                  'size-9 touch-manipulation rounded-xl border-primary-20 bg-primary-10/60 text-primary-70 hover:bg-primary-10 dark:border-border dark:bg-card dark:text-primary-30 dark:hover:bg-muted',
                   copied &&
                     'border-success-50 bg-success-10 text-success-50 dark:border-success-40 dark:bg-success-60/20 dark:text-success-20',
                 )}
@@ -297,15 +350,18 @@ export function ProfileHeroCard({
                 type="button"
                 variant="outline"
                 size="icon-md"
+                disabled={isRegeneratingFriendCode}
                 onClick={handleRefreshCode}
                 aria-label="تولید کد دوستی جدید"
-                className="size-8.5 touch-manipulation rounded-[10px] border-secondary-70 text-secondary-70 hover:bg-secondary-10 dark:border-secondary-40/60 dark:text-secondary-30 dark:hover:bg-secondary-80/40"
+                className="size-9 touch-manipulation rounded-xl border-primary-20 bg-primary-10/60 text-primary-70 hover:bg-primary-10 dark:border-border dark:bg-card dark:text-primary-30 dark:hover:bg-muted"
               >
                 <RefreshCw
                   aria-hidden="true"
                   className={cn(
                     'size-4 transition-transform duration-500 motion-reduce:transition-none',
-                    isSpinning && 'rotate-360',
+                    isRegeneratingFriendCode
+                      ? 'animate-spin motion-reduce:animate-none'
+                      : isSpinning && 'rotate-360',
                   )}
                 />
               </Button>
@@ -313,6 +369,6 @@ export function ProfileHeroCard({
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 }

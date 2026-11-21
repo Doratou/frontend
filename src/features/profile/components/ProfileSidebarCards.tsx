@@ -19,7 +19,7 @@ export function ProfileTelegramCard({
   return (
     <section
       aria-label="ربات تلگرام"
-      className="flex flex-col gap-3.5 rounded-[20px] border border-primary-20 bg-white p-4.5 md:p-5 dark:border-border dark:bg-card"
+      className="flex flex-col gap-3.5 rounded-[20px] border border-white bg-white/95 p-4.5 shadow-[0_4px_14px_rgba(58,53,135,0.05)] md:p-5 dark:border-border dark:bg-muted/45 dark:shadow-none"
     >
       <div className="flex items-center justify-between gap-2.5">
         <div className="flex min-w-0 items-center gap-2.5">
@@ -87,7 +87,7 @@ export function ProfileSettingsCard({
   return (
     <section
       aria-label="تنظیمات"
-      className="flex h-full flex-col rounded-[20px] border border-primary-20 bg-white p-4.5 md:p-5 dark:border-border dark:bg-card"
+      className="flex h-full flex-col rounded-[20px] border border-white bg-white/95 p-4.5 shadow-[0_4px_14px_rgba(58,53,135,0.05)] md:p-5 dark:border-border dark:bg-muted/45 dark:shadow-none"
     >
       <div className="flex flex-col gap-0.5 pb-2">
         <h2 className="text-heading-6 text-primary-80 md:text-heading-5 dark:text-foreground">
@@ -230,7 +230,7 @@ export function ProfileAccountActionsCard({
     <>
       <section
         aria-label="عملیات حساب کاربری"
-        className="grid grid-cols-1 rounded-[20px] border border-primary-20 bg-white p-4 md:grid-cols-2 md:p-5 dark:border-border dark:bg-card"
+        className="grid grid-cols-1 rounded-[20px] border border-white bg-white/95 p-4 shadow-[0_4px_14px_rgba(58,53,135,0.05)] md:grid-cols-2 md:p-5 dark:border-border dark:bg-muted/45 dark:shadow-none"
       >
         {/* Logout Section */}
         <div className="flex flex-col gap-3 pb-3.5 sm:flex-row sm:items-center sm:justify-between md:pe-5 md:pb-0">
@@ -305,7 +305,6 @@ export function ProfileAccountActionsCard({
         tone="danger"
         isLoading={isDeletingAccount}
         onConfirm={() => {
-          setDeleteDialogOpen(false);
           onDeleteAccount();
         }}
       />
