@@ -6,3 +6,5 @@ export { GROUP_HEADER_ASSETS } from './groupHeaderAssets';
 // export { GroupHeaderMobile, default } from './GroupHeaderMobile';
 export { GroupHeaderMobile } from './GroupHeaderMobile';
 export { MemberAvatar } from './MemberAvatar';
+export { GroupSettingsDialog } from './GroupSettingsDialog';
+export { InviteMemberDialog } from './InviteMemberDialog';
