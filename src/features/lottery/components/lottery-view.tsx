@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
+import { LoaderPinwheel, Plus } from 'lucide-react';
 import { ErrorState } from '@/components/custom/error-state';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { GroupPageHeader } from '@/components/custom/group-page-header';
 import { LotteryCreateDialog } from '@/features/lottery/components/lottery-create-dialog';
 import { LotteryDetailsDialog } from '@/features/lottery/components/lottery-details-dialog';
 import { LotteryEmptyState } from '@/features/lottery/components/lottery-empty-state';
 import { LotteryHistory } from '@/features/lottery/components/lottery-history';
-import { LotteryPageHeader } from '@/features/lottery/components/lottery-page-header';
 import { LotteryStage } from '@/features/lottery/components/lottery-stage';
 import type { LotteryDraft } from '@/features/lottery/draft';
 import { useActiveLottery } from '@/features/lottery/hooks/use-active-lottery';
@@ -217,12 +218,23 @@ function LotteryContent({
 
   return (
     <div className="flex flex-col gap-4">
-      <LotteryPageHeader
-        disabled={isLocked || isCheckingDraft || hasDraft}
-        disabledReason={
-          hasDraft ? 'ابتدا قرعه‌کشی فعلی را اجرا کنید.' : undefined
+      <GroupPageHeader
+        title="قرعه‌کشی"
+        logo={<LoaderPinwheel className="size-6" />}
+        action={
+          <Button
+            size="lg"
+            tone="secondary"
+            radius="lg"
+            className="shrink-0 bg-secondary-70 hover:bg-secondary-80 max-sm:w-10.5 max-sm:px-0"
+            disabled={isLocked || isCheckingDraft || hasDraft}
+            title={hasDraft ? 'ابتدا قرعه‌کشی فعلی را اجرا کنید.' : undefined}
+            onClick={openCreate}
+            endIcon={<Plus />}
+          >
+            <span className="max-sm:sr-only">قرعه‌کشی جدید</span>
+          </Button>
         }
-        onCreate={openCreate}
       />
       {draft !== null && hasDraft && (
         <div

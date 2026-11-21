@@ -4,6 +4,7 @@ import { EmptyState } from '@/components/custom/empty-state';
 import { ErrorState } from '@/components/custom/error-state';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { GroupPageHeader } from '@/components/custom/group-page-header';
 import { usePolls } from '@/features/poll/api/get-polls';
 import { useCurrentGroupId } from '@/features/poll/hooks/use-current-group-id';
 import { useMyMemberId } from '@/features/poll/hooks/use-my-member-id';
@@ -70,27 +71,21 @@ export function PollListView() {
 
   return (
     <div className="flex flex-col gap-3">
-      <header className="flex items-center justify-between gap-3 rounded-2xl border border-secondary-20 bg-secondary-10 p-2.5">
-        <div className="flex items-center gap-2.5">
-          <span
-            aria-hidden="true"
-            className="grid size-9 place-items-center rounded-lg bg-secondary-70 text-white"
+      <GroupPageHeader
+        title="نظرسنجی"
+        logo={<BarChart2 className="size-5" />}
+        action={
+          <Button
+            tone="secondary"
+            radius="md"
+            endIcon={<Plus className="size-4" />}
+            onClick={() => setIsCreateOpen(true)}
+            className="shrink-0 max-[400px]:w-8.75 max-[400px]:px-0"
           >
-            <BarChart2 className="size-5" />
-          </span>
-          <h1 className="text-heading-5 text-primary-80">نظرسنجی</h1>
-        </div>
-        {/* On very narrow screens only the icon is shown; the label stays for screen readers. */}
-        <Button
-          tone="secondary"
-          radius="md"
-          endIcon={<Plus className="size-4" />}
-          onClick={() => setIsCreateOpen(true)}
-          className="shrink-0 max-[400px]:w-8.75 max-[400px]:px-0"
-        >
-          <span className="max-[400px]:sr-only">نظرسنجی جدید</span>
-        </Button>
-      </header>
+            <span className="max-[400px]:sr-only">نظرسنجی جدید</span>
+          </Button>
+        }
+      />
 
       <div className="flex flex-col gap-8 rounded-3xl border border-secondary-60 p-3 sm:p-6">
         {isPending ? (
