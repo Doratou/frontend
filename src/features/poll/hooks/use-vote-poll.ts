@@ -48,7 +48,7 @@ export function useVotePoll(groupId: string) {
     },
     // Sync with the server (lists and voters) without keeping the mutation pending.
     onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: pollKeys.all });
+      void queryClient.invalidateQueries({ queryKey: pollKeys.group(groupId) });
     },
   });
 }

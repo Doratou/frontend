@@ -1,7 +1,7 @@
 import { queryOptions, useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import { groupVotersByOption, voterPageSchema } from './contracts';
-import { fetchAllPages } from './pagination';
+import { fetchAllPages } from '@/lib/api/pagination';
 import { pollPath, pollRequest, unwrap } from './poll-http';
 import { pollKeys } from './query-keys';
 import type { PollOptionVoters } from '@/features/poll/types';
@@ -27,7 +27,7 @@ export async function getPollVoters(
 
 export const pollVotersQueryOptions = (groupId: string, pollId: string) =>
   queryOptions({
-    queryKey: pollKeys.voters(pollId),
+    queryKey: pollKeys.voters(groupId, pollId),
     queryFn: ({ signal }) => getPollVoters(groupId, pollId, signal),
   });
 

@@ -1,7 +1,7 @@
 import { queryOptions, useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import { pollPageSchema } from './contracts';
-import { fetchAllPages } from './pagination';
+import { fetchAllPages } from '@/lib/api/pagination';
 import { groupPollsPath, pollRequest, unwrap } from './poll-http';
 import { pollKeys } from './query-keys';
 import type { Poll } from '@/features/poll/types';

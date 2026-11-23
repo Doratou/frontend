@@ -26,7 +26,7 @@ import {
   MIN_POLL_OPTIONS,
 } from '@/features/poll/config';
 import { useCreatePoll } from '@/features/poll/hooks/use-create-poll';
-import { useCurrentGroupId } from '@/features/poll/hooks/use-current-group-id';
+import { useGroupId } from '@/features/groups/hooks/use-group-id';
 import {
   createPollSchema,
   type CreatePollFormValues,
@@ -92,7 +92,7 @@ function SettingSwitchCard({
 }
 
 export function CreatePollForm({ onDone }: { onDone: () => void }) {
-  const groupId = useCurrentGroupId();
+  const groupId = useGroupId();
   const createPoll = useCreatePoll(groupId);
   const baseId = useId();
   const optionsHeadingId = `${baseId}-options`;
@@ -194,10 +194,7 @@ export function CreatePollForm({ onDone }: { onDone: () => void }) {
                       error={errors.options?.[index]?.text?.message}
                       description={
                         length >= OPTION_COUNTER_THRESHOLD ? (
-                          <CharCounter
-                            length={length}
-                            max={MAX_OPTION_LENGTH}
-                          />
+                          <CharCounter length={length} max={MAX_OPTION_LENGTH} />
                         ) : undefined
                       }
                       {...register(`options.${index}.text`)}
