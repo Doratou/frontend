@@ -81,6 +81,10 @@ export const routes: RouteObject[] = [
         lazy: () => import('@/app/pages/poll'),
       },
       {
+        path: 'checklist',
+        lazy: () => import('@/app/pages/checklist'),
+      },
+      {
         path: 'notification',
         element: <p>نظرسنجی</p>,
       },
