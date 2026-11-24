@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import {
   Check,
+  ChevronDown,
   Gift,
   Image,
   Mail,
@@ -89,6 +91,7 @@ export function ProfileCompletionCard({
     },
   ];
 
+  const [isMobileExpanded, setIsMobileExpanded] = useState(false);
   const completedCount = steps.filter((step) => step.completed).length;
   const totalCount = steps.length;
   const percentage = Math.round((completedCount / totalCount) * 100);
@@ -97,60 +100,83 @@ export function ProfileCompletionCard({
   return (
     <section aria-label="تکمیل پروفایل" className="flex h-full flex-col gap-3">
       {/* Airy bright white-lavender completion banner with 3D gift box */}
-      <div className="relative flex items-center justify-between gap-4 overflow-hidden rounded-[20px] border border-white bg-gradient-to-l from-white via-[#faf9ff] to-[#f4f1ff] px-4 py-4 shadow-[0_6px_18px_rgba(58,53,135,0.06)] sm:px-5 sm:py-4.5 dark:border-border dark:from-muted/60 dark:via-muted/45 dark:to-card dark:shadow-none">
-        {/* Start side: Title, subtitle, large percentage & violet progress bar */}
-        <div className="relative flex min-w-0 flex-1 flex-col gap-2">
-          <div className="flex items-end justify-between gap-3">
-            <div className="min-w-0">
-              <h2 className="text-heading-5 text-primary-80 sm:text-heading-4 dark:text-foreground">
-                تکمیل پروفایل
-              </h2>
-              <p className="text-caption text-primary-70/80 sm:text-paragraph-sm dark:text-muted-foreground">
-                {allCompleted
-                  ? 'تبریک! همه‌ی مراحل تکمیل شد و ۳ توکن هدیه دریافت کردید'
-                  : 'با تکمیل همه‌ی مراحل ۳ توکن هدیه می‌گیرید'}
+      <div className="overflow-hidden rounded-[20px] border border-white bg-gradient-to-l from-white via-[#faf9ff] to-[#f4f1ff] shadow-[0_6px_18px_rgba(58,53,135,0.06)] dark:border-border dark:from-muted/60 dark:via-muted/45 dark:to-card dark:shadow-none">
+        <div className="relative flex items-center justify-between gap-4 px-4 py-4 sm:px-5 sm:py-4.5">
+          {/* Start side: Title, subtitle, large percentage & violet progress bar */}
+          <div className="relative flex min-w-0 flex-1 flex-col gap-2">
+            <div className="flex items-end justify-between gap-3">
+              <div className="min-w-0">
+                <h2 className="text-heading-5 text-primary-80 sm:text-heading-4 dark:text-foreground">
+                  تکمیل پروفایل
+                </h2>
+                <p className="text-caption text-primary-70/80 sm:text-paragraph-sm dark:text-muted-foreground">
+                  {allCompleted
+                    ? 'تبریک! همه‌ی مراحل تکمیل شد و ۳ توکن هدیه دریافت کردید'
+                    : 'با تکمیل همه‌ی مراحل ۳ توکن هدیه می‌گیرید'}
+                </p>
+              </div>
+              <span className="shrink-0 text-heading-3 leading-none font-bold text-primary-70 tabular-nums sm:text-heading-2 dark:text-primary-20">
+                {formatNumber(percentage)}٪
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-1.5 pt-0.5">
+              <div
+                role="progressbar"
+                aria-label="درصد تکمیل پروفایل"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={percentage}
+                className="h-2.5 w-full overflow-hidden rounded-full bg-[#dbd5ff] dark:bg-primary-80/50"
+              >
+                <div
+                  className="h-full rounded-full bg-gradient-to-l from-[#8b5cf6] to-[#6347f5] transition-[width] duration-300 motion-reduce:transition-none"
+                  style={{ width: `${percentage}%` }}
+                />
+              </div>
+
+              <p className="text-caption text-neutral-60 tabular-nums dark:text-muted-foreground">
+                {formatNumber(completedCount)} از {formatNumber(totalCount)}{' '}
+                مرحله انجام شده
               </p>
             </div>
-            <span className="shrink-0 text-heading-3 leading-none font-bold text-primary-70 tabular-nums sm:text-heading-2 dark:text-primary-20">
-              {formatNumber(percentage)}٪
-            </span>
           </div>
 
-          <div className="flex flex-col gap-1.5 pt-0.5">
-            <div
-              role="progressbar"
-              aria-label="درصد تکمیل پروفایل"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={percentage}
-              className="h-2.5 w-full overflow-hidden rounded-full bg-[#dbd5ff] dark:bg-primary-80/50"
-            >
-              <div
-                className="h-full rounded-full bg-gradient-to-l from-[#8b5cf6] to-[#6347f5] transition-[width] duration-300 motion-reduce:transition-none"
-                style={{ width: `${percentage}%` }}
-              />
-            </div>
-
-            <p className="text-caption text-neutral-60 tabular-nums dark:text-muted-foreground">
-              {formatNumber(completedCount)} از {formatNumber(totalCount)} مرحله
-              انجام شده
-            </p>
-          </div>
+          {/* End side: 3D Gift Box illustration */}
+          <img
+            src={completionGiftIcon}
+            alt=""
+            aria-hidden="true"
+            width={96}
+            height={96}
+            className="relative size-18 shrink-0 object-contain drop-shadow-[0_8px_16px_rgba(124,92,255,0.18)] sm:size-23"
+          />
         </div>
 
-        {/* End side: 3D Gift Box illustration */}
-        <img
-          src={completionGiftIcon}
-          alt=""
-          aria-hidden="true"
-          width={96}
-          height={96}
-          className="relative size-18 shrink-0 object-contain drop-shadow-[0_8px_16px_rgba(124,92,255,0.18)] sm:size-23"
-        />
+        <button
+          type="button"
+          aria-expanded={isMobileExpanded}
+          onClick={() => setIsMobileExpanded((open) => !open)}
+          className="flex w-full touch-manipulation items-center justify-center gap-1.5 border-t border-primary-10 bg-primary-10/35 py-2.5 text-caption font-medium text-primary-70 transition-colors hover:bg-primary-10/60 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring md:hidden"
+        >
+          <span>{isMobileExpanded ? 'بستن مراحل' : 'مشاهده مراحل تکمیل'}</span>
+          <ChevronDown
+            aria-hidden="true"
+            className={cn(
+              'size-4 transition-transform duration-200 motion-reduce:transition-none',
+              isMobileExpanded && 'rotate-180',
+            )}
+          />
+        </button>
       </div>
 
       {/* Floating frosted-white step pills directly on lavender canvas */}
-      <div className="grid flex-1 auto-rows-fr grid-cols-1 gap-2.5 sm:grid-cols-2">
+      <div
+        className={cn(
+          'flex-1 auto-rows-fr grid-cols-1 gap-2.5 sm:grid-cols-2',
+          isMobileExpanded ? 'grid' : 'hidden md:grid',
+        )}
+      >
         {steps.map((step) => {
           const StepIcon = step.icon;
           return (

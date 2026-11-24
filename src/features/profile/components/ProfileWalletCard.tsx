@@ -18,7 +18,7 @@ export function ProfileWalletCard({
   return (
     <section
       aria-label="کیف پول من"
-      className="relative flex flex-col justify-between gap-4 overflow-hidden rounded-[22px] px-5 pt-5 pb-4.5 text-white shadow-[0_14px_30px_rgba(34,24,108,0.28)]"
+      className="relative flex flex-col justify-between gap-4 overflow-hidden rounded-[20px] px-5 pt-5 pb-4.5 text-white shadow-[0_14px_30px_rgba(34,24,108,0.28)]"
       style={{
         backgroundImage:
           'linear-gradient(165deg, #6c47d9 0%, #4d33b8 46%, #312192 78%, #22176e 100%)',
@@ -59,13 +59,13 @@ export function ProfileWalletCard({
           className="pointer-events-none absolute -end-1.5 -top-2 flex size-29 items-center justify-center sm:size-31"
         >
           {/* Soft floor shadow under chest */}
-          <span className="absolute bottom-2 size-20 h-4 rounded-full bg-[#140c47]/55 blur-md" />
+          <span className="absolute bottom-2 h-4 w-20 rounded-full bg-[#140c47]/55 blur-md" />
           <img
             src={walletChestIcon}
             alt=""
             width={124}
             height={124}
-            className="relative size-full -scale-x-100 object-contain drop-shadow-[0_10px_18px_rgba(18,10,60,0.45)]"
+            className="relative size-full object-contain drop-shadow-[0_10px_18px_rgba(18,10,60,0.45)] rtl:-scale-x-100"
           />
         </div>
       </div>

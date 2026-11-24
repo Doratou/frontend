@@ -127,7 +127,7 @@ export function HomeHeader({
 
         <h1
           dir="auto"
-          className="min-w-0 truncate text-right text-heading-mobile-4 text-primary-80 md:text-heading-4"
+          className="min-w-0 truncate text-start text-heading-mobile-4 text-primary-80 md:text-heading-4"
         >
           {title}
         </h1>
@@ -159,7 +159,7 @@ export function HomeHeader({
             <span
               aria-hidden="true"
               className={cn(
-                'pointer-events-none absolute top-1.25 right-1.5 size-2.25 rounded-full border-[1.5px] bg-danger-40 transition-colors md:top-1.5 md:right-1.75 md:size-2.5',
+                'pointer-events-none absolute start-1.5 top-1.25 size-2.25 rounded-full border-[1.5px] bg-danger-40 transition-colors md:start-1.75 md:top-1.5 md:size-2.5',
                 isNotificationsOpen ? 'border-primary-60' : 'border-primary-10',
               )}
             />
@@ -175,7 +175,7 @@ export function HomeHeader({
           aria-haspopup="dialog"
           aria-controls={isProfileOpen ? profileMenuId : undefined}
           className={cn(
-            'flex h-8.5 shrink-0 items-center gap-1 rounded-full border-[1.5px] bg-primary-10 py-0.5 pr-1.75 pl-0.75 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-60 md:h-9.5 md:py-0.75 md:pr-2 md:pl-0.75',
+            'flex h-8.5 shrink-0 items-center gap-1 rounded-full border-[1.5px] bg-primary-10 py-0.5 ps-1.75 pe-0.75 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-60 md:h-9.5 md:py-0.75 md:ps-2 md:pe-0.75',
             isProfileOpen
               ? 'border-primary-60'
               : 'border-primary-20 hover:border-primary-30 hover:bg-primary-20/40',
@@ -203,7 +203,7 @@ export function HomeHeader({
           <motion.div
             key={openMenu}
             {...(reducedMotion ? REDUCED_MENU_MOTION : MENU_MOTION)}
-            className="absolute top-[calc(100%+6px)] left-2 z-40 origin-top-left md:left-2.5"
+            className="absolute end-2 top-[calc(100%+6px)] z-40 md:end-2.5 ltr:origin-top-right rtl:origin-top-left"
           >
             {isProfileOpen ? (
               <ProfileMenu

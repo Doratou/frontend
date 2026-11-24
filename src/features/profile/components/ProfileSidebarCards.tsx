@@ -1,5 +1,12 @@
 import { useId, useState } from 'react';
-import { Bell, LogOut, Moon, Send, Trash2 } from 'lucide-react';
+import {
+  Bell,
+  ChevronDown,
+  LogOut,
+  Send,
+  Trash2,
+  type LucideIcon,
+} from 'lucide-react';
 import { ConfirmDialog } from '@/components/custom/confirm-dialog';
 import { LoadingButton } from '@/components/custom/loading-button';
 import { Button } from '@/components/ui/button';
@@ -9,17 +16,23 @@ import type { ProfilePreferences } from '../types';
 
 export interface ProfileTelegramCardProps {
   isConnected: boolean;
+  embedded?: boolean;
   onToggleConnection: () => void;
 }
 
 export function ProfileTelegramCard({
   isConnected,
+  embedded = false,
   onToggleConnection,
 }: ProfileTelegramCardProps) {
   return (
     <section
       aria-label="ربات تلگرام"
-      className="flex flex-col gap-3.5 rounded-[20px] border border-white bg-white/95 p-4.5 shadow-[0_4px_14px_rgba(58,53,135,0.05)] md:p-5 dark:border-border dark:bg-muted/45 dark:shadow-none"
+      className={cn(
+        'flex flex-col gap-3.5',
+        !embedded &&
+          'rounded-[20px] border border-white bg-white/95 p-4.5 shadow-[0_4px_14px_rgba(58,53,135,0.05)] md:p-5 dark:border-border dark:bg-muted/45 dark:shadow-none',
+      )}
     >
       <div className="flex items-center justify-between gap-2.5">
         <div className="flex min-w-0 items-center gap-2.5">
@@ -66,9 +79,69 @@ export function ProfileTelegramCard({
   );
 }
 
+function SettingsToggleRow({
+  icon: Icon,
+  title,
+  description,
+  checked,
+  disabled = false,
+  className = 'py-3',
+  onCheckedChange,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  checked: boolean;
+  disabled?: boolean;
+  className?: string;
+  onCheckedChange: (checked: boolean) => void;
+}) {
+  const id = useId();
+  return (
+    <div
+      className={cn(
+        'flex items-center justify-between gap-3 transition-opacity',
+        disabled && 'opacity-55',
+        className,
+      )}
+    >
+      <div className="flex min-w-0 items-center gap-2.5">
+        <div
+          aria-hidden="true"
+          className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary-10 text-primary-70 dark:bg-muted dark:text-primary-30"
+        >
+          <Icon className="size-4.5" />
+        </div>
+        <label
+          htmlFor={id}
+          className={cn(
+            'flex min-w-0 flex-col gap-0.5',
+            disabled ? 'cursor-not-allowed' : 'cursor-pointer',
+          )}
+        >
+          <span className="truncate text-button-sm text-neutral-80 dark:text-foreground">
+            {title}
+          </span>
+          <span className="truncate text-caption text-neutral-70 dark:text-muted-foreground">
+            {description}
+          </span>
+        </label>
+      </div>
+      <Switch
+        id={id}
+        disabled={disabled}
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        className="data-checked:bg-primary-70 dark:data-checked:bg-primary-40"
+      />
+    </div>
+  );
+}
+
 export interface ProfileSettingsCardProps {
   preferences: ProfilePreferences;
   isTelegramConnected: boolean;
+  mobileExtraContent?: React.ReactNode;
   onChangePreference: <K extends keyof ProfilePreferences>(
     key: K,
     value: ProfilePreferences[K],
@@ -78,134 +151,85 @@ export interface ProfileSettingsCardProps {
 export function ProfileSettingsCard({
   preferences,
   isTelegramConnected,
+  mobileExtraContent,
   onChangePreference,
 }: ProfileSettingsCardProps) {
-  const appNotifId = useId();
-  const telegramNotifId = useId();
-  const darkModeId = useId();
+  const [isMobileExpanded, setIsMobileExpanded] = useState(false);
 
   return (
     <section
       aria-label="تنظیمات"
       className="flex h-full flex-col rounded-[20px] border border-white bg-white/95 p-4.5 shadow-[0_4px_14px_rgba(58,53,135,0.05)] md:p-5 dark:border-border dark:bg-muted/45 dark:shadow-none"
     >
-      <div className="flex flex-col gap-0.5 pb-2">
-        <h2 className="text-heading-6 text-primary-80 md:text-heading-5 dark:text-foreground">
-          تنظیمات
-        </h2>
-        <p className="text-caption text-neutral-70 dark:text-muted-foreground">
-          ظاهر و اعلان‌های حساب شما
-        </p>
+      <div className="relative flex items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-col gap-0.5 md:pb-2">
+          <h2 className="text-heading-6 text-primary-80 md:text-heading-5 dark:text-foreground">
+            تنظیمات
+          </h2>
+          <p className="text-caption text-neutral-70 dark:text-muted-foreground">
+            ظاهر و اعلان‌های حساب شما
+          </p>
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="icon-md"
+          radius="full"
+          aria-expanded={isMobileExpanded}
+          aria-label={isMobileExpanded ? 'بستن تنظیمات' : 'نمایش تنظیمات'}
+          onClick={() => setIsMobileExpanded((open) => !open)}
+          className="size-8.5 shrink-0 border-primary-20 bg-primary-10/70 text-primary-70 after:absolute after:inset-0 hover:bg-primary-10 md:hidden md:after:hidden"
+        >
+          <ChevronDown
+            aria-hidden="true"
+            className={cn(
+              'size-4 transition-transform duration-200 motion-reduce:transition-none',
+              isMobileExpanded && 'rotate-180',
+            )}
+          />
+        </Button>
       </div>
 
-      <div className="flex flex-1 flex-col justify-between">
-        {/* App Notifications */}
-        <div className="flex items-center justify-between gap-3 py-3">
-          <div className="flex min-w-0 items-center gap-2.5">
-            <div
-              aria-hidden="true"
-              className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary-10 text-primary-70 dark:bg-muted dark:text-primary-30"
-            >
-              <Bell className="size-4.5" />
-            </div>
-            <label
-              htmlFor={appNotifId}
-              className="flex min-w-0 cursor-pointer flex-col gap-0.5"
-            >
-              <span className="truncate text-button-sm text-neutral-80 dark:text-foreground">
-                اعلان‌های برنامه
-              </span>
-              <span className="truncate text-caption text-neutral-70 dark:text-muted-foreground">
-                دریافت اعلان درخواست‌ها و رویدادها
-              </span>
-            </label>
-          </div>
-          <Switch
-            id={appNotifId}
-            checked={preferences.appNotifications}
-            onCheckedChange={(checked) =>
-              onChangePreference('appNotifications', checked)
-            }
-            className="data-checked:bg-primary-70 dark:data-checked:bg-primary-40"
-          />
-        </div>
+      <div
+        className={cn(
+          'flex-col pt-2 md:pt-0',
+          isMobileExpanded ? 'flex' : 'hidden md:flex',
+        )}
+      >
+        <SettingsToggleRow
+          icon={Bell}
+          title="اعلان‌های برنامه"
+          description="دریافت اعلان درخواست‌ها و رویدادها"
+          checked={preferences.appNotifications}
+          onCheckedChange={(checked) =>
+            onChangePreference('appNotifications', checked)
+          }
+        />
 
         <div className="h-px w-full bg-primary-10 dark:bg-border/70" />
 
-        {/* Telegram Notifications */}
-        <div
-          className={cn(
-            'flex items-center justify-between gap-3 py-3 transition-opacity',
-            !isTelegramConnected && 'opacity-55',
-          )}
-        >
-          <div className="flex min-w-0 items-center gap-2.5">
-            <div
-              aria-hidden="true"
-              className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary-10 text-primary-70 dark:bg-muted dark:text-primary-30"
-            >
-              <Send className="size-4.5" />
-            </div>
-            <label
-              htmlFor={telegramNotifId}
-              className={cn(
-                'flex min-w-0 flex-col gap-0.5',
-                isTelegramConnected ? 'cursor-pointer' : 'cursor-not-allowed',
-              )}
-            >
-              <span className="truncate text-button-sm text-neutral-80 dark:text-foreground">
-                اعلان‌های تلگرام
-              </span>
-              <span className="truncate text-caption text-neutral-70 dark:text-muted-foreground">
-                {isTelegramConnected
-                  ? 'دریافت اعلان‌ها در ربات تلگرام'
-                  : 'ابتدا حساب تلگرام را وصل کنید'}
-              </span>
-            </label>
-          </div>
-          <Switch
-            id={telegramNotifId}
-            disabled={!isTelegramConnected}
-            checked={isTelegramConnected && preferences.telegramNotifications}
-            onCheckedChange={(checked) =>
-              onChangePreference('telegramNotifications', checked)
-            }
-            className="data-checked:bg-primary-70 dark:data-checked:bg-primary-40"
-          />
-        </div>
+        <SettingsToggleRow
+          icon={Send}
+          title="اعلان‌های تلگرام"
+          description={
+            isTelegramConnected
+              ? 'دریافت اعلان‌ها در ربات تلگرام'
+              : 'ابتدا حساب تلگرام را وصل کنید'
+          }
+          disabled={!isTelegramConnected}
+          checked={isTelegramConnected && preferences.telegramNotifications}
+          className="pt-3"
+          onCheckedChange={(checked) =>
+            onChangePreference('telegramNotifications', checked)
+          }
+        />
 
-        <div className="h-px w-full bg-primary-10 dark:bg-border/70" />
-
-        {/* Dark Mode */}
-        <div className="flex items-center justify-between gap-3 pt-3">
-          <div className="flex min-w-0 items-center gap-2.5">
-            <div
-              aria-hidden="true"
-              className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary-10 text-primary-70 dark:bg-muted dark:text-primary-30"
-            >
-              <Moon className="size-4.5" />
-            </div>
-            <label
-              htmlFor={darkModeId}
-              className="flex min-w-0 cursor-pointer flex-col gap-0.5"
-            >
-              <span className="truncate text-button-sm text-neutral-80 dark:text-foreground">
-                حالت تاریک
-              </span>
-              <span className="truncate text-caption text-neutral-70 dark:text-muted-foreground">
-                تغییر ظاهر برنامه
-              </span>
-            </label>
+        {mobileExtraContent && (
+          <div className="flex flex-col gap-3.5 pt-3 md:hidden">
+            {mobileExtraContent}
           </div>
-          <Switch
-            id={darkModeId}
-            checked={preferences.darkMode}
-            onCheckedChange={(checked) =>
-              onChangePreference('darkMode', checked)
-            }
-            className="data-checked:bg-primary-70 dark:data-checked:bg-primary-40"
-          />
-        </div>
+        )}
       </div>
     </section>
   );
@@ -232,7 +256,6 @@ export function ProfileAccountActionsCard({
         aria-label="عملیات حساب کاربری"
         className="grid grid-cols-1 rounded-[20px] border border-white bg-white/95 p-4 shadow-[0_4px_14px_rgba(58,53,135,0.05)] md:grid-cols-2 md:p-5 dark:border-border dark:bg-muted/45 dark:shadow-none"
       >
-        {/* Logout Section */}
         <div className="flex flex-col gap-3 pb-3.5 sm:flex-row sm:items-center sm:justify-between md:pe-5 md:pb-0">
           <div className="flex min-w-0 items-center gap-3">
             <div
@@ -264,7 +287,6 @@ export function ProfileAccountActionsCard({
           </LoadingButton>
         </div>
 
-        {/* Delete Account Section */}
         <div className="flex flex-col gap-3 border-t border-primary-10 pt-3.5 sm:flex-row sm:items-center sm:justify-between md:border-s md:border-t-0 md:ps-5 md:pt-0 dark:border-border/70">
           <div className="flex min-w-0 items-center gap-3">
             <div
@@ -304,9 +326,7 @@ export function ProfileAccountActionsCard({
         loadingText="در حال حذف…"
         tone="danger"
         isLoading={isDeletingAccount}
-        onConfirm={() => {
-          onDeleteAccount();
-        }}
+        onConfirm={onDeleteAccount}
       />
     </>
   );

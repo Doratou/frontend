@@ -32,30 +32,23 @@ export const profileUserDtoSchema = z.object({
 
 export type ProfileUserDto = z.infer<typeof profileUserDtoSchema>;
 
-export const walletDtoSchema = z.object({
-  wallet: z.number(),
-});
-
 export const deleteAccountDtoSchema = z.object({
   message: z.string().optional(),
 });
 
 export function mapUserDtoToProfile(dto: ProfileUserDto): UserProfile {
-  const email = dto.email?.trim() || null;
-  const phone = dto.phone?.trim() || null;
-  const name = dto.name?.trim() || '';
-
+  const parsedJoinedAt = dto.created_at ? Date.parse(dto.created_at) : NaN;
   return {
     id: String(dto.id),
-    displayName: name,
+    displayName: dto.name?.trim() || '',
     role: dto.system_role,
     status: dto.status ?? 'ACTIVE',
-    joinedAt: dto.created_at ?? '',
+    joinedAtMs: Number.isFinite(parsedJoinedAt) ? parsedJoinedAt : null,
     avatarAttachmentId: dto.avatar_attachment_id ?? null,
     friendCode: dto.friend_code?.trim() || '',
     walletBalance: typeof dto.wallet === 'number' ? dto.wallet : 0,
-    email,
-    phone,
+    email: dto.email?.trim() || null,
+    phone: dto.phone?.trim() || null,
     isEmailVerified: Boolean(dto.is_email_verified),
     isPhoneVerified: Boolean(dto.is_phone_verified),
     isTelegramConnected: Boolean(dto.telegram_chat_id || dto.telegram_user_id),

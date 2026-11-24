@@ -11,7 +11,7 @@ export interface NotificationsMenuProps {
 }
 
 const ITEM_SURFACE_CLASS =
-  'flex w-full shrink-0 flex-col gap-0.5 rounded-xl bg-primary-10 px-2.5 py-2 text-right';
+  'flex w-full shrink-0 flex-col gap-0.5 rounded-xl bg-primary-10 px-2.5 py-2 text-start';
 
 function NotificationText({
   title,
@@ -50,7 +50,7 @@ export function NotificationsMenu({
       aria-label="اعلان ها"
       className="flex w-[min(300px,calc(100vw-16px))] flex-col gap-2 rounded-2xl border border-primary-20 bg-white p-2.5 shadow-[0_4px_8px_-2px_rgba(0,0,0,0.12)] md:w-78"
     >
-      <h2 className="w-full text-right text-xs leading-5 font-bold text-neutral-70">
+      <h2 className="w-full text-start text-xs leading-5 font-bold text-neutral-70">
         اعلان ها
       </h2>
 

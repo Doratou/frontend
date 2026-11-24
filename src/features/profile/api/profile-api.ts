@@ -8,7 +8,6 @@ import {
   mapUserDtoToProfile,
   profileEnvelopeSchema,
   profileUserDtoSchema,
-  walletDtoSchema,
 } from './contracts';
 import { profileKeys } from './query-keys';
 
@@ -29,11 +28,6 @@ export async function getMyProfile(signal?: AbortSignal): Promise<UserProfile> {
   return mapUserDtoToProfile(
     parseEnvelopeData(response.data, profileUserDtoSchema),
   );
-}
-
-export async function getMyWallet(signal?: AbortSignal): Promise<number> {
-  const response = await apiClient.get<unknown>('/users/me/wallet', { signal });
-  return parseEnvelopeData(response.data, walletDtoSchema).wallet;
 }
 
 export async function updateProfileName(
@@ -104,59 +98,27 @@ export async function deleteMyAccount(signal?: AbortSignal): Promise<void> {
   parseEnvelopeData(response.data, deleteAccountDtoSchema);
 }
 
-export function useMyProfileQuery(options?: { enabled?: boolean }) {
+export function useMyProfileQuery(options?: {
+  enabled?: boolean;
+  onData?: (profile: UserProfile) => void;
+}) {
   return useQuery({
     queryKey: profileKeys.me(),
-    queryFn: ({ signal }) => getMyProfile(signal),
+    queryFn: async ({ signal }) => {
+      const profile = await getMyProfile(signal);
+      options?.onData?.(profile);
+      return profile;
+    },
     enabled: options?.enabled ?? true,
   });
 }
 
-export function useUpdateProfileNameMutation() {
+export function useProfileUpdateMutation<TInput = void>(
+  mutationFn: (input: TInput) => Promise<UserProfile>,
+) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: { name: string }) => updateProfileName(input),
-    onSuccess: (next) => {
-      queryClient.setQueryData(profileKeys.me(), next);
-    },
-  });
-}
-
-export function useUpdateProfileEmailMutation() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (input: { email: string }) => updateProfileEmail(input),
-    onSuccess: (next) => {
-      queryClient.setQueryData(profileKeys.me(), next);
-    },
-  });
-}
-
-export function useUpdateProfilePhoneMutation() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (input: { phone: string }) => updateProfilePhone(input),
-    onSuccess: (next) => {
-      queryClient.setQueryData(profileKeys.me(), next);
-    },
-  });
-}
-
-export function useRegenerateFriendCodeMutation() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: () => regenerateFriendCode(),
-    onSuccess: (next) => {
-      queryClient.setQueryData(profileKeys.me(), next);
-    },
-  });
-}
-
-export function useUpdateProfileAvatarMutation() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (input: { avatarAttachmentId: number }) =>
-      updateProfileAvatar(input),
+    mutationFn: (input: TInput) => mutationFn(input),
     onSuccess: (next) => {
       queryClient.setQueryData(profileKeys.me(), next);
     },

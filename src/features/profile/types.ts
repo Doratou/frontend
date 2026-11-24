@@ -6,7 +6,7 @@ export interface UserProfile {
   displayName: string;
   role: ProfileRole;
   status: ProfileStatus;
-  joinedAt: string;
+  joinedAtMs: number | null;
   avatarAttachmentId: number | string | null;
   friendCode: string;
   walletBalance: number;
@@ -20,10 +20,10 @@ export interface UserProfile {
 export interface ProfileData {
   displayName: string;
   role: ProfileRole;
-  joinedAt: string;
+  joinedAtMs: number | null;
   avatarUrl?: string | null;
   fallbackAvatarUrl?: string | null;
-  friendCode: string;
+  friendCode: string | null;
   walletBalance: number;
   email?: string | null;
   phone?: string | null;
@@ -36,7 +36,6 @@ export interface ProfileData {
 export interface ProfilePreferences {
   appNotifications: boolean;
   telegramNotifications: boolean;
-  darkMode: boolean;
 }
 
 export type ContactDialogField = 'email' | 'phone';

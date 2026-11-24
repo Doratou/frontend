@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BadgeCheck,
   Camera,
   Check,
   Copy,
-  Loader2,
   RefreshCw,
   Shield,
   User,
@@ -14,18 +13,19 @@ import friendshipCalendarIcon from '@/assets/profile/friendship-calendar.webp';
 import heroBannerBg from '@/assets/profile/hero-banner.webp';
 import { toast } from '@/components/custom/toast';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
-import { formatNumber } from '@/utils/format';
-import { toPersianDigits } from '../schemas';
+import { formatNumber, toPersianDigits } from '@/utils/format';
+import { PROFILE_AVATAR_MAX_BYTES, PROFILE_ROLE_LABELS } from '../schemas';
 import type { ProfileRole } from '../types';
 
 export interface ProfileHeroCardProps {
   displayName: string;
   role: ProfileRole;
-  joinedAt: string;
+  joinedAtMs: number | null;
   avatarUrl?: string | null;
   fallbackAvatarUrl?: string | null;
-  friendCode: string;
+  friendCode: string | null;
   isUploadingAvatar?: boolean;
   isRegeneratingFriendCode?: boolean;
   avatarInputRef?: React.RefObject<HTMLInputElement | null>;
@@ -33,9 +33,9 @@ export interface ProfileHeroCardProps {
   onRefreshFriendCode: () => void;
 }
 
-const ROLE_META: Record<ProfileRole, { label: string; icon: typeof User }> = {
-  USER: { label: 'کاربر', icon: User },
-  ADMIN: { label: 'مدیر', icon: Shield },
+const ROLE_ICONS: Record<ProfileRole, typeof User> = {
+  USER: User,
+  ADMIN: Shield,
 };
 
 const PERSIAN_MONTH_YEAR = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
@@ -43,15 +43,15 @@ const PERSIAN_MONTH_YEAR = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
   year: 'numeric',
 });
 
-function getFriendshipMilestone(joinedAt: string) {
-  const joinedDate = joinedAt ? new Date(joinedAt) : null;
-  if (!joinedDate || Number.isNaN(joinedDate.getTime())) {
+function getFriendshipMilestone(joinedAtMs: number | null) {
+  if (joinedAtMs === null) {
     return {
       monthYear: '—',
       subtitle: 'همراه دوراتو',
     };
   }
 
+  const joinedDate = new Date(joinedAtMs);
   const now = new Date();
   const totalMonths = Math.max(
     0,
@@ -81,7 +81,8 @@ function getFriendshipMilestone(joinedAt: string) {
   };
 }
 
-function formatFriendCodeDisplay(code: string): string {
+function formatFriendCodeDisplay(code: string | null): string {
+  if (!code) return '—';
   return /^\d+$/.test(code) ? toPersianDigits(code) : code;
 }
 
@@ -96,7 +97,7 @@ function getInitials(name: string): string {
 export function ProfileHeroCard({
   displayName,
   role,
-  joinedAt,
+  joinedAtMs,
   avatarUrl,
   fallbackAvatarUrl,
   friendCode,
@@ -111,9 +112,8 @@ export function ProfileHeroCard({
 
   const [failedAvatarUrls, setFailedAvatarUrls] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
-  const [isSpinning, setIsSpinning] = useState(false);
+  const [spinCount, setSpinCount] = useState(0);
   const copyTimerRef = useRef<number | null>(null);
-  const spinTimerRef = useRef<number | null>(null);
 
   const activeAvatarUrl =
     avatarUrl && !failedAvatarUrls.includes(avatarUrl)
@@ -127,17 +127,18 @@ export function ProfileHeroCard({
       if (copyTimerRef.current !== null) {
         window.clearTimeout(copyTimerRef.current);
       }
-      if (spinTimerRef.current !== null) {
-        window.clearTimeout(spinTimerRef.current);
-      }
     };
   }, []);
 
-  const roleMeta = ROLE_META[role] ?? ROLE_META.USER;
-  const RoleIcon = roleMeta.icon;
-  const milestone = getFriendshipMilestone(joinedAt);
+  const roleLabel = PROFILE_ROLE_LABELS[role];
+  const RoleIcon = ROLE_ICONS[role];
+  const milestone = useMemo(
+    () => getFriendshipMilestone(joinedAtMs),
+    [joinedAtMs],
+  );
 
   const handleCopyCode = async () => {
+    if (!friendCode) return;
     try {
       await navigator.clipboard.writeText(friendCode);
       setCopied(true);
@@ -152,33 +153,31 @@ export function ProfileHeroCard({
   };
 
   const handleRefreshCode = () => {
-    setIsSpinning(true);
+    setSpinCount((count) => count + 1);
     onRefreshFriendCode();
-    if (spinTimerRef.current !== null) {
-      window.clearTimeout(spinTimerRef.current);
-    }
-    spinTimerRef.current = window.setTimeout(() => setIsSpinning(false), 500);
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
+    event.target.value = '';
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       toast.error('لطفاً یک فایل تصویری معتبر انتخاب کنید.');
-      event.target.value = '';
+      return;
+    }
+    if (file.size > PROFILE_AVATAR_MAX_BYTES) {
+      toast.error('حجم تصویر باید کمتر از ۵ مگابایت باشد.');
       return;
     }
     onAvatarChange(file);
-    event.target.value = '';
   };
 
   return (
     <div aria-label="اطلاعات اصلی پروفایل">
-      {/* Top starry aurora wave banner */}
       <div className="relative flex min-h-[146px] flex-col justify-center px-4 pt-5 pb-8 sm:min-h-[172px] sm:px-6 sm:pt-6 sm:pb-9">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-0 -bottom-7 overflow-hidden sm:-bottom-6"
+          className="pointer-events-none absolute inset-x-0 top-0 -bottom-7 overflow-hidden rounded-[24px] sm:-bottom-6"
         >
           <img
             src={heroBannerBg}
@@ -187,13 +186,10 @@ export function ProfileHeroCard({
             height={370}
             className="size-full object-fill"
           />
-          {/* Subtle luminous top specular line */}
           <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
         </div>
 
-        {/* Banner inner row: Avatar on start straddling the wave, Name + Greeting centered */}
         <div className="relative z-10 flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-between">
-          {/* Avatar + soft halo + glossy lavender Camera button */}
           <div className="relative shrink-0 sm:translate-y-4">
             <span
               aria-hidden="true"
@@ -239,50 +235,33 @@ export function ProfileHeroCard({
               className="absolute -end-0.5 bottom-0.5 z-10 flex size-8.5 touch-manipulation items-center justify-center rounded-full border border-white/85 bg-gradient-to-br from-[#c9bcff] via-[#aa99f8] to-[#8d7aec] text-white shadow-[0_4px_12px_rgba(124,92,232,0.38),inset_0_1px_2px_rgba(255,255,255,0.7)] transition-[filter,transform] hover:brightness-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white active:scale-95 disabled:cursor-not-allowed disabled:opacity-75 dark:border-card"
             >
               {isUploadingAvatar ? (
-                <Loader2
-                  aria-hidden="true"
-                  className="size-4 animate-spin motion-reduce:animate-none"
-                />
+                <Spinner aria-hidden="true" className="size-4 text-white" />
               ) : (
                 <Camera aria-hidden="true" className="size-4" />
               )}
             </button>
           </div>
 
-          {/* Centered Name & Greeting */}
-          <div className="flex min-w-0 flex-1 flex-col items-center gap-0.5 pb-2 text-center sm:pb-3">
+          <div className="flex min-w-0 flex-1 flex-col items-center gap-1 pb-2 text-center sm:pb-3">
             <h2 className="max-w-full truncate text-heading-mobile-1 leading-tight text-white drop-shadow-[0_2px_12px_rgba(20,16,66,0.38)] sm:text-heading-2 sm:leading-tight">
               <bdi>{displayName}</bdi>
             </h2>
-            <p className="text-sm leading-5 text-white/90 drop-shadow-[0_1px_6px_rgba(20,16,66,0.35)]">
-              به پنل خودت خوش اومدی!
-            </p>
-            <div aria-hidden="true" className="mt-0.5 flex items-center gap-1">
-              <span className="h-0.75 w-7 rounded-full bg-[#c4b5fd]/90 shadow-[0_0_8px_rgba(196,181,253,0.7)]" />
-              <span className="h-0.75 w-8 rounded-full bg-white/35" />
-              <span className="h-0.75 w-7 rounded-full bg-[#c4b5fd]/90 shadow-[0_0_8px_rgba(196,181,253,0.7)]" />
-            </div>
+            <span className="mt-1 inline-flex h-7 items-center justify-center gap-1.5 rounded-full border border-white/35 bg-white/15 px-3.5 text-caption font-semibold text-white shadow-[0_4px_14px_rgba(20,14,68,0.28),inset_0_1px_1px_rgba(255,255,255,0.45)] backdrop-blur-md">
+              <RoleIcon
+                aria-hidden="true"
+                className="size-3.5 shrink-0 text-[#ddd6fe]"
+              />
+              <span>{roleLabel}</span>
+            </span>
           </div>
 
-          {/* Symmetric spacer to keep name centered on desktop */}
           <div aria-hidden="true" className="hidden w-26 shrink-0 sm:block" />
         </div>
       </div>
 
-      {/* Bottom soft-lavender body */}
-      <div className="relative z-10 flex flex-col gap-3 px-4 pt-2 pb-4 sm:px-6 sm:pt-3 sm:pb-4 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
-        {/* Role pill tucked directly under Avatar on start side */}
-        <div className="-mt-2 flex justify-center sm:-mt-4 lg:w-26 lg:shrink-0 lg:self-start">
-          <span className="inline-flex h-8.5 items-center justify-center gap-1.5 rounded-full border border-[#b7aff5] bg-[#f1edff]/90 px-4.5 text-button-sm font-medium text-[#5c51d6] shadow-[0_2px_8px_rgba(92,81,214,0.08)] dark:border-primary-30/40 dark:bg-muted/60 dark:text-primary-20">
-            <RoleIcon aria-hidden="true" className="size-4 shrink-0" />
-            <span>{roleMeta.label}</span>
-          </span>
-        </div>
-
-        {/* Paired glass cards: Friendship Milestone + Friend Code */}
-        <div className="flex flex-1 flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-stretch sm:justify-end">
-          {/* Friendship Milestone Card */}
-          <div className="flex w-full shrink-0 items-center gap-3 rounded-2xl border border-white bg-white/90 px-3.5 py-2.5 shadow-[0_4px_14px_rgba(58,53,135,0.06)] sm:w-auto dark:border-border dark:bg-muted/45 dark:shadow-none">
+      <div className="relative z-10 flex flex-col gap-3 pt-2 sm:pt-3 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+        <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-stretch sm:justify-between lg:gap-4">
+          <div className="flex w-full shrink-0 items-center gap-3 rounded-[20px] border border-white bg-white/95 px-4 py-3 shadow-[0_4px_14px_rgba(58,53,135,0.06)] sm:w-auto dark:border-border dark:bg-muted/45 dark:shadow-none">
             <img
               src={friendshipCalendarIcon}
               alt=""
@@ -305,8 +284,7 @@ export function ProfileHeroCard({
             </div>
           </div>
 
-          {/* Friend Code Card */}
-          <div className="flex w-full shrink-0 items-center justify-between gap-3 rounded-2xl border border-white bg-white/90 py-2.5 ps-3.5 pe-2.5 shadow-[0_4px_14px_rgba(58,53,135,0.06)] sm:w-auto sm:justify-start dark:border-border dark:bg-muted/45 dark:shadow-none">
+          <div className="flex w-full shrink-0 items-center justify-between gap-3 rounded-[20px] border border-white bg-white/95 py-3 ps-4 pe-3 shadow-[0_4px_14px_rgba(58,53,135,0.06)] sm:w-auto sm:justify-start lg:w-[20.5rem] lg:justify-between xl:w-[22rem] dark:border-border dark:bg-muted/45 dark:shadow-none">
             <div className="flex min-w-0 items-center gap-3">
               <img
                 src={friendInviteIcon}
@@ -331,7 +309,7 @@ export function ProfileHeroCard({
                 type="button"
                 variant="outline"
                 size="icon-md"
-                disabled={!friendCode || friendCode === '—'}
+                disabled={!friendCode}
                 onClick={() => void handleCopyCode()}
                 aria-label="کپی کد دوستی"
                 className={cn(
@@ -357,11 +335,15 @@ export function ProfileHeroCard({
               >
                 <RefreshCw
                   aria-hidden="true"
+                  style={
+                    !isRegeneratingFriendCode && spinCount > 0
+                      ? { transform: `rotate(${spinCount * 360}deg)` }
+                      : undefined
+                  }
                   className={cn(
                     'size-4 transition-transform duration-500 motion-reduce:transition-none',
-                    isRegeneratingFriendCode
-                      ? 'animate-spin motion-reduce:animate-none'
-                      : isSpinning && 'rotate-360',
+                    isRegeneratingFriendCode &&
+                      'animate-spin motion-reduce:animate-none',
                   )}
                 />
               </Button>

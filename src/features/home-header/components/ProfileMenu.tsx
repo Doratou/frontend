@@ -37,11 +37,8 @@ export function ProfileMenu({
           avatarUrl={user.avatarUrl}
           className="size-8.5 text-sm md:size-9.5 md:text-heading-mobile-5"
         />
-        <p
-          dir="auto"
-          className="min-w-0 flex-1 truncate text-right text-heading-mobile-6 text-primary-80 md:text-heading-mobile-5"
-        >
-          {user.displayName}
+        <p className="min-w-0 flex-1 truncate text-start text-heading-mobile-6 text-primary-80 md:text-heading-mobile-5">
+          <bdi>{user.displayName}</bdi>
         </p>
       </div>
 
@@ -50,14 +47,14 @@ export function ProfileMenu({
       <button
         type="button"
         onClick={onProfileClick}
-        className="group flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-right transition-colors hover:bg-primary-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-60"
+        className="group flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-start transition-colors hover:bg-primary-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-60"
       >
         <User
           aria-hidden="true"
           className="size-4.5 shrink-0 text-primary-70"
           strokeWidth={2}
         />
-        <span className="min-w-0 flex-1 text-right text-heading-mobile-6 text-primary-80">
+        <span className="min-w-0 flex-1 text-start text-heading-mobile-6 text-primary-80">
           پروفایل
         </span>
         <ArrowLeft
@@ -70,7 +67,7 @@ export function ProfileMenu({
       <button
         type="button"
         onClick={onWalletClick}
-        className="group flex w-full flex-col gap-1.5 rounded-xl border border-primary-20 bg-primary-10 px-2.5 py-2 text-right transition-colors hover:border-primary-30 hover:bg-primary-20/35 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-60"
+        className="group flex w-full flex-col gap-1.5 rounded-xl border border-primary-20 bg-primary-10 px-2.5 py-2 text-start transition-colors hover:border-primary-30 hover:bg-primary-20/35 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-60"
       >
         <span className="flex w-full items-center gap-2.5">
           <Wallet
@@ -78,7 +75,7 @@ export function ProfileMenu({
             className="size-4.5 shrink-0 text-primary-70"
             strokeWidth={2}
           />
-          <span className="min-w-0 flex-1 text-right text-heading-mobile-6 text-primary-80">
+          <span className="min-w-0 flex-1 text-start text-heading-mobile-6 text-primary-80">
             کیف پول
           </span>
         </span>
@@ -125,7 +122,7 @@ export function ProfileMenu({
         ) : (
           <LogOut
             aria-hidden="true"
-            className="size-4.5 shrink-0 -scale-x-100"
+            className="size-4.5 shrink-0 rtl:-scale-x-100"
             strokeWidth={2}
           />
         )}

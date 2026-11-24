@@ -1,14 +1,13 @@
 import { z } from 'zod';
-import { toEnglishDigits } from '@/utils/format';
+import { toEnglishDigits, toPersianDigits } from '@/utils/format';
+import type { ProfileRole } from './types';
 
-const PERSIAN_DIGITS = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+export const PROFILE_AVATAR_MAX_BYTES = 5 * 1024 * 1024;
 
-export function toPersianDigits(value: string): string {
-  return value.replace(
-    /\d/g,
-    (digit) => PERSIAN_DIGITS[Number(digit)] ?? digit,
-  );
-}
+export const PROFILE_ROLE_LABELS: Readonly<Record<ProfileRole, string>> = {
+  USER: 'کاربر',
+  ADMIN: 'مدیر',
+};
 
 export function normalizeIranPhone(value: string): string {
   const cleaned = toEnglishDigits(value).replace(/[\s-]/g, '');
@@ -59,3 +58,16 @@ export const phoneFormSchema = z.object({
 export type ContactFormValues = {
   value: string;
 };
+
+export const changePasswordFormSchema = z
+  .object({
+    oldPassword: z.string().min(1, 'رمز عبور فعلی را وارد کنید.'),
+    password: z.string().min(6, 'رمز عبور باید حداقل ۶ نویسه باشد.'),
+    confirmPassword: z.string().min(1, 'تکرار رمز عبور را وارد کنید.'),
+  })
+  .refine((values) => values.password === values.confirmPassword, {
+    path: ['confirmPassword'],
+    message: 'رمز عبور و تکرار آن یکسان نیستند.',
+  });
+
+export type ChangePasswordFormValues = z.infer<typeof changePasswordFormSchema>;

@@ -1,37 +1,40 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
 import { useNavigate } from 'react-router';
-import { PageLoading } from '@/components/custom/page-loading';
+import { ErrorState } from '@/components/custom/error-state';
 import { toast } from '@/components/custom/toast';
-import { Button } from '@/components/ui/button';
-import { useAttachmentUrl } from '@/features/attachments/api/get-attachment-url';
+import {
+  getAttachmentDownloadUrl,
+  useAttachmentUrl,
+} from '@/features/attachments/api/get-attachment-url';
 import { attachmentKeys } from '@/features/attachments/api/query-keys';
 import { uploadAttachment } from '@/features/attachments/api/upload-attachment';
 import { authApi } from '@/features/auth/api/auth-api';
-import { authErrorMessage } from '@/features/auth/api/auth-error';
-import { useAuthMutation } from '@/features/auth/hooks/use-auth-mutation';
+import { AuthError, authErrorMessage } from '@/features/auth/api/auth-error';
+import { useLogout } from '@/features/auth/hooks/use-logout';
 import { useAuthStore } from '@/features/auth/stores/auth-store';
 import {
+  regenerateFriendCode,
+  updateProfileAvatar,
+  updateProfileEmail,
+  updateProfileName,
+  updateProfilePhone,
   useDeleteAccountMutation,
   useMyProfileQuery,
-  useRegenerateFriendCodeMutation,
-  useUpdateProfileAvatarMutation,
-  useUpdateProfileEmailMutation,
-  useUpdateProfileNameMutation,
-  useUpdateProfilePhoneMutation,
+  useProfileUpdateMutation,
 } from '@/features/profile/api/profile-api';
 import { getProfileErrorMessage } from '@/features/profile/api/profile-error';
-import { profileKeys } from '@/features/profile/api/query-keys';
 import type { ContactOtpChallenge } from '@/features/profile/components/ProfileContactDialog';
+import type { PasswordChangeResult } from '@/features/profile/components/ProfilePasswordDialog';
 import { ProfilePageView } from '@/features/profile/components/ProfilePageView';
+import { useProfilePreferences } from '@/features/profile/hooks/use-profile-preferences';
 import type {
   ContactDialogField,
   ProfileData,
-  ProfilePreferences,
   UserProfile,
 } from '@/features/profile/types';
-import { env } from '@/lib/api/env';
-import { useTheme } from '@/lib/theme';
+import { runProfileAction } from '@/features/profile/utils/profile-action';
 
 export function Component() {
   const navigate = useNavigate();
@@ -39,30 +42,9 @@ export function Component() {
   const authUser = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
   const clearSession = useAuthStore((state) => state.clearSession);
-  const logout = useAuthMutation((_: void, signal) => authApi.logout(signal));
-  const { resolvedTheme, setTheme } = useTheme();
-
-  const profileQuery = useMyProfileQuery({ enabled: Boolean(authUser) });
-  const updateNameMutation = useUpdateProfileNameMutation();
-  const updateEmailMutation = useUpdateProfileEmailMutation();
-  const updatePhoneMutation = useUpdateProfilePhoneMutation();
-  const regenerateFriendCodeMutation = useRegenerateFriendCodeMutation();
-  const updateAvatarMutation = useUpdateProfileAvatarMutation();
-  const deleteAccountMutation = useDeleteAccountMutation();
-
-  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
-  const [localAvatarPreview, setLocalAvatarPreview] = useState<string | null>(
-    null,
-  );
-  // ponytail: client-only toggle until backend notification preferences endpoint exists.
-  const [appNotifications, setAppNotifications] = useState(true);
-  const [telegramNotifications, setTelegramNotifications] = useState(false);
-
-  useEffect(() => {
-    return () => {
-      if (localAvatarPreview) URL.revokeObjectURL(localAvatarPreview);
-    };
-  }, [localAvatarPreview]);
+  const { logout, isLoggingOut } = useLogout();
+  const { preferences, handleChangePreference, handleToggleTelegram } =
+    useProfilePreferences();
 
   const syncSessionUser = useCallback(
     (next: UserProfile) => {
@@ -96,11 +78,41 @@ export function Component() {
     [setUser],
   );
 
-  useEffect(() => {
-    if (profileQuery.data) {
-      syncSessionUser(profileQuery.data);
+  const profileQuery = useMyProfileQuery({
+    enabled: Boolean(authUser),
+    onData: syncSessionUser,
+  });
+  const updateNameMutation = useProfileUpdateMutation(updateProfileName);
+  const updateEmailMutation = useProfileUpdateMutation(updateProfileEmail);
+  const updatePhoneMutation = useProfileUpdateMutation(updateProfilePhone);
+  const regenerateFriendCodeMutation = useProfileUpdateMutation(() =>
+    regenerateFriendCode(),
+  );
+  const updateAvatarMutation = useProfileUpdateMutation(async (file: File) => {
+    const uploaded = await uploadAttachment({
+      file,
+      type: 'PROFILE_IMAGE',
+      isPublic: true,
+    });
+    if (uploaded.accessUrl) {
+      queryClient.setQueryData(
+        attachmentKeys.detail(String(uploaded.id)),
+        uploaded.accessUrl,
+      );
     }
-  }, [profileQuery.data, syncSessionUser]);
+    return updateProfileAvatar({ avatarAttachmentId: uploaded.id });
+  });
+  const deleteAccountMutation = useDeleteAccountMutation();
+
+  const [localAvatarPreview, setLocalAvatarPreview] = useState<string | null>(
+    null,
+  );
+
+  useEffect(() => {
+    return () => {
+      if (localAvatarPreview) URL.revokeObjectURL(localAvatarPreview);
+    };
+  }, [localAvatarPreview]);
 
   const remoteProfile = profileQuery.data;
   const effectiveAvatarAttachmentId =
@@ -110,42 +122,17 @@ export function Component() {
       ? String(effectiveAvatarAttachmentId)
       : null;
   const { data: avatarUrl } = useAttachmentUrl(avatarAttachmentKey);
-  const fallbackAvatarUrl = avatarAttachmentKey
-    ? `${env.VITE_API_BASE_URL.replace(/\/$/, '')}/attachments/${encodeURIComponent(avatarAttachmentKey)}/download`
-    : null;
-
-  if (profileQuery.isLoading && !authUser) {
-    return <PageLoading />;
-  }
-
-  if (profileQuery.isError && !authUser) {
-    const loadError =
-      getProfileErrorMessage(profileQuery.error, 'load') ??
-      'دریافت اطلاعات پروفایل انجام نشد.';
-    return (
-      <div className="mx-auto flex max-w-md flex-col items-center gap-3 rounded-2xl border border-primary-20 bg-white p-6 text-center dark:border-border dark:bg-card">
-        <p className="text-paragraph-sm text-neutral-70 dark:text-muted-foreground">
-          {loadError}
-        </p>
-        <Button
-          type="button"
-          onClick={() => void profileQuery.refetch()}
-          className="touch-manipulation"
-        >
-          تلاش مجدد
-        </Button>
-      </div>
-    );
-  }
 
   const profile: ProfileData = {
     displayName:
       remoteProfile?.displayName || authUser?.displayName || 'کاربر دوراتو',
     role: remoteProfile?.role ?? authUser?.systemRole ?? 'USER',
-    joinedAt: remoteProfile?.joinedAt ?? '',
+    joinedAtMs: remoteProfile?.joinedAtMs ?? null,
     avatarUrl: localAvatarPreview ?? avatarUrl ?? null,
-    fallbackAvatarUrl,
-    friendCode: remoteProfile?.friendCode || authUser?.friendCode || '—',
+    fallbackAvatarUrl: avatarAttachmentKey
+      ? getAttachmentDownloadUrl(avatarAttachmentKey)
+      : null,
+    friendCode: remoteProfile?.friendCode || authUser?.friendCode || null,
     walletBalance: remoteProfile?.walletBalance ?? authUser?.wallet ?? 0,
     email:
       remoteProfile !== undefined
@@ -155,85 +142,43 @@ export function Component() {
       remoteProfile !== undefined
         ? remoteProfile.phone
         : (authUser?.phone ?? null),
-    isEmailVerified: remoteProfile?.isEmailVerified ?? Boolean(authUser?.email),
-    isPhoneVerified: remoteProfile?.isPhoneVerified ?? Boolean(authUser?.phone),
+    isEmailVerified: remoteProfile?.isEmailVerified ?? false,
+    isPhoneVerified: remoteProfile?.isPhoneVerified ?? false,
     // ponytail: backend does not expose password_updated_at yet.
     passwordLastChangedLabel: 'برای امنیت بیشتر، رمز عبور قوی انتخاب کنید',
     isTelegramConnected: remoteProfile?.isTelegramConnected ?? false,
   };
 
-  const preferences: ProfilePreferences = {
-    appNotifications,
-    telegramNotifications,
-    darkMode: resolvedTheme === 'dark',
-  };
-
-  const handleAvatarChange = async (file: File) => {
+  const handleAvatarChange = (file: File) => {
     const previewUrl = URL.createObjectURL(file);
-    setLocalAvatarPreview((previous) => {
-      if (previous) URL.revokeObjectURL(previous);
-      return previewUrl;
+    setLocalAvatarPreview(previewUrl);
+    void runProfileAction(() => updateAvatarMutation.mutateAsync(file), {
+      operation: 'updateAvatar',
+      errorTitle: 'به‌روزرسانی تصویر انجام نشد',
+      successMessage: 'تصویر پروفایل به‌روزرسانی شد.',
+      onSuccess: syncSessionUser,
+      onError: () => {
+        setLocalAvatarPreview((prev) => (prev === previewUrl ? null : prev));
+      },
     });
-    setIsUploadingAvatar(true);
-    try {
-      const uploaded = await uploadAttachment({
-        file,
-        type: 'PROFILE_IMAGE',
-        isPublic: true,
-      });
-      if (uploaded.accessUrl) {
-        queryClient.setQueryData(
-          attachmentKeys.detail(String(uploaded.id)),
-          uploaded.accessUrl,
-        );
-      }
-      const next = await updateAvatarMutation.mutateAsync({
-        avatarAttachmentId: uploaded.id,
-      });
-      syncSessionUser(next);
-      toast.success('تصویر پروفایل به‌روزرسانی شد.');
-    } catch (error) {
-      setLocalAvatarPreview((previous) => {
-        if (previous === previewUrl) {
-          URL.revokeObjectURL(previous);
-          return null;
-        }
-        return previous;
-      });
-      const message = getProfileErrorMessage(error, 'updateAvatar');
-      if (message) {
-        toast.error('به‌روزرسانی تصویر انجام نشد', { description: message });
-      }
-    } finally {
-      setIsUploadingAvatar(false);
-    }
   };
 
-  const handleRefreshFriendCode = async () => {
-    try {
-      const next = await regenerateFriendCodeMutation.mutateAsync();
-      syncSessionUser(next);
-      toast.success('کد دوستی جدید ایجاد شد.');
-    } catch (error) {
-      const message = getProfileErrorMessage(error, 'regenerateFriendCode');
-      if (message) {
-        toast.error('تغییر کد دوستی انجام نشد', { description: message });
-      }
-    }
+  const handleRefreshFriendCode = () => {
+    void runProfileAction(() => regenerateFriendCodeMutation.mutateAsync(), {
+      operation: 'regenerateFriendCode',
+      errorTitle: 'تغییر کد دوستی انجام نشد',
+      successMessage: 'کد دوستی جدید ایجاد شد.',
+      onSuccess: syncSessionUser,
+    });
   };
 
-  const handleSaveDisplayName = async (nextName: string) => {
-    try {
-      const next = await updateNameMutation.mutateAsync({ name: nextName });
-      syncSessionUser(next);
-      toast.success('نام و نام خانوادگی ذخیره شد.');
-    } catch (error) {
-      const message = getProfileErrorMessage(error, 'updateName');
-      if (message) {
-        toast.error('ذخیره نام انجام نشد', { description: message });
-      }
-    }
-  };
+  const handleSaveDisplayName = (nextName: string) =>
+    runProfileAction(() => updateNameMutation.mutateAsync({ name: nextName }), {
+      operation: 'updateName',
+      errorTitle: 'ذخیره نام انجام نشد',
+      successMessage: 'نام و نام خانوادگی ذخیره شد.',
+      onSuccess: syncSessionUser,
+    });
 
   const handleSendContactOtp = async (
     _field: ContactDialogField,
@@ -247,12 +192,10 @@ export function Component() {
       toast.info('کد تأیید ارسال شد.');
       return {
         codeLength: challenge.codeLength,
-        expiresInSeconds: Math.max(
-          0,
-          Math.ceil((challenge.expiresAt - Date.now()) / 1000),
-        ),
+        expiresAt: challenge.expiresAt,
       };
     } catch (error) {
+      if (axios.isCancel(error)) throw error;
       throw new Error(
         authErrorMessage(error) ??
           'ارسال کد تأیید انجام نشد. دوباره تلاش کنید.',
@@ -269,6 +212,7 @@ export function Component() {
     try {
       await authApi.verifyCode({ identifier: value, code });
     } catch (error) {
+      if (axios.isCancel(error)) throw error;
       throw new Error(
         authErrorMessage(error) ?? 'کد تأیید معتبر نیست. دوباره بررسی کنید.',
         { cause: error },
@@ -287,6 +231,7 @@ export function Component() {
           : 'شماره تلفن با موفقیت ثبت و تأیید شد.',
       );
     } catch (error) {
+      if (axios.isCancel(error)) throw error;
       const message = getProfileErrorMessage(
         error,
         field === 'email' ? 'updateEmail' : 'updatePhone',
@@ -297,72 +242,86 @@ export function Component() {
     }
   };
 
-  const handleToggleTelegram = () => {
-    // ponytail: backend has no telegram connect/disconnect endpoint in Bruno docs yet.
-    toast.info('اتصال مستقیم ربات تلگرام به‌زودی فعال می‌شود.');
+  const handleChangePassword = async ({
+    oldPassword,
+    newPassword,
+  }: {
+    oldPassword: string;
+    newPassword: string;
+  }): Promise<PasswordChangeResult> => {
+    try {
+      await authApi.changePassword({ oldPassword, newPassword });
+      toast.success('رمز عبور با موفقیت تغییر کرد.');
+      return { ok: true };
+    } catch (error) {
+      if (axios.isCancel(error)) throw error;
+      const message =
+        authErrorMessage(error) ??
+        'تغییر رمز عبور انجام نشد. دوباره تلاش کنید.';
+      if (error instanceof AuthError) {
+        return {
+          ok: false,
+          message,
+          fields: {
+            oldPassword: error.fields.oldPassword,
+            password: error.fields.password,
+            confirmPassword: error.fields.confirmPassword,
+          },
+        };
+      }
+      return { ok: false, message };
+    }
   };
 
-  const handleChangePreference = <K extends keyof ProfilePreferences>(
-    key: K,
-    value: ProfilePreferences[K],
-  ) => {
-    if (key === 'darkMode') {
-      setTheme(value ? 'dark' : 'light');
-      return;
-    }
-    if (key === 'appNotifications') {
-      setAppNotifications(value);
-      return;
-    }
-    if (key === 'telegramNotifications') {
-      setTelegramNotifications(value);
-    }
-  };
-
-  const handleLogout = () => {
-    logout.mutate(undefined, {
-      onSettled: () => {
-        queryClient.removeQueries({ queryKey: profileKeys.all });
+  const handleDeleteAccount = () => {
+    void runProfileAction(() => deleteAccountMutation.mutateAsync(), {
+      operation: 'deleteAccount',
+      errorTitle: 'حذف حساب انجام نشد',
+      successMessage: 'حساب کاربری شما با موفقیت حذف شد.',
+      onSuccess: () => {
+        queryClient.clear();
+        clearSession();
         void navigate('/login', { replace: true });
       },
     });
   };
 
-  const handleDeleteAccount = async () => {
-    try {
-      await deleteAccountMutation.mutateAsync();
-      queryClient.clear();
-      clearSession();
-      toast.success('حساب کاربری شما با موفقیت حذف شد.');
-      void navigate('/login', { replace: true });
-    } catch (error) {
-      const message = getProfileErrorMessage(error, 'deleteAccount');
-      if (message) {
-        toast.error('حذف حساب انجام نشد', { description: message });
-      }
-    }
-  };
+  const hasLoadError = profileQuery.isError && !remoteProfile;
 
   return (
-    <ProfilePageView
-      profile={profile}
-      preferences={preferences}
-      isUploadingAvatar={isUploadingAvatar || updateAvatarMutation.isPending}
-      isRegeneratingFriendCode={regenerateFriendCodeMutation.isPending}
-      isSavingName={updateNameMutation.isPending}
-      isLoggingOut={logout.isPending}
-      isDeletingAccount={deleteAccountMutation.isPending}
-      onAvatarChange={(file) => void handleAvatarChange(file)}
-      onRefreshFriendCode={() => void handleRefreshFriendCode()}
-      onIncreaseTokens={() => void navigate('/home/wallet')}
-      onSaveDisplayName={(nextName) => void handleSaveDisplayName(nextName)}
-      onSendContactOtp={handleSendContactOtp}
-      onVerifyAndSaveContact={handleVerifyAndSaveContact}
-      onToggleTelegram={handleToggleTelegram}
-      onChangePreference={handleChangePreference}
-      onLogout={handleLogout}
-      onDeleteAccount={() => void handleDeleteAccount()}
-    />
+    <div className="flex flex-col gap-3">
+      {hasLoadError && (
+        <div className="w-full">
+          <ErrorState
+            error={profileQuery.error}
+            title="دریافت اطلاعات پروفایل انجام نشد"
+            onRetry={() => void profileQuery.refetch()}
+            isRetrying={profileQuery.isFetching}
+          />
+        </div>
+      )}
+
+      <ProfilePageView
+        profile={profile}
+        preferences={preferences}
+        isUploadingAvatar={updateAvatarMutation.isPending}
+        isRegeneratingFriendCode={regenerateFriendCodeMutation.isPending}
+        isSavingName={updateNameMutation.isPending}
+        isLoggingOut={isLoggingOut}
+        isDeletingAccount={deleteAccountMutation.isPending}
+        onAvatarChange={handleAvatarChange}
+        onRefreshFriendCode={handleRefreshFriendCode}
+        onIncreaseTokens={() => void navigate('/home/wallet')}
+        onSaveDisplayName={handleSaveDisplayName}
+        onSendContactOtp={handleSendContactOtp}
+        onVerifyAndSaveContact={handleVerifyAndSaveContact}
+        onChangePassword={handleChangePassword}
+        onToggleTelegram={handleToggleTelegram}
+        onChangePreference={handleChangePreference}
+        onLogout={logout}
+        onDeleteAccount={handleDeleteAccount}
+      />
+    </div>
   );
 }
 
