@@ -5,23 +5,21 @@ import {
   useQueryClient,
   type QueryClient,
 } from '@tanstack/react-query';
+import axios from 'axios';
 import { toast } from '@/components/custom/toast';
+import { getApiErrorMessage } from '@/lib/api/error';
 import { formatNumber } from '@/utils/format';
-import {
-  getGroupErrorMessage,
-  GroupError,
-  isCanceledError,
-} from '../api/group-error';
+import { GroupError } from '../api/group-error';
 import {
   archiveGroup,
   changeGroupInviteLinkPassword,
   createGroupInviteLink,
   deactivateGroupInviteLink,
   deleteGroup,
-  friendsListQueryOptions,
-  groupCoverBlobQueryOptions,
-  groupInviteLinksQueryOptions,
-  groupSettingsQueryOptions,
+  downloadGroupAttachment,
+  getFriendsList,
+  getGroupInviteLinks,
+  getGroupSettings,
   inviteGroupMembers,
   leaveGroup,
   removeGroupMember,
@@ -34,8 +32,8 @@ import { groupKeys } from '../api/query-keys';
 import type { GroupInviteLink, GroupSettingsData } from '../types';
 
 function showGroupError(error: unknown, fallback: string) {
-  if (isCanceledError(error)) return;
-  toast.error(getGroupErrorMessage(error, fallback));
+  if (axios.isCancel(error)) return;
+  toast.error(getApiErrorMessage(error, { fallback }));
 }
 
 function invalidateGroup(
@@ -56,15 +54,71 @@ function removeGroupFromCache(queryClient: QueryClient, groupId: string) {
 }
 
 export function useGroupSettings(groupId: string, enabled = true) {
-  return useQuery(groupSettingsQueryOptions(groupId, enabled));
+  return useQuery({
+    queryKey: groupKeys.settings(groupId),
+    queryFn: ({ signal }) => getGroupSettings(groupId, signal),
+    enabled: Boolean(groupId) && enabled,
+  });
 }
 
 export function useGroupInviteLinks(groupId: string, enabled = true) {
-  return useQuery(groupInviteLinksQueryOptions(groupId, enabled));
+  return useQuery({
+    queryKey: groupKeys.inviteLinks(groupId),
+    queryFn: ({ signal }) => getGroupInviteLinks(groupId, signal),
+    enabled: Boolean(groupId) && enabled,
+  });
 }
 
 export function useFriendsList(enabled = true) {
-  return useQuery(friendsListQueryOptions(enabled));
+  return useQuery({
+    queryKey: groupKeys.friends(),
+    queryFn: ({ signal }) => getFriendsList(signal),
+    enabled,
+  });
+}
+
+export function useGroupCoverImage(
+  group:
+    Pick<GroupSettingsData, 'groupPhotoSrc' | 'coverAttachmentId'> | undefined,
+) {
+  const [fallbackFailedSrc, setFallbackFailedSrc] = useState<string | null>(
+    null,
+  );
+  const attachmentId = group?.coverAttachmentId ?? '';
+
+  const { data: blob } = useQuery({
+    queryKey: groupKeys.coverBlob(attachmentId),
+    queryFn: ({ signal }) => downloadGroupAttachment(attachmentId, signal),
+    enabled: Boolean(attachmentId),
+    staleTime: 30 * 60_000,
+  });
+
+  const blobUrl = useMemo(
+    () => (blob ? URL.createObjectURL(blob) : undefined),
+    [blob],
+  );
+
+  useEffect(() => {
+    if (!blobUrl) return;
+    return () => {
+      URL.revokeObjectURL(blobUrl);
+    };
+  }, [blobUrl]);
+
+  const fallbackUrl =
+    group?.groupPhotoSrc && fallbackFailedSrc !== group.groupPhotoSrc
+      ? group.groupPhotoSrc
+      : undefined;
+
+  const src = blobUrl ?? fallbackUrl;
+
+  const onError = () => {
+    if (!blobUrl && group?.groupPhotoSrc) {
+      setFallbackFailedSrc(group.groupPhotoSrc);
+    }
+  };
+
+  return { src, onError };
 }
 
 export function useUpdateGroupInfo(groupId: string) {
@@ -80,47 +134,6 @@ export function useUpdateGroupInfo(groupId: string) {
       showGroupError(error, 'خطا در ذخیره مشخصات اکیپ');
     },
   });
-}
-
-export function useGroupCoverImage(
-  group:
-    Pick<GroupSettingsData, 'groupPhotoSrc' | 'coverAttachmentId'> | undefined,
-) {
-  const [failedSrc, setFailedSrc] = useState<string | null>(null);
-  const directUrl = group?.groupPhotoSrc;
-  const directFailed = Boolean(directUrl && failedSrc === directUrl);
-  const shouldFetchBlob = Boolean(
-    group?.coverAttachmentId && (!directUrl || directFailed),
-  );
-
-  const { data: blob } = useQuery(
-    groupCoverBlobQueryOptions(group?.coverAttachmentId, shouldFetchBlob),
-  );
-
-  const blobUrl = useMemo(
-    () => (blob ? URL.createObjectURL(blob) : undefined),
-    [blob],
-  );
-
-  useEffect(() => {
-    if (!blobUrl) return;
-    return () => {
-      URL.revokeObjectURL(blobUrl);
-    };
-  }, [blobUrl]);
-
-  const src =
-    blobUrl && failedSrc !== blobUrl
-      ? blobUrl
-      : directUrl && !directFailed
-        ? directUrl
-        : undefined;
-
-  const onError = () => {
-    if (src) setFailedSrc(src);
-  };
-
-  return { src, onError };
 }
 
 export function useUpdateGroupCover(groupId: string) {
@@ -228,48 +241,31 @@ export interface SaveGroupInviteLinkInput {
   password?: string;
   maxUses?: number | null;
   expiryDate?: string | null;
-  maxUsesChanged?: boolean;
-  expiryDateChanged?: boolean;
 }
+
+type SaveInviteLinkOutcome =
+  | { mode: 'created' }
+  | { mode: 'updated'; infoUpdated: boolean; passwordUpdated: boolean };
 
 export function useSaveGroupInviteLink(groupId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (input: SaveGroupInviteLinkInput) => {
+    mutationFn: async (
+      input: SaveGroupInviteLinkInput,
+    ): Promise<SaveInviteLinkOutcome> => {
       if (!input.inviteId) {
         await createGroupInviteLink(groupId, {
           password: input.password ?? '',
           maxUses: input.maxUses,
           expiryDate: input.expiryDate,
         });
-        return 'created' as const;
+        return { mode: 'created' };
       }
 
-      const nextInfo: { maxUses?: number; expiryDate?: string } = {};
-      if (input.maxUsesChanged && input.maxUses != null) {
-        nextInfo.maxUses = input.maxUses;
-      }
-      if (input.expiryDateChanged && input.expiryDate) {
-        nextInfo.expiryDate = input.expiryDate;
-      }
+      const hasInfo = input.maxUses != null || Boolean(input.expiryDate);
+      const hasPassword = Boolean(input.password && input.password.length > 0);
 
-      const tasks: Promise<unknown>[] = [];
-      if (nextInfo.maxUses !== undefined || nextInfo.expiryDate !== undefined) {
-        tasks.push(
-          updateGroupInviteLinkInfo(groupId, input.inviteId, nextInfo),
-        );
-      }
-      if (input.password && input.password.length > 0) {
-        tasks.push(
-          changeGroupInviteLinkPassword(
-            groupId,
-            input.inviteId,
-            input.password,
-          ),
-        );
-      }
-
-      if (tasks.length === 0) {
+      if (!hasInfo && !hasPassword) {
         throw new GroupError(
           'INVITE_NO_FIELDS_TO_UPDATE',
           'تغییر قابل ذخیره‌ای برای لینک انتخاب نشده است.',
@@ -277,15 +273,51 @@ export function useSaveGroupInviteLink(groupId: string) {
         );
       }
 
-      await Promise.all(tasks);
-      return 'updated' as const;
+      let infoUpdated = false;
+      if (hasInfo) {
+        await updateGroupInviteLinkInfo(groupId, input.inviteId, {
+          maxUses: input.maxUses,
+          expiryDate: input.expiryDate,
+        });
+        infoUpdated = true;
+      }
+
+      if (hasPassword && input.password) {
+        try {
+          await changeGroupInviteLinkPassword(
+            groupId,
+            input.inviteId,
+            input.password,
+          );
+        } catch (error) {
+          if (infoUpdated) {
+            throw new GroupError(
+              'INVITE_PARTIAL_UPDATE',
+              `تنظیمات لینک ذخیره شد، اما تغییر رمز انجام نشد: ${getApiErrorMessage(error, { fallback: 'خطا در تغییر رمز عبور' })}`,
+              error instanceof GroupError ? error.status : undefined,
+              error,
+            );
+          }
+          throw error;
+        }
+      }
+
+      return {
+        mode: 'updated',
+        infoUpdated,
+        passwordUpdated: hasPassword,
+      };
     },
-    onSuccess: (mode) => {
-      toast.success(
-        mode === 'created'
-          ? 'لینک دعوت با موفقیت ساخته شد'
-          : 'تنظیمات لینک و رمز به‌روزرسانی شد',
-      );
+    onSuccess: (outcome) => {
+      if (outcome.mode === 'created') {
+        toast.success('لینک دعوت با موفقیت ساخته شد');
+      } else if (outcome.infoUpdated && outcome.passwordUpdated) {
+        toast.success('تنظیمات لینک و رمز به‌روزرسانی شد');
+      } else if (outcome.passwordUpdated) {
+        toast.success('رمز عبور لینک دعوت به‌روزرسانی شد');
+      } else {
+        toast.success('تنظیمات لینک دعوت به‌روزرسانی شد');
+      }
     },
     onError: (error) => {
       showGroupError(error, 'خطا در ذخیره تنظیمات لینک دعوت');

@@ -61,10 +61,6 @@ export class GroupError extends ApiError {
   }
 }
 
-export function isCanceledError(error: unknown): boolean {
-  return axios.isCancel(error);
-}
-
 export function getDirectInviteRecipientErrorMessage(code: string): string {
   return messages[code] ?? 'ارسال دعوتنامه برای این کاربر انجام نشد.';
 }
@@ -94,12 +90,4 @@ export function toGroupError(error: unknown): Error {
     );
   }
   return error;
-}
-
-export function getGroupErrorMessage(
-  error: unknown,
-  fallback = 'خطای غیرمنتظره‌ای رخ داد. دوباره تلاش کنید.',
-): string {
-  if (error instanceof ApiError) return error.message;
-  return fallback;
 }

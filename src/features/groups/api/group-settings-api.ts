@@ -1,4 +1,3 @@
-import { queryOptions } from '@tanstack/react-query';
 import type { z } from 'zod';
 import { apiClient } from '@/lib/api/client';
 import { dateFromApi, dateTimeToApi } from '@/lib/persian-date';
@@ -23,7 +22,6 @@ import {
   uploadedAttachmentDtoSchema,
 } from './contracts';
 import { GroupError, toGroupError } from './group-error';
-import { groupKeys } from './query-keys';
 
 function groupPath(groupId: string, suffix = ''): string {
   return `/groups/${encodeURIComponent(groupId)}${suffix}`;
@@ -87,18 +85,6 @@ export function downloadGroupAttachment(
   });
 }
 
-export const groupCoverBlobQueryOptions = (
-  attachmentId: string | null | undefined,
-  enabled = true,
-) =>
-  queryOptions({
-    queryKey: groupKeys.coverBlob(attachmentId ?? ''),
-    queryFn: ({ signal }) =>
-      downloadGroupAttachment(attachmentId ?? '', signal),
-    enabled: Boolean(attachmentId) && enabled,
-    staleTime: 30 * 60_000,
-  });
-
 export function getGroupSettings(
   groupId: string,
   signal?: AbortSignal,
@@ -112,34 +98,26 @@ export function getGroupSettings(
   });
 }
 
-export const groupSettingsQueryOptions = (groupId: string, enabled = true) =>
-  queryOptions({
-    queryKey: groupKeys.settings(groupId),
-    queryFn: ({ signal }) => getGroupSettings(groupId, signal),
-    enabled: Boolean(groupId) && enabled,
-  });
-
 export function updateGroupInfo(
   groupId: string,
   data: { title?: string; description?: string },
   signal?: AbortSignal,
 ): Promise<GroupSettingsData> {
-  const payload: { title?: string; description?: string } = {};
-  if (data.title !== undefined) payload.title = data.title.trim();
-  if (data.description !== undefined)
-    payload.description = data.description.trim();
+  return withGroupError(async () => {
+    const payload: { title?: string; description?: string } = {};
+    if (data.title !== undefined) payload.title = data.title.trim();
+    if (data.description !== undefined) {
+      payload.description = data.description.trim();
+    }
 
-  if (payload.title === undefined && payload.description === undefined) {
-    return Promise.reject(
-      new GroupError(
+    if (payload.title === undefined && payload.description === undefined) {
+      throw new GroupError(
         'GROUP_NO_FIELDS_TO_UPDATE',
         'تغییری برای ذخیره وجود ندارد.',
         400,
-      ),
-    );
-  }
+      );
+    }
 
-  return withGroupError(async () => {
     const response = await apiClient.patch<unknown>(
       groupPath(groupId),
       payload,
@@ -218,8 +196,8 @@ export function transferGroupOwnership(
   newOwnerUserId: string,
   signal?: AbortSignal,
 ): Promise<void> {
-  const newOwnerId = toPositiveInt(newOwnerUserId, 'GROUP_INVALID_MEMBER_ID');
   return withGroupError(async () => {
+    const newOwnerId = toPositiveInt(newOwnerUserId, 'GROUP_INVALID_MEMBER_ID');
     const response = await apiClient.post<unknown>(
       groupPath(groupId, '/transfer-ownership'),
       { new_owner_id: newOwnerId },
@@ -268,13 +246,6 @@ export function getGroupInviteLinks(
   });
 }
 
-export const groupInviteLinksQueryOptions = (groupId: string, enabled = true) =>
-  queryOptions({
-    queryKey: groupKeys.inviteLinks(groupId),
-    queryFn: ({ signal }) => getGroupInviteLinks(groupId, signal),
-    enabled: Boolean(groupId) && enabled,
-  });
-
 export function createGroupInviteLink(
   groupId: string,
   data: {
@@ -284,17 +255,17 @@ export function createGroupInviteLink(
   },
   signal?: AbortSignal,
 ): Promise<GroupInviteLink> {
-  const payload: {
-    password: string;
-    expires_at?: string;
-    max_uses?: number;
-  } = { password: data.password };
-
-  const expiresAt = toExpiryIso(data.expiryDate);
-  if (expiresAt !== undefined) payload.expires_at = expiresAt;
-  if (data.maxUses != null) payload.max_uses = data.maxUses;
-
   return withGroupError(async () => {
+    const payload: {
+      password: string;
+      expires_at?: string;
+      max_uses?: number;
+    } = { password: data.password };
+
+    const expiresAt = toExpiryIso(data.expiryDate);
+    if (expiresAt !== undefined) payload.expires_at = expiresAt;
+    if (data.maxUses != null) payload.max_uses = data.maxUses;
+
     const response = await apiClient.post<unknown>(
       inviteLinksPath(groupId),
       payload,
@@ -313,22 +284,20 @@ export function updateGroupInviteLinkInfo(
   },
   signal?: AbortSignal,
 ): Promise<GroupInviteLink> {
-  const payload: { expires_at?: string; max_uses?: number } = {};
-  const expiresAt = toExpiryIso(data.expiryDate);
-  if (expiresAt !== undefined) payload.expires_at = expiresAt;
-  if (data.maxUses != null) payload.max_uses = data.maxUses;
+  return withGroupError(async () => {
+    const payload: { expires_at?: string; max_uses?: number } = {};
+    const expiresAt = toExpiryIso(data.expiryDate);
+    if (expiresAt !== undefined) payload.expires_at = expiresAt;
+    if (data.maxUses != null) payload.max_uses = data.maxUses;
 
-  if (payload.expires_at === undefined && payload.max_uses === undefined) {
-    return Promise.reject(
-      new GroupError(
+    if (payload.expires_at === undefined && payload.max_uses === undefined) {
+      throw new GroupError(
         'INVITE_NO_FIELDS_TO_UPDATE',
         'تغییری برای ذخیره در تنظیمات لینک وجود ندارد.',
         400,
-      ),
-    );
-  }
+      );
+    }
 
-  return withGroupError(async () => {
     const response = await apiClient.patch<unknown>(
       inviteLinksPath(groupId, inviteId),
       payload,
@@ -379,23 +348,16 @@ export function getFriendsList(signal?: AbortSignal): Promise<FriendItem[]> {
   });
 }
 
-export const friendsListQueryOptions = (enabled = true) =>
-  queryOptions({
-    queryKey: groupKeys.friends(),
-    queryFn: ({ signal }) => getFriendsList(signal),
-    enabled,
-  });
-
 export function inviteGroupMembers(
   groupId: string,
   userIds: string[],
   signal?: AbortSignal,
 ): Promise<DirectInviteResult> {
-  const numericGroupId = toPositiveInt(groupId, 'GROUP_INVALID_ID');
-  const numericUserIds = userIds.map((id) =>
-    toPositiveInt(id, 'DIRECT_INVITE_INVALID_PAYLOAD'),
-  );
   return withGroupError(async () => {
+    const numericGroupId = toPositiveInt(groupId, 'GROUP_INVALID_ID');
+    const numericUserIds = userIds.map((id) =>
+      toPositiveInt(id, 'DIRECT_INVITE_INVALID_PAYLOAD'),
+    );
     const response = await apiClient.post<unknown>(
       '/invites/direct',
       {

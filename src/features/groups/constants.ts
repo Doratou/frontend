@@ -16,3 +16,23 @@ export const INVITE_PASSWORD_MAX_BYTES = 72;
 export function getUtf8ByteLength(value: string): number {
   return new TextEncoder().encode(value).length;
 }
+
+const storageNumberFormatter = new Intl.NumberFormat('fa-IR', {
+  maximumFractionDigits: 1,
+});
+
+export function formatGroupStorage(storage: {
+  usedGb: number;
+  totalGb: number;
+}): { label: string; percent: number } {
+  const usedFormatted = storageNumberFormatter.format(storage.usedGb);
+  const totalFormatted = storageNumberFormatter.format(storage.totalGb);
+  const ratio = Math.min(
+    Math.max(storage.usedGb / (storage.totalGb || 1), 0),
+    1,
+  );
+  return {
+    label: `${usedFormatted} از ${totalFormatted} گیگابایت`,
+    percent: Math.round(ratio * 100),
+  };
+}
