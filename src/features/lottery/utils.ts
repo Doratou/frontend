@@ -100,11 +100,17 @@ export function mergeProfiles(
   members: LotteryMember[],
   profiles: LotteryMember[],
 ): LotteryMember[] {
-  const byId = new Map(profiles.map((profile) => [profile.id, profile] as const));
+  const byId = new Map(
+    profiles.map((profile) => [profile.id, profile] as const),
+  );
   return members.map((member) => {
     const profile = byId.get(member.id);
     return profile
-      ? { ...member, name: profile.name || member.name, avatarUrl: profile.avatarUrl }
+      ? {
+          ...member,
+          name: profile.name || member.name,
+          avatarUrl: profile.avatarUrl,
+        }
       : member;
   });
 }
@@ -167,9 +173,7 @@ export function splitEvenly(count: number): number[] {
   );
 }
 
-export function withEvenWeights<T extends { weight: number }>(
-  items: T[],
-): T[] {
+export function withEvenWeights<T extends { weight: number }>(items: T[]): T[] {
   const weights = splitEvenly(items.length);
   return items.map((item, index) => ({ ...item, weight: weights[index] ?? 0 }));
 }

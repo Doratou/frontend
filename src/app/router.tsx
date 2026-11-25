@@ -59,6 +59,10 @@ export const routes: RouteObject[] = [
     element: <DashboardLayout />,
     children: [
       {
+        path: 'groups',
+        lazy: () => import('@/app/pages/home/groups'),
+      },
+      {
         path: 'notification',
         element: <p>نوتیفیکیشن</p>,
       },

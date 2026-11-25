@@ -34,7 +34,7 @@ export function CreateModeSwitch({ value, onChange }: CreateModeSwitchProps) {
             aria-checked={value === mode.value}
             onClick={() => onChange(mode.value)}
             className={cn(
-              'rounded-lg px-3 py-2 text-button-sm outline-none transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none',
+              'rounded-lg px-3 py-2 text-button-sm transition-colors outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none',
               value === mode.value
                 ? 'bg-secondary-70 text-white'
                 : 'text-muted-foreground hover:bg-card',

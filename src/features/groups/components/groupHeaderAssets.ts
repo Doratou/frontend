@@ -38,7 +38,7 @@ export const GROUP_HEADER_ASSETS = {
   iconMetaCloud: TRANSPARENT_PNG, // icon-meta-cloud.png (20×20)
   iconMetaUser: TRANSPARENT_PNG, // icon-meta-user.png (20×20)
   iconMetaCalendar: TRANSPARENT_PNG, // icon-meta-calendar.png (20×20)
-  mobileBanner: GroupBanner,          // group-header-mobile-banner.png (1671×295)
-  memberAvatarDefault: TRANSPARENT_PNG,   // member-avatar-default.png (32×32)
+  mobileBanner: GroupBanner, // group-header-mobile-banner.png (1671×295)
+  memberAvatarDefault: TRANSPARENT_PNG, // member-avatar-default.png (32×32)
   memberAvatarInitialBg: TRANSPARENT_PNG, // member-avatar-initial-bg.png (32×32)
 };
