@@ -10,7 +10,7 @@ import {
 } from './sidebar.config';
 import { SidebarTooltip, SidebarTooltipProvider } from './SidebarTooltip';
 import { getBackground, getLogo, type SidebarPage } from './sidebarAssets';
-import { useSidebarStore } from '../stores/sidebar-store';
+import { useSidebarStore } from '@/stores/sidebar-store';
 
 const OPEN_WIDTH = 250;
 const CLOSED_WIDTH = 80;
@@ -164,7 +164,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             aria-label={collapsed ? item.label : undefined}
             className={({ isActive: navLinkIsActive }) => {
               const isActive = checkIsItemActive(item.href, navLinkIsActive);
-              return `${theme.focusOutlineClass} group relative flex h-11 w-full items-center overflow-hidden rounded-2xl border-[1.5px] no-underline transition-[background-color,border-color,box-shadow] duration-200 motion-reduce:transition-none ${
+              return `${theme.focusOutlineClass} group relative flex h-11 w-full items-center overflow-hidden rounded-xl border-[1.5px] no-underline transition-[background-color,border-color,box-shadow] duration-200 motion-reduce:transition-none ${
                 isActive
                   ? collapsed
                     ? `${theme.activeItemClass} ${theme.activeClosedBorderClass} shadow-[0_2px_4px_0_rgba(0,0,0,0.10)]`
@@ -175,40 +175,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
               }`;
             }}
           >
-            {({ isActive: navLinkIsActive }) => {
-              const isActive = checkIsItemActive(item.href, navLinkIsActive);
+            <span className="flex h-full w-10.25 shrink-0 items-center justify-center">
+              <IconComponent
+                className={`pointer-events-none h-4.5 w-4.5 shrink-0 text-primary-80 transition-transform duration-150 motion-reduce:transition-none ${
+                  collapsed ? 'group-hover:scale-105' : ''
+                }`}
+                strokeWidth={1.75}
+              />
+            </span>
 
-              return (
-                <>
-                  <span
-                    aria-hidden="true"
-                    className={`absolute top-1/2 right-0.5 h-5.5 w-1 -translate-y-1/2 rounded-full transition-opacity duration-200 motion-reduce:transition-none ${theme.activeIndicatorClass} ${
-                      isActive && !collapsed ? 'opacity-100' : 'opacity-0'
-                    }`}
-                  />
-
-                  <span className="flex h-full w-10.25 shrink-0 items-center justify-center">
-                    <IconComponent
-                      className={`pointer-events-none h-4.5 w-4.5 shrink-0 text-primary-80 transition-transform duration-150 motion-reduce:transition-none ${
-                        collapsed ? 'group-hover:scale-105' : ''
-                      }`}
-                      strokeWidth={1.75}
-                    />
-                  </span>
-
-                  <span
-                    aria-hidden={collapsed || undefined}
-                    className={`min-w-0 flex-1 truncate pl-3 text-right text-sm leading-5.5 font-medium tracking-normal whitespace-nowrap text-primary-80 transition-[opacity,transform] motion-reduce:transition-none ${
-                      collapsed
-                        ? 'pointer-events-none -translate-x-1.5 opacity-0 duration-150 ease-in'
-                        : 'translate-x-0 opacity-100 delay-100 duration-220 ease-out'
-                    }`}
-                  >
-                    {item.label}
-                  </span>
-                </>
-              );
-            }}
+            <span
+              aria-hidden={collapsed || undefined}
+              className={`min-w-0 flex-1 truncate pl-3 text-right text-sm leading-5.5 font-medium tracking-normal whitespace-nowrap text-primary-80 transition-[opacity,transform] motion-reduce:transition-none ${
+                collapsed
+                  ? 'pointer-events-none -translate-x-1.5 opacity-0 duration-150 ease-in'
+                  : 'translate-x-0 opacity-100 delay-100 duration-220 ease-out'
+              }`}
+            >
+              {item.label}
+            </span>
           </NavLink>
         );
 

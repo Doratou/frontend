@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   ArrowLeft,
   Calendar,
@@ -19,7 +18,7 @@ const MORE_ARIA_LABEL = 'گزینه‌های بیشتر';
 const BACK_ARIA_LABEL = 'بازگشت';
 const MENU_ARIA_LABEL = 'باز کردن منو';
 
-export const GroupHeaderMobile: React.FC<GroupHeaderProps> = ({
+export function GroupHeaderMobile({
   title,
   description,
   groupPhotoSrc = GROUP_HEADER_ASSETS.groupPhotoSample,
@@ -35,7 +34,7 @@ export const GroupHeaderMobile: React.FC<GroupHeaderProps> = ({
   onBackClick,
   onMenuClick,
   className = '',
-}) => {
+}: GroupHeaderProps) {
   const { label: storageLabel, percent: storagePercent } =
     formatGroupStorage(storage);
 
@@ -197,6 +196,6 @@ export const GroupHeaderMobile: React.FC<GroupHeaderProps> = ({
       </div>
     </header>
   );
-};
+}
 
 export default GroupHeaderMobile;

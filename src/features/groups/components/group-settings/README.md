@@ -18,21 +18,25 @@ Quick-reference map for the Group Settings & Group Header feature (`feat/group-s
 
 - `src/features/groups/components/GroupSettingsDialog.tsx`
   - Controlled shell (`section`, `onSectionChange`, `open`, `onOpenChange`, optional `coverImage`).
-  - Renders desktop sidebar nav (`NavItem`) + mobile header card & tablist from a single memoized `sections` config.
+  - Renders desktop sidebar nav (`NavItem` with `variant="default" | "danger"`) + mobile header card & tablist from a single memoized `sections` config.
+  - Wraps dialog content in a memoized `GroupSettingsContext.Provider` so section components read `group`, `isOwner`, `cover`, `openInvite`, `close`, and `exitGroup` without prop drilling.
   - Eagerly renders `OverviewSection`; **lazily loads** `MembersSection`, `InviteLinkSection`, `DangerZoneSection`, and `InviteMemberDialog` (`React.lazy` + `Suspense`).
   - Tracks `hasOpenedInvite` so `InviteMemberDialog` is not fetched until opened, yet stays mounted once opened so Base UI exit animations work.
+- `src/features/groups/components/group-settings/group-settings-context.ts`
+  - Defines `GroupSettingsContext` and `useGroupSettingsContext()` (via React 19 `use()`). Kept in a separate `.ts` file to satisfy `react-refresh/only-export-components`.
 - `src/features/groups/components/group-settings/GroupSettingsShared.tsx`
-  - Pure UI primitives: `StatusChip`, `GroupAvatar` (presentational only — receives `title`, `src`, `onError`), and `InlineConfirm`.
+  - Pure UI primitives: `StatusChip`, `GroupAvatar` (presentational only — receives `title`, `src`, `onError`), and `InlineConfirm` (`size="default" | "compact"`, `tone="danger" | "accent"`).
 - `src/features/groups/components/group-settings/OverviewSection.tsx`
   - Group cover upload (`<input type="file" accept="image/*">`, max `GROUP_COVER_MAX_BYTES = 5MB`), isolated `OverviewInfoForm` (keyed by `${group.id}-${group.title}-${group.description}` so saving info resets form state without remounting `GroupAvatar`), and read-only metadata `<dl>`.
 - `src/features/groups/components/group-settings/MembersSection.tsx`
-  - Member list with owner badge, invite button (`onInvite`), inline ownership transfer (`Crown` -> uses **`member.userId`**), and inline member removal (`Trash2` -> uses **`member.memberId`**).
+  - Member list with owner badge, invite button (`openInvite`), inline ownership transfer (`Crown` -> uses **`member.userId`**), and inline member removal (`Trash2` -> uses **`member.memberId`**).
 - `src/features/groups/components/group-settings/InviteLinkSection.tsx`
   - Fetches `useGroupInviteLinks`, finds active link (`link.isActive && Boolean(link.token)`), renders copyable frontend URL (`/join/:token`), deactivate confirm, and create/update form (`PasswordField`, `NumberField`, `PersianDatePicker`).
   - Isolated in its own lazy chunk (`~300 kB` with `@daypicker/*` + `date-fns-jalali`) so it never bloats `/group/:groupId` initial load.
 - `src/features/groups/components/group-settings/DangerZoneSection.tsx`
+  - Explicit `OwnerDangerZone` and `MemberDangerZone` views sharing `DangerConfirmCard` and `useExitOnSuccess`.
   - For **Owner**: one-way Archive (`ACTIVE -> SETTLING`) + permanent Delete (blocked if `CLOSED` or has settlements).
-  - For **Member**: Leave group (blocked if `CLOSED`); triggers `onClose()` + `onGroupExit?.()` on success.
+  - For **Member**: Leave group (blocked if `CLOSED`); triggers `close()` + `exitGroup?.()` on success.
 - `src/features/groups/components/InviteMemberDialog.tsx`
   - Direct-invite modal backed by `useFriendsList(open)` + `useInviteGroupMembers(groupId)`.
   - Filters out existing group members via `Set<userId>`, searches by name, renders selected chips in a `flex-wrap` container.
@@ -56,7 +60,7 @@ Quick-reference map for the Group Settings & Group Header feature (`feat/group-s
 - `src/features/groups/api/contracts.ts` — Zod DTO schemas + mappers (`mapGroupDtoToSettingsData`, `mapInviteLinkDto`, `mapFriendDto`, `mapDirectInviteResponse`).
 - `src/features/groups/api/group-error.ts` — `GroupError` subclass of `ApiError`, backend error code -> Persian message map (`GROUP_*`, `INVITE_*`, `DIRECT_INVITE_*`), and `toGroupError`.
 - `src/features/groups/api/group-settings-api.ts` — All HTTP calls using shared `apiClient` with `signal?: AbortSignal` and `withGroupError` (always returns rejected promises, never sync throws).
-- `src/features/groups/hooks/use-group-settings.ts` — All React Query hooks, cover blob URL management (`useGroupCoverImage`), toast feedback, and cache invalidation.
+- `src/features/groups/hooks/use-group-settings.ts` — All React Query hooks (sharing `useGroupMutation` for standard group mutations), memoized cover blob URL management (`useGroupCoverImage`), toast feedback, and cache invalidation.
 
 ---
 

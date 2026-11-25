@@ -1,4 +1,10 @@
-import { lazy, Suspense, useState, useSyncExternalStore } from 'react';
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/features/auth/stores/auth-store';
@@ -11,8 +17,8 @@ import {
   useGroupCoverImage,
   useGroupSettings,
 } from '@/features/groups/hooks/use-group-settings';
-import { useSidebarStore } from '@/features/sidebar/stores/sidebar-store';
 import { getApiErrorMessage } from '@/lib/api/error';
+import { useSidebarStore } from '@/stores/sidebar-store';
 
 const DESKTOP_MEDIA_QUERY = '(min-width: 768px)';
 
@@ -65,6 +71,10 @@ export function Component() {
     setHasOpenedSettings(true);
     setIsSettingsOpen(true);
   };
+
+  const handleGroupExit = useCallback(() => {
+    void navigate('/home');
+  }, [navigate]);
 
   if (isLoading && !group) {
     return (
@@ -144,7 +154,7 @@ export function Component() {
             section={settingsSection}
             onSectionChange={setSettingsSection}
             coverImage={coverImage}
-            onGroupExit={() => void navigate('/home')}
+            onGroupExit={handleGroupExit}
           />
         </Suspense>
       )}

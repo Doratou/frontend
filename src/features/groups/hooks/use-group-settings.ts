@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   useMutation,
   useQuery,
@@ -51,6 +51,38 @@ function invalidateGroup(
 function removeGroupFromCache(queryClient: QueryClient, groupId: string) {
   queryClient.removeQueries({ queryKey: groupKeys.detail(groupId) });
   void queryClient.invalidateQueries({ queryKey: groupKeys.lists() });
+}
+
+function useGroupMutation<TVariables>({
+  groupId,
+  mutationFn,
+  successMessage,
+  errorFallback,
+  cacheMode = 'detail',
+}: {
+  groupId: string;
+  mutationFn: (variables: TVariables) => Promise<unknown>;
+  successMessage: string;
+  errorFallback: string;
+  cacheMode?: 'detail' | 'detail-and-lists' | 'remove';
+}) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn,
+    onSuccess: () => {
+      toast.success(successMessage);
+      if (cacheMode === 'remove') {
+        removeGroupFromCache(queryClient, groupId);
+      } else {
+        invalidateGroup(queryClient, groupId, {
+          includeLists: cacheMode === 'detail-and-lists',
+        });
+      }
+    },
+    onError: (error) => {
+      showGroupError(error, errorFallback);
+    },
+  });
 }
 
 export function useGroupSettings(groupId: string, enabled = true) {
@@ -112,27 +144,22 @@ export function useGroupCoverImage(
 
   const src = blobUrl ?? fallbackUrl;
 
-  const onError = () => {
+  const onError = useCallback(() => {
     if (!blobUrl && group?.groupPhotoSrc) {
       setFallbackFailedSrc(group.groupPhotoSrc);
     }
-  };
+  }, [blobUrl, group?.groupPhotoSrc]);
 
-  return { src, onError };
+  return useMemo(() => ({ src, onError }), [src, onError]);
 }
 
 export function useUpdateGroupInfo(groupId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: { title?: string; description?: string }) =>
-      updateGroupInfo(groupId, data),
-    onSuccess: () => {
-      toast.success('مشخصات اکیپ با موفقیت ذخیره شد');
-      invalidateGroup(queryClient, groupId, { includeLists: true });
-    },
-    onError: (error) => {
-      showGroupError(error, 'خطا در ذخیره مشخصات اکیپ');
-    },
+  return useGroupMutation<{ title?: string; description?: string }>({
+    groupId,
+    mutationFn: (data) => updateGroupInfo(groupId, data),
+    successMessage: 'مشخصات اکیپ با موفقیت ذخیره شد',
+    errorFallback: 'خطا در ذخیره مشخصات اکیپ',
+    cacheMode: 'detail-and-lists',
   });
 }
 
@@ -168,45 +195,31 @@ export function useUpdateGroupCover(groupId: string) {
 }
 
 export function useRemoveGroupMember(groupId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (memberId: string) => removeGroupMember(groupId, memberId),
-    onSuccess: () => {
-      toast.success('عضو با موفقیت از اکیپ حذف شد');
-      invalidateGroup(queryClient, groupId);
-    },
-    onError: (error) => {
-      showGroupError(error, 'خطا در حذف عضو');
-    },
+  return useGroupMutation<string>({
+    groupId,
+    mutationFn: (memberId) => removeGroupMember(groupId, memberId),
+    successMessage: 'عضو با موفقیت از اکیپ حذف شد',
+    errorFallback: 'خطا در حذف عضو',
   });
 }
 
 export function useLeaveGroup(groupId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useGroupMutation<void>({
+    groupId,
     mutationFn: () => leaveGroup(groupId),
-    onSuccess: () => {
-      toast.success('با موفقیت از اکیپ خارج شدید');
-      removeGroupFromCache(queryClient, groupId);
-    },
-    onError: (error) => {
-      showGroupError(error, 'خطا در خروج از اکیپ');
-    },
+    successMessage: 'با موفقیت از اکیپ خارج شدید',
+    errorFallback: 'خطا در خروج از اکیپ',
+    cacheMode: 'remove',
   });
 }
 
 export function useTransferGroupOwnership(groupId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (newOwnerUserId: string) =>
+  return useGroupMutation<string>({
+    groupId,
+    mutationFn: (newOwnerUserId) =>
       transferGroupOwnership(groupId, newOwnerUserId),
-    onSuccess: () => {
-      toast.success('مالکیت اکیپ با موفقیت منتقل شد');
-      invalidateGroup(queryClient, groupId);
-    },
-    onError: (error) => {
-      showGroupError(error, 'خطا در انتقال مالکیت اکیپ');
-    },
+    successMessage: 'مالکیت اکیپ با موفقیت منتقل شد',
+    errorFallback: 'خطا در انتقال مالکیت اکیپ',
   });
 }
 
@@ -352,29 +365,21 @@ export function useDeactivateGroupInviteLink(groupId: string) {
 }
 
 export function useArchiveGroup(groupId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useGroupMutation<void>({
+    groupId,
     mutationFn: () => archiveGroup(groupId),
-    onSuccess: () => {
-      toast.success('اکیپ با موفقیت آرشیو شد');
-      invalidateGroup(queryClient, groupId, { includeLists: true });
-    },
-    onError: (error) => {
-      showGroupError(error, 'خطا در آرشیو کردن اکیپ');
-    },
+    successMessage: 'اکیپ با موفقیت آرشیو شد',
+    errorFallback: 'خطا در آرشیو کردن اکیپ',
+    cacheMode: 'detail-and-lists',
   });
 }
 
 export function useDeleteGroup(groupId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useGroupMutation<void>({
+    groupId,
     mutationFn: () => deleteGroup(groupId),
-    onSuccess: () => {
-      toast.success('اکیپ با موفقیت حذف شد');
-      removeGroupFromCache(queryClient, groupId);
-    },
-    onError: (error) => {
-      showGroupError(error, 'خطا در حذف اکیپ');
-    },
+    successMessage: 'اکیپ با موفقیت حذف شد',
+    errorFallback: 'خطا در حذف اکیپ',
+    cacheMode: 'remove',
   });
 }

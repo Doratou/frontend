@@ -22,6 +22,7 @@ import {
   useSaveGroupInviteLink,
 } from '../../hooks/use-group-settings';
 import type { GroupInviteLink, GroupSettingsData } from '../../types';
+import { useGroupSettingsContext } from './group-settings-context';
 import { InlineConfirm } from './GroupSettingsShared';
 
 function validateInvitePassword(value: string): string | null {
@@ -225,7 +226,7 @@ function LinkForm({
                 cancelAriaLabel="لغو ابطال لینک"
                 isLoading={deactivateLinkMutation.isPending}
                 tone="danger"
-                compact
+                size="compact"
                 onConfirm={() =>
                   deactivateLinkMutation.mutate(activeLink.id, {
                     onSuccess: () => setConfirmDeactivate(false),
@@ -307,13 +308,8 @@ function LinkForm({
   );
 }
 
-export function InviteLinkSection({
-  group,
-  isOwner,
-}: {
-  group: GroupSettingsData;
-  isOwner: boolean;
-}) {
+export function InviteLinkSection() {
+  const { group, isOwner } = useGroupSettingsContext();
   const {
     data: links,
     isLoading,

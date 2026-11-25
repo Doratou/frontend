@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
   ArrowLeft,
   Check,
@@ -54,27 +54,21 @@ export function InviteMemberDialog({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  const existingUserIds = useMemo(
-    () => new Set(existingMembers.map((member) => member.userId)),
-    [existingMembers],
+  const existingUserIds = new Set(
+    existingMembers.map((member) => member.userId),
   );
-
-  const availableFriends = useMemo(
-    () => friends.filter((friend) => !existingUserIds.has(friend.id)),
-    [friends, existingUserIds],
+  const availableFriends = friends.filter(
+    (friend) => !existingUserIds.has(friend.id),
   );
-
-  const filteredFriends = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return availableFriends;
-    return availableFriends.filter((f) => f.name.toLowerCase().includes(q));
-  }, [availableFriends, searchQuery]);
-
-  const selectedIdSet = useMemo(() => new Set(selectedIds), [selectedIds]);
-
-  const selectedFriends = useMemo(
-    () => availableFriends.filter((f) => selectedIdSet.has(f.id)),
-    [availableFriends, selectedIdSet],
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const filteredFriends = normalizedQuery
+    ? availableFriends.filter((f) =>
+        f.name.toLowerCase().includes(normalizedQuery),
+      )
+    : availableFriends;
+  const selectedIdSet = new Set(selectedIds);
+  const selectedFriends = availableFriends.filter((f) =>
+    selectedIdSet.has(f.id),
   );
 
   const toggleSelection = (friendId: string) => {

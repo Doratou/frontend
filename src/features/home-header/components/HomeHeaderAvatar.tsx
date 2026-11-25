@@ -5,18 +5,25 @@ import { cn } from '@/lib/utils';
 export interface HomeHeaderAvatarProps {
   name: string;
   avatarUrl?: string | null;
+  fallbackAvatarUrl?: string | null;
   className?: string;
 }
 
 export function HomeHeaderAvatar({
   name,
   avatarUrl,
+  fallbackAvatarUrl,
   className,
 }: HomeHeaderAvatarProps) {
-  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  const [failedUrls, setFailedUrls] = useState<string[]>([]);
   const trimmedName = name.trim();
   const initial = Array.from(trimmedName)[0];
-  const showImage = Boolean(avatarUrl && avatarUrl !== failedUrl);
+  const activeUrl =
+    avatarUrl && !failedUrls.includes(avatarUrl)
+      ? avatarUrl
+      : fallbackAvatarUrl && !failedUrls.includes(fallbackAvatarUrl)
+        ? fallbackAvatarUrl
+        : null;
 
   return (
     <span
@@ -25,12 +32,16 @@ export function HomeHeaderAvatar({
         className,
       )}
     >
-      {showImage && avatarUrl ? (
+      {activeUrl ? (
         <img
-          src={avatarUrl}
+          src={activeUrl}
           alt={trimmedName || 'تصویر کاربر'}
           draggable={false}
-          onError={() => setFailedUrl(avatarUrl)}
+          onError={() =>
+            setFailedUrls((prev) =>
+              prev.includes(activeUrl) ? prev : [...prev, activeUrl],
+            )
+          }
           className="size-full object-cover"
         />
       ) : initial ? (

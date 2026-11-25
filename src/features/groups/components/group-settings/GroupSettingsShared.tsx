@@ -83,7 +83,7 @@ interface InlineConfirmProps {
   cancelAriaLabel: string;
   isLoading: boolean;
   tone?: 'danger' | 'accent';
-  compact?: boolean;
+  size?: 'default' | 'compact';
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -95,17 +95,18 @@ export function InlineConfirm({
   cancelAriaLabel,
   isLoading,
   tone = 'danger',
-  compact = false,
+  size = 'default',
   onConfirm,
   onCancel,
 }: InlineConfirmProps) {
   const isAccent = tone === 'accent';
+  const isCompact = size === 'compact';
   return (
     <div
       className={cn(
         'flex animate-in items-center gap-2 text-xs font-bold duration-150 fade-in slide-in-from-right-2',
         isAccent ? 'text-accent-80' : 'text-danger-50',
-        !compact && 'rounded-xl bg-white p-2 shadow-xs',
+        !isCompact && 'rounded-xl bg-white p-2 shadow-xs',
       )}
     >
       <span>{prompt}</span>
@@ -118,7 +119,7 @@ export function InlineConfirm({
         onClick={onConfirm}
         className={cn(
           'text-white',
-          compact && 'h-7 px-2.5 text-xs',
+          isCompact && 'h-7 px-2.5 text-xs',
           isAccent
             ? 'bg-accent-60 hover:bg-accent-70 active:bg-accent-80'
             : 'bg-danger-40 hover:bg-danger-50 active:bg-danger-60',

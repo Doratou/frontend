@@ -35,6 +35,7 @@ export function ProfileMenu({
         <HomeHeaderAvatar
           name={user.displayName}
           avatarUrl={user.avatarUrl}
+          fallbackAvatarUrl={user.fallbackAvatarUrl}
           className="size-8.5 text-sm md:size-9.5 md:text-heading-mobile-5"
         />
         <p className="min-w-0 flex-1 truncate text-start text-heading-mobile-6 text-primary-80 md:text-heading-mobile-5">
