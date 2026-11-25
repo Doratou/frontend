@@ -65,14 +65,14 @@ export function GroupCard({
       )}
     >
       {/* Top Banner */}
-      <div className="relative h-32 w-full overflow-hidden bg-primary-10">
+      <div className="relative h-30 w-full overflow-hidden bg-primary-10 sm:h-36">
         <img
           src={group.bannerSrc ?? GROUP_HEADER_ASSETS.banner}
           alt=""
           draggable={false}
           aria-hidden="true"
           className={cn(
-            'size-full object-cover object-center select-none',
+            'size-full object-cover object-left select-none',
             isArchived && 'opacity-75 grayscale-45',
           )}
         />
@@ -274,11 +274,11 @@ export function GroupCard({
               <Button
                 type="button"
                 tone="primary"
-                size="lg"
+                size="md"
                 radius="lg"
                 onClick={() => onReviewMemories(group)}
                 startIcon={<BookHeart className="size-4" aria-hidden="true" />}
-                className="w-full justify-center"
+                className="h-10.5 w-full justify-center gap-1.5 px-2.5 text-button-sm sm:gap-2.5 sm:px-3 sm:text-button-md"
               >
                 مرور خاطرات
               </Button>
@@ -286,13 +286,14 @@ export function GroupCard({
                 type="button"
                 variant="outline"
                 tone="secondary"
-                size="lg"
+                size="md"
                 radius="lg"
                 onClick={() => onCreateSimilar(group)}
                 startIcon={<UserPlus className="size-4" aria-hidden="true" />}
-                className="w-full justify-center border-secondary-60 text-secondary-70 hover:bg-secondary-10"
+                className="h-10.5 w-full justify-center gap-1.5 border-secondary-60 px-2.5 text-button-sm text-secondary-70 hover:bg-secondary-10 sm:gap-2.5 sm:px-3 sm:text-button-md"
               >
-                ساخت اکیپ مشابه
+                <span className="sm:hidden">اکیپ مشابه</span>
+                <span className="hidden sm:inline">ساخت اکیپ مشابه</span>
               </Button>
             </div>
           )}
@@ -300,13 +301,13 @@ export function GroupCard({
       </div>
 
       {/* Footer Meta Strip */}
-      <footer className="flex items-center border-t border-neutral-20 bg-primary-10/70 text-caption text-primary-70">
+      <footer className="flex flex-col border-t border-neutral-20 bg-primary-10/70 text-caption text-primary-70 sm:flex-row sm:items-center">
         <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5 px-3 py-2">
           <Calendar className="size-3.5 shrink-0" aria-hidden="true" />
           <span className="truncate font-medium">{group.dateRangeLabel}</span>
         </div>
 
-        <div className="h-8 w-px shrink-0 bg-neutral-20" />
+        <div className="h-px w-full shrink-0 bg-neutral-20 sm:h-8 sm:w-px" />
 
         <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5 px-3 py-2">
           <User className="size-3.5 shrink-0" aria-hidden="true" />

@@ -102,7 +102,7 @@ export function CreateGroupDialog({
 }: CreateGroupDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-sm:max-h-[calc(100dvh-1.5rem)] max-sm:w-[calc(100%-1.5rem)]">
         {/* Header */}
         <header className="flex items-center justify-between gap-3 border-b border-neutral-20 bg-white px-5 py-4">
           <div className="flex min-w-0 items-center gap-3">
@@ -321,6 +321,32 @@ function CreateGroupForm({
           </span>
         </div>
 
+        {invitedIds.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {MOCK_FRIENDS.filter((f) => invitedIds.includes(f.id)).map(
+              (friend) => (
+                <button
+                  key={friend.id}
+                  type="button"
+                  onClick={() => toggleFriend(friend.id)}
+                  className="inline-flex h-7.5 cursor-pointer items-center gap-1.5 rounded-full border border-primary-30 bg-primary-10/70 pr-1 pl-2.5 text-caption font-medium text-primary-80 transition-colors hover:bg-primary-20/70"
+                >
+                  <span
+                    className={cn(
+                      'grid size-5.5 shrink-0 place-items-center rounded-full text-[11px] font-bold text-white',
+                      friend.avatarBgClass,
+                    )}
+                  >
+                    {friend.initial}
+                  </span>
+                  <span>{friend.name.split(' ')[0]}</span>
+                  <X className="size-3.5" aria-hidden="true" />
+                </button>
+              ),
+            )}
+          </div>
+        )}
+
         <div className="relative">
           <Search
             className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-neutral-50"
@@ -335,7 +361,7 @@ function CreateGroupForm({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {filteredFriends.map((friend) => {
             const selected = invitedIds.includes(friend.id);
             return (

@@ -43,8 +43,8 @@ function SectionHeader({
   countLabel,
 }: SectionHeaderProps) {
   return (
-    <div className="flex items-start justify-between gap-3">
-      <div className="flex flex-col gap-0.5">
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span
             aria-hidden="true"
@@ -52,14 +52,17 @@ function SectionHeader({
           />
           <h2 className="text-heading-5 text-primary-80">{title}</h2>
         </div>
-        {subtitle && (
-          <p className="pr-4.5 text-caption text-neutral-60">{subtitle}</p>
-        )}
+
+        <span className="inline-flex h-7 shrink-0 items-center rounded-full border border-neutral-20 bg-primary-10 px-3 text-caption font-medium text-primary-70">
+          {countLabel}
+        </span>
       </div>
 
-      <span className="inline-flex h-7 shrink-0 items-center rounded-full border border-neutral-20 bg-primary-10 px-3 text-caption font-medium text-primary-70">
-        {countLabel}
-      </span>
+      {subtitle && (
+        <p className="text-caption leading-5 text-neutral-60 sm:pr-4.5">
+          {subtitle}
+        </p>
+      )}
     </div>
   );
 }
@@ -246,13 +249,25 @@ export function GroupsView() {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 rounded-3xl border border-primary-30/80 bg-white p-5 sm:p-6">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 rounded-2xl border border-primary-30/80 bg-white p-3.5 sm:gap-6 sm:rounded-3xl sm:p-6">
       {/* Top Action & Filter Tabs Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <Button
+          type="button"
+          tone="primary"
+          size="lg"
+          radius="lg"
+          onClick={handleOpenCreate}
+          startIcon={<Plus className="size-4" aria-hidden="true" />}
+          className="w-full justify-center md:order-2 md:w-auto"
+        >
+          ایجاد اکیپ جدید
+        </Button>
+
         <div
           role="tablist"
           aria-label="فیلتر وضعیت اکیپ‌ها"
-          className="inline-flex flex-wrap items-center gap-1 rounded-2xl border border-neutral-20 bg-primary-10/70 p-1"
+          className="flex w-full items-center gap-1 overflow-x-auto rounded-2xl border border-neutral-20 bg-primary-10/70 p-1 md:order-1 md:inline-flex md:w-auto"
         >
           {tabs.map((tab) => {
             const selected = activeTab === tab.id;
@@ -264,7 +279,7 @@ export function GroupsView() {
                 aria-selected={selected}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  'h-9 cursor-pointer rounded-xl px-3.5 text-button-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-60',
+                  'h-9 shrink-0 cursor-pointer rounded-xl px-3 text-button-sm whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-60 sm:px-3.5',
                   selected
                     ? 'bg-primary-70 text-white shadow-2xs'
                     : 'text-neutral-70 hover:bg-white/70 hover:text-primary-80',
@@ -275,17 +290,6 @@ export function GroupsView() {
             );
           })}
         </div>
-
-        <Button
-          type="button"
-          tone="primary"
-          size="lg"
-          radius="lg"
-          onClick={handleOpenCreate}
-          startIcon={<Plus className="size-4" aria-hidden="true" />}
-        >
-          ایجاد اکیپ جدید
-        </Button>
       </div>
 
       {/* 1. Invitations Section */}
@@ -424,7 +428,7 @@ export function GroupsView() {
                     endIcon={
                       <ChevronDown className="size-4" aria-hidden="true" />
                     }
-                    className="border-neutral-30 bg-white text-primary-80 hover:bg-primary-10"
+                    className="w-full justify-center border-neutral-30 bg-white text-primary-80 hover:bg-primary-10 md:w-auto"
                   >
                     نمایش اکیپ‌های بیشتر
                   </Button>

@@ -15,7 +15,7 @@ export function GroupInvitationCard({
   onReject,
 }: GroupInvitationCardProps) {
   return (
-    <article className="flex items-center justify-between gap-3 rounded-2xl border border-accent-30 bg-accent-10/70 p-3.5 transition-shadow hover:shadow-xs">
+    <article className="flex flex-col gap-3 rounded-2xl border border-accent-30 bg-accent-10/70 p-3.5 transition-shadow hover:shadow-xs sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 items-center gap-3">
         <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-xl border border-accent-30 bg-white text-accent-60">
           {invitation.photoSrc ? (
@@ -61,7 +61,7 @@ export function GroupInvitationCard({
         </div>
       </div>
 
-      <div className="flex w-24 shrink-0 flex-col gap-1.5">
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:w-24 sm:shrink-0 sm:flex-col sm:gap-1.5">
         <Button
           type="button"
           size="md"
