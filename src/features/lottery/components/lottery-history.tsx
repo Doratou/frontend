@@ -1,10 +1,7 @@
 import type { UIEvent } from 'react';
 import { Calendar, Clock, Crown, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  formatLotteryDate,
-  formatLotteryTime,
-} from '@/features/lottery/format';
+import { formatPersianClock, formatPersianLongDate } from '@/lib/persian-date';
 import { LotterySectionCard } from '@/features/lottery/components/lottery-section-card';
 import { OptionAvatar } from '@/features/lottery/components/option-avatar';
 import type {
@@ -186,13 +183,13 @@ export function LotteryHistory({
                         className="size-4 shrink-0"
                         aria-hidden="true"
                       />
-                      {formatLotteryDate(entry.drawnAt)}
+                      {formatPersianLongDate(entry.drawnAt)}
                     </span>
                   </td>
                   <td className={`${CELL} whitespace-nowrap`}>
                     <span className={META_CLASS}>
                       <Clock className="size-4 shrink-0" aria-hidden="true" />
-                      {formatLotteryTime(entry.drawnAt)}
+                      {formatPersianClock(entry.drawnAt)}
                     </span>
                   </td>
                   <td className={`${CELL} w-px whitespace-nowrap`}>
@@ -217,11 +214,11 @@ export function LotteryHistory({
                         className="size-4 shrink-0"
                         aria-hidden="true"
                       />
-                      {formatLotteryDate(entry.drawnAt)}
+                      {formatPersianLongDate(entry.drawnAt)}
                     </span>
                     <span className="flex items-center gap-1.5">
                       <Clock className="size-4 shrink-0" aria-hidden="true" />
-                      {formatLotteryTime(entry.drawnAt)}
+                      {formatPersianClock(entry.drawnAt)}
                     </span>
                   </span>
                 </div>

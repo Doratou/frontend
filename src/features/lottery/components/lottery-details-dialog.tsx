@@ -4,12 +4,8 @@ import { Calendar, Clock, Crown, LoaderPinwheel, Trophy, X } from 'lucide-react'
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
-import {
-  formatChance,
-  formatLotteryDate,
-  formatLotteryTime,
-  toPersianNumber,
-} from '@/features/lottery/format';
+import { formatPersianClock, formatPersianLongDate } from '@/lib/persian-date';
+import { formatChance, toPersianNumber } from '@/features/lottery/format';
 import {
   ModeBadge,
   ValueChip,
@@ -101,14 +97,14 @@ export function LotteryDetailsDialog({
                     className="size-4 shrink-0 text-muted-foreground"
                     aria-hidden="true"
                   />
-                  {formatLotteryDate(entry.drawnAt)}
+                  {formatPersianLongDate(entry.drawnAt)}
                 </InfoTile>
                 <InfoTile label="ساعت">
                   <Clock
                     className="size-4 shrink-0 text-muted-foreground"
                     aria-hidden="true"
                   />
-                  {formatLotteryTime(entry.drawnAt)}
+                  {formatPersianClock(entry.drawnAt)}
                 </InfoTile>
               </div>
 

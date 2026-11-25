@@ -2,12 +2,8 @@ import { Dialog } from '@base-ui/react/dialog';
 import { motion, useReducedMotion } from 'motion/react';
 import { Crown, Trophy, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  formatChance,
-  formatLotteryDate,
-  formatLotteryTime,
-  toPersianNumber,
-} from '@/features/lottery/format';
+import { formatPersianClock, formatPersianLongDate } from '@/lib/persian-date';
+import { formatChance, toPersianNumber } from '@/features/lottery/format';
 import { ModeBadge } from '@/features/lottery/components/lottery-badges';
 import { OptionAvatar } from '@/features/lottery/components/option-avatar';
 import type { LotteryMode, LotteryOption } from '@/features/lottery/types';
@@ -127,7 +123,7 @@ export function LotteryResultDialog({
               <div className="flex flex-wrap items-center justify-center gap-2">
                 {drawnAt && (
                   <span className={CHIP_CLASS}>
-                    {formatLotteryDate(drawnAt)} · {formatLotteryTime(drawnAt)}
+                    {formatPersianLongDate(drawnAt)} · {formatPersianClock(drawnAt)}
                   </span>
                 )}
                 <span className={CHIP_CLASS}>
