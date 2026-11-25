@@ -1,3 +1,5 @@
+import type { Pagination } from '@/lib/api/pagination';
+
 export type LotteryMode = 'equal' | 'weighted';
 export type LotteryStatus = 'draft' | 'completed';
 export type CandidateKind = 'text' | 'user';
@@ -72,9 +74,7 @@ export interface LotterySummary {
 
 export interface LotterySummaryPage {
   items: LotterySummary[];
-  page: number;
-  limit: number;
-  total: number;
+  pagination: Pagination;
 }
 
 export interface LotteryWinner {
