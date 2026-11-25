@@ -192,6 +192,7 @@ export function HomeHeader({
           <HomeHeaderAvatar
             name={user.displayName}
             avatarUrl={user.avatarUrl}
+            fallbackAvatarUrl={user.fallbackAvatarUrl}
             className="size-6.5 text-caption md:size-7.5 md:text-[13px]"
           />
         </button>

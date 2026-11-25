@@ -3,6 +3,7 @@ import type { LucideIcon } from 'lucide-react';
 export interface HomeHeaderUser {
   displayName: string;
   avatarUrl?: string | null;
+  fallbackAvatarUrl?: string | null;
   walletBalance?: number;
 }
 

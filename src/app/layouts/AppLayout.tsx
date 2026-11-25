@@ -1,7 +1,10 @@
 import React from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router';
 import { Bell, Home, type LucideIcon } from 'lucide-react';
-import { useAttachmentUrl } from '@/features/attachments/api/get-attachment-url';
+import {
+  getAttachmentDownloadUrl,
+  useAttachmentUrl,
+} from '@/features/attachments/api/get-attachment-url';
 import { useLogout } from '@/features/auth/hooks/use-logout';
 import { useAuthStore } from '@/features/auth/stores/auth-store';
 import { HomeHeader } from '@/features/home-header/components/HomeHeader';
@@ -92,6 +95,9 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             user={{
               displayName: authUser?.displayName ?? 'کاربر دوراتو',
               avatarUrl,
+              fallbackAvatarUrl: avatarAttachmentId
+                ? getAttachmentDownloadUrl(avatarAttachmentId)
+                : null,
               walletBalance: authUser?.wallet ?? 0,
             }}
             notifications={notifications}

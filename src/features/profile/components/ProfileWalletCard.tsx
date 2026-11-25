@@ -79,7 +79,7 @@ export function ProfileWalletCard({
         startIcon={<Plus className="size-4.5 stroke-[2.25]" />}
         className="relative h-10.5 w-full touch-manipulation rounded-full bg-gradient-to-b from-[#ffda6b] to-[#f4b738] text-button-md font-bold text-[#281e62] shadow-[0_6px_18px_rgba(244,183,56,0.32)] hover:brightness-105 active:brightness-95 dark:text-[#281e62]"
       >
-        افزایش توکن
+        رفتن به کیف پول
       </Button>
     </section>
   );
