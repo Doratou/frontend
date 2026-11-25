@@ -136,7 +136,8 @@ export function ChecklistView() {
   };
 
   return (
-    <div className="flex flex-col gap-3">
+    // p-4 is the mobile page margin; from md up the layout provides its own spacing.
+    <div className="flex flex-col gap-3 p-4 md:p-0">
       <GroupPageHeader
         title="چک‌لیست"
         logo={<CheckSquare className="size-5" />}
