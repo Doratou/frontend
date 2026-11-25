@@ -186,7 +186,7 @@ export function PollVotersView({
             <OptionVotersCard
               key={option.id}
               label={option.label}
-              percent={getOptionPercent(option, poll.totalVotes)}
+              percent={getOptionPercent(option, poll.totalVoters)}
               votes={option.votes}
               voters={votersByOption.get(option.id) ?? []}
             />

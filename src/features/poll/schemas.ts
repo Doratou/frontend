@@ -27,6 +27,7 @@ export const createPollSchema = z
       .min(MIN_POLL_OPTIONS, 'حداقل دو گزینه لازم است')
       .max(MAX_POLL_OPTIONS, 'تعداد گزینه‌ها از حد مجاز بیشتر است'),
     isAnonymous: z.boolean(),
+    allowMultiple: z.boolean(),
   })
   .superRefine(({ options }, ctx) => {
     const seen = new Set<string>();

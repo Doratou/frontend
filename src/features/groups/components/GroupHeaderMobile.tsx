@@ -12,7 +12,7 @@ import {
 import { toPersianDigits, type GroupHeaderProps } from './GroupHeader';
 import { GROUP_HEADER_ASSETS } from './groupHeaderAssets';
 import { MemberAvatar } from './MemberAvatar';
-import { useSidebarStore } from '@/features/sidebar/stores/sidebar-store';
+import { useSidebarStore } from '@/stores/sidebar-store';
 import { useNavigate } from 'react-router';
 
 const SETTINGS_LABEL = 'تنظیمات';
