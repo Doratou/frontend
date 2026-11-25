@@ -66,6 +66,7 @@ export function MembersSection() {
                   member={{
                     id: member.memberId,
                     name: member.name,
+                    avatarAttachmentId: member.avatarAttachmentId,
                     avatarSrc: member.avatarSrc,
                   }}
                   className="size-9"

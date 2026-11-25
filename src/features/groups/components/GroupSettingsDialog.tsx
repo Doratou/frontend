@@ -54,6 +54,7 @@ export type SettingsSection = 'overview' | 'members' | 'link' | 'archive';
 export interface GroupSettingsDialogProps {
   groupId: string;
   currentUserId?: string;
+  currentUserAvatarAttachmentId?: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onGroupExit?: () => void;
@@ -370,6 +371,7 @@ function GroupSettingsContent({
 export function GroupSettingsDialog({
   groupId,
   currentUserId,
+  currentUserAvatarAttachmentId,
   open,
   onOpenChange,
   onGroupExit,
@@ -386,12 +388,26 @@ export function GroupSettingsDialog({
   }, []);
 
   const {
-    data: group,
+    data: rawGroup,
     isLoading,
     isError,
     error,
     refetch,
   } = useGroupSettings(groupId, open);
+
+  const group = useMemo(() => {
+    if (!rawGroup || !currentUserId || !currentUserAvatarAttachmentId) {
+      return rawGroup;
+    }
+    return {
+      ...rawGroup,
+      members: rawGroup.members.map((member) =>
+        member.userId === currentUserId && !member.avatarAttachmentId
+          ? { ...member, avatarAttachmentId: currentUserAvatarAttachmentId }
+          : member,
+      ),
+    };
+  }, [rawGroup, currentUserId, currentUserAvatarAttachmentId]);
 
   const isOwner = useMemo(
     () =>

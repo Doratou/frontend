@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import { User } from 'lucide-react';
 import { formatNumber } from '@/utils/format';
+import { getGroupAttachmentDownloadUrl } from '../api/group-settings-api';
+import { useGroupAttachmentUrl } from '../hooks/use-group-settings';
 import type { GroupHeaderMember } from './GroupHeader';
 
 export interface MemberAvatarProps {
@@ -9,23 +12,36 @@ export interface MemberAvatarProps {
   className?: string;
 }
 
-export const MemberAvatar: React.FC<MemberAvatarProps> = ({
+export function MemberAvatar({
   member,
   style,
   className = '',
-}) => {
-  const [failedSrc, setFailedSrc] = useState<string | null>(null);
-  const trimmedName = member.name?.trim() ?? '';
-  const showImage = Boolean(member.avatarSrc && failedSrc !== member.avatarSrc);
+}: MemberAvatarProps) {
+  const [failedUrls, setFailedUrls] = useState<string[]>([]);
+  const attachmentId = member.avatarAttachmentId ?? null;
+  const { data: resolvedAccessUrl } = useGroupAttachmentUrl(attachmentId);
 
-  if (showImage && member.avatarSrc) {
+  const trimmedName = member.name?.trim() ?? '';
+  const candidates = [
+    resolvedAccessUrl,
+    member.avatarSrc,
+    attachmentId ? getGroupAttachmentDownloadUrl(attachmentId) : undefined,
+  ].filter((url): url is string => Boolean(url));
+
+  const activeUrl = candidates.find((url) => !failedUrls.includes(url));
+
+  if (activeUrl) {
     return (
       <img
-        src={member.avatarSrc}
+        src={activeUrl}
         alt={trimmedName}
         draggable={false}
         style={style}
-        onError={() => setFailedSrc(member.avatarSrc ?? null)}
+        onError={() =>
+          setFailedUrls((prev) =>
+            prev.includes(activeUrl) ? prev : [...prev, activeUrl],
+          )
+        }
         className={`relative h-8 w-8 shrink-0 rounded-full object-cover select-none ${className}`}
       />
     );
@@ -55,7 +71,7 @@ export const MemberAvatar: React.FC<MemberAvatarProps> = ({
       <User className="pointer-events-none h-4 w-4 stroke-2" />
     </div>
   );
-};
+}
 
 export function GroupMemberStack({
   members,

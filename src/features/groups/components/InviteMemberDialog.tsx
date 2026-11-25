@@ -185,6 +185,7 @@ export function InviteMemberDialog({
                         member={{
                           id: friend.id,
                           name: friend.name,
+                          avatarAttachmentId: friend.avatarAttachmentId,
                           avatarSrc: friend.avatarSrc,
                         }}
                         className="size-5.5 text-[11px]"
@@ -251,6 +252,7 @@ export function InviteMemberDialog({
                         member={{
                           id: friend.id,
                           name: friend.name,
+                          avatarAttachmentId: friend.avatarAttachmentId,
                           avatarSrc: friend.avatarSrc,
                         }}
                         className="size-9"

@@ -40,11 +40,16 @@ const groupStatusSchema = z
   .transform((value) => value.toUpperCase())
   .pipe(z.enum(['ACTIVE', 'SETTLING', 'CLOSED']));
 
+const attachmentIdSchema = z
+  .union([z.number().int().positive(), z.string().min(1)])
+  .nullish();
+
 export const groupMemberDtoSchema = z.object({
   member_id: z.number().int().positive(),
   user_id: z.number().int().positive(),
   name: z.string(),
   role: groupRoleSchema,
+  avatar_attachment_id: attachmentIdSchema,
   avatar_url: z.string().nullable().optional(),
 });
 
@@ -86,6 +91,10 @@ export function mapGroupDtoToSettingsData(
     memberId: String(member.member_id),
     userId: String(member.user_id),
     name: member.name.trim() || 'کاربر دوراتو',
+    avatarAttachmentId:
+      member.avatar_attachment_id != null
+        ? String(member.avatar_attachment_id)
+        : null,
     avatarSrc: member.avatar_url ?? undefined,
     role: member.role,
   }));
@@ -100,11 +109,7 @@ export function mapGroupDtoToSettingsData(
       ? String(dto.cover_attachment_id)
       : (resolvedCover?.attachmentId ?? null);
 
-  // When coverAttachmentId is present, the cover is fetched via authenticated blob download
-  // because storage access_url can point to unreachable/SPA-rewritten paths on staging.
-  const groupPhotoSrc = coverAttachmentId
-    ? undefined
-    : normalizeCoverUrl(resolvedCover?.url ?? dto.cover_url);
+  const groupPhotoSrc = normalizeCoverUrl(resolvedCover?.url ?? dto.cover_url);
 
   const createdDateLabel = formatDate(dto.created_at, {
     year: 'numeric',
@@ -122,6 +127,7 @@ export function mapGroupDtoToSettingsData(
     groupPhotoSrc,
     creator: {
       name: creatorMember?.name ?? 'سازنده اکیپ',
+      avatarAttachmentId: creatorMember?.avatarAttachmentId ?? null,
       avatarSrc: creatorMember?.avatarSrc,
     },
     createdDateLabel,
@@ -197,6 +203,7 @@ export const friendDtoSchema = z.object({
   user: z.object({
     id: z.number().int().positive(),
     name: z.string(),
+    avatar_attachment_id: attachmentIdSchema,
     avatar_url: z.string().nullable().optional(),
   }),
   mutual_group_count: z.number().int().nonnegative().optional(),
@@ -210,6 +217,10 @@ export function mapFriendDto(dto: z.infer<typeof friendDtoSchema>): FriendItem {
   return {
     id: String(dto.user.id),
     name: dto.user.name.trim() || 'کاربر دوراتو',
+    avatarAttachmentId:
+      dto.user.avatar_attachment_id != null
+        ? String(dto.user.avatar_attachment_id)
+        : null,
     avatarSrc: dto.user.avatar_url ?? undefined,
     mutualGroupCount: dto.mutual_group_count,
   };
@@ -253,6 +264,19 @@ export function mapDirectInviteResponse(
 export const uploadedAttachmentDtoSchema = z.object({
   id: z.number().int().positive(),
   access_url: z.string().nullable().optional(),
+});
+
+export const attachmentAccessUrlDtoSchema = z.object({
+  access_url: z.string().min(1),
+});
+
+export const groupCoverAttachmentListDtoSchema = z.object({
+  items: z.array(
+    z.object({
+      id: z.number().int().positive(),
+      access_url: z.string().nullable().optional(),
+    }),
+  ),
 });
 
 /* -------------------------------------------------------------------------- */

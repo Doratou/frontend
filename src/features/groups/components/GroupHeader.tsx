@@ -10,11 +10,12 @@ import {
 } from 'lucide-react';
 import { formatGroupStorage } from '../constants';
 import { GROUP_HEADER_ASSETS } from './groupHeaderAssets';
-import { GroupMemberStack } from './MemberAvatar';
+import { GroupMemberStack, MemberAvatar } from './MemberAvatar';
 
 export interface GroupHeaderMember {
   id: string;
   name?: string;
+  avatarAttachmentId?: string | null;
   avatarSrc?: string;
 }
 
@@ -28,7 +29,11 @@ export interface GroupHeaderProps {
   members: GroupHeaderMember[];
   maxVisibleMembers?: number;
   storage: { usedGb: number; totalGb: number };
-  creator: { name: string; avatarSrc?: string };
+  creator: {
+    name: string;
+    avatarAttachmentId?: string | null;
+    avatarSrc?: string;
+  };
   dateRangeLabel: string;
   onSettingsClick?: () => void;
   onPremiumClick?: () => void;
@@ -212,11 +217,14 @@ export function GroupHeader({
           >
             {creator.name}
           </span>
-          <img
-            src={creator.avatarSrc || GROUP_HEADER_ASSETS.creatorAvatarSample}
-            alt={creator.name}
-            draggable={false}
-            className="h-4.5 w-4.5 shrink-0 rounded-full object-cover select-none"
+          <MemberAvatar
+            member={{
+              id: 'creator',
+              name: creator.name,
+              avatarAttachmentId: creator.avatarAttachmentId,
+              avatarSrc: creator.avatarSrc,
+            }}
+            className="h-4.5 w-4.5 text-[10px]"
           />
           <span
             dir="auto"

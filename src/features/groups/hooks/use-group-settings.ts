@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   useMutation,
   useQuery,
@@ -16,10 +16,12 @@ import {
   createGroupInviteLink,
   deactivateGroupInviteLink,
   deleteGroup,
-  downloadGroupAttachment,
   getFriendsList,
+  getGroupAttachmentDownloadUrl,
+  getGroupAttachmentUrl,
   getGroupInviteLinks,
   getGroupSettings,
+  getLatestGroupCoverAttachment,
   inviteGroupMembers,
   leaveGroup,
   removeGroupMember,
@@ -109,46 +111,51 @@ export function useFriendsList(enabled = true) {
   });
 }
 
+const ATTACHMENT_URL_STALE_MS = 30 * 60_000;
+
+export function useGroupAttachmentUrl(attachmentId: string | null) {
+  return useQuery({
+    queryKey: groupKeys.attachmentUrl(attachmentId ?? ''),
+    queryFn: ({ signal }) => getGroupAttachmentUrl(attachmentId ?? '', signal),
+    enabled: Boolean(attachmentId),
+    staleTime: ATTACHMENT_URL_STALE_MS,
+  });
+}
+
 export function useGroupCoverImage(
   group:
-    Pick<GroupSettingsData, 'groupPhotoSrc' | 'coverAttachmentId'> | undefined,
+    | Pick<GroupSettingsData, 'id' | 'groupPhotoSrc' | 'coverAttachmentId'>
+    | undefined,
 ) {
-  const [fallbackFailedSrc, setFallbackFailedSrc] = useState<string | null>(
-    null,
-  );
-  const attachmentId = group?.coverAttachmentId ?? '';
+  const [failedUrls, setFailedUrls] = useState<string[]>([]);
+  const directAttachmentId = group?.coverAttachmentId ?? null;
 
-  const { data: blob } = useQuery({
-    queryKey: groupKeys.coverBlob(attachmentId),
-    queryFn: ({ signal }) => downloadGroupAttachment(attachmentId, signal),
-    enabled: Boolean(attachmentId),
-    staleTime: 30 * 60_000,
+  const { data: latestCover } = useQuery({
+    queryKey: groupKeys.coverAttachment(group?.id ?? ''),
+    queryFn: ({ signal }) =>
+      getLatestGroupCoverAttachment(group?.id ?? '', signal),
+    enabled: Boolean(group?.id) && !directAttachmentId && !group?.groupPhotoSrc,
+    staleTime: ATTACHMENT_URL_STALE_MS,
   });
 
-  const blobUrl = useMemo(
-    () => (blob ? URL.createObjectURL(blob) : undefined),
-    [blob],
-  );
+  const effectiveAttachmentId = directAttachmentId ?? latestCover?.id ?? null;
+  const { data: resolvedAccessUrl } = useGroupAttachmentUrl(directAttachmentId);
 
-  useEffect(() => {
-    if (!blobUrl) return;
-    return () => {
-      URL.revokeObjectURL(blobUrl);
-    };
-  }, [blobUrl]);
+  const candidates = [
+    resolvedAccessUrl,
+    latestCover?.accessUrl,
+    group?.groupPhotoSrc,
+    effectiveAttachmentId
+      ? getGroupAttachmentDownloadUrl(effectiveAttachmentId)
+      : undefined,
+  ].filter((url): url is string => Boolean(url));
 
-  const fallbackUrl =
-    group?.groupPhotoSrc && fallbackFailedSrc !== group.groupPhotoSrc
-      ? group.groupPhotoSrc
-      : undefined;
-
-  const src = blobUrl ?? fallbackUrl;
+  const src = candidates.find((url) => !failedUrls.includes(url));
 
   const onError = useCallback(() => {
-    if (!blobUrl && group?.groupPhotoSrc) {
-      setFallbackFailedSrc(group.groupPhotoSrc);
-    }
-  }, [blobUrl, group?.groupPhotoSrc]);
+    if (!src) return;
+    setFailedUrls((prev) => (prev.includes(src) ? prev : [...prev, src]));
+  }, [src]);
 
   return useMemo(() => ({ src, onError }), [src, onError]);
 }
@@ -167,12 +174,18 @@ export function useUpdateGroupCover(groupId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (file: File) => updateGroupCover(groupId, file),
-    onSuccess: (updated, file) => {
-      if (updated.coverAttachmentId) {
+    onSuccess: (updated) => {
+      if (updated.coverAttachmentId && updated.groupPhotoSrc) {
         queryClient.setQueryData(
-          groupKeys.coverBlob(updated.coverAttachmentId),
-          file,
+          groupKeys.attachmentUrl(updated.coverAttachmentId),
+          updated.groupPhotoSrc,
         );
+      }
+      if (updated.coverAttachmentId) {
+        queryClient.setQueryData(groupKeys.coverAttachment(groupId), {
+          id: updated.coverAttachmentId,
+          accessUrl: updated.groupPhotoSrc,
+        });
       }
       queryClient.setQueryData<GroupSettingsData>(
         groupKeys.settings(groupId),
