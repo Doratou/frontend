@@ -1,5 +1,6 @@
 import { useId } from 'react';
 import { Check, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useGroupId } from '@/features/groups/hooks/use-group-id';
 import { useToggleClaim } from '@/features/checklist/hooks/use-toggle-claim';
@@ -46,7 +47,7 @@ export function ChecklistItemRow({
       {isPersonal ? (
         <span
           aria-hidden="true"
-          className="grid size-5.5 shrink-0 place-items-center rounded-full border border-primary-30"
+          className="grid size-5.5 shrink-0 place-items-center rounded-md border-[1.5px] border-primary-30"
         >
           <span className="size-1.5 rounded-full bg-primary-60" />
         </span>
@@ -88,14 +89,17 @@ export function ChecklistItemRow({
       )}
 
       {item.canDelete && (
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="icon-md"
+          radius="md"
           aria-label={`حذف «${item.title}»`}
           onClick={() => onDelete(item)}
-          className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-lg border border-danger-20 bg-danger-10 text-danger-40 outline-hidden transition-colors hover:bg-danger-20/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-danger-40 motion-reduce:transition-none"
+          className="size-8 shrink-0 border-danger-20 bg-danger-10 text-danger-40 hover:bg-danger-20/40"
         >
           <Trash2 className="size-4" aria-hidden="true" />
-        </button>
+        </Button>
       )}
     </li>
   );
