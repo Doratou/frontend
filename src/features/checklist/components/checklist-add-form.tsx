@@ -54,7 +54,7 @@ export function ChecklistAddForm({ type, label }: ChecklistAddFormProps) {
         type="submit"
         tone="secondary"
         radius="md"
-        startIcon={<Plus className="size-4" />}
+        endIcon={<Plus className="size-4" />}
         isLoading={create.isPending}
         disabled={title.trim() === ''}
         className="h-9.5 shrink-0"
