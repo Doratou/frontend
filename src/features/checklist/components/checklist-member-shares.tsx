@@ -42,7 +42,12 @@ export function ChecklistMemberShares({
         </span>
       </header>
 
-      <ul className="flex flex-col gap-3">
+      {/* Roughly five rows stay visible; longer lists scroll so the card stays compact. */}
+      <ul
+        tabIndex={0}
+        aria-label="سهم اعضا"
+        className="flex max-h-64 flex-col gap-3 overflow-y-auto overscroll-contain pe-1 outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary-60"
+      >
         {members.map((member) => {
           const share =
             claimedTotal > 0
