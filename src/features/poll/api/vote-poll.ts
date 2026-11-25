@@ -1,22 +1,25 @@
 import { apiClient } from '@/lib/api/client';
 import { pollPath, pollRequest, unwrap } from './poll-http';
 
-/** Casts or changes the current member's vote (PUT is idempotent). */
+/**
+ * Replaces the member's whole selection with `optionIds` (never a toggle or an append).
+ * Single-choice polls need exactly one id; the list must not be empty.
+ */
 export async function votePoll(
-  input: { groupId: string; pollId: string; optionId: string },
+  input: { groupId: string; pollId: string; optionIds: string[] },
   signal?: AbortSignal,
 ): Promise<void> {
   const response = await pollRequest(() =>
     apiClient.put<unknown>(
       `${pollPath(input.groupId, input.pollId)}/vote`,
-      { option_id: Number(input.optionId) },
+      { option_ids: input.optionIds.map(Number) },
       { signal },
     ),
   );
   unwrap(response.data);
 }
 
-/** Withdraws the current member's vote. */
+/** Withdraws every selection of the current member in this poll. */
 export async function retractVote(
   input: { groupId: string; pollId: string },
   signal?: AbortSignal,

@@ -11,6 +11,8 @@ const messages: Readonly<Record<string, string>> = {
   POLL_NOT_FOUND: 'این نظرسنجی پیدا نشد؛ ممکن است حذف شده باشد.',
   POLL_OPTION_NOT_FOUND: 'این گزینه پیدا نشد؛ صفحه را تازه کنید.',
   POLL_VOTE_NOT_FOUND: 'رأی فعالی برای پس‌گرفتن وجود ندارد.',
+  POLL_DUPLICATE_VOTE_OPTIONS: 'یک گزینه بیش از یک بار انتخاب شده است.',
+  POLL_SINGLE_CHOICE_REQUIRED: 'در این نظرسنجی فقط یک گزینه قابل انتخاب است.',
   POLL_PRIVATE: 'هویت رأی‌دهندگان نظرسنجی ناشناس نمایش داده نمی‌شود.',
   POLL_INVALID_OPTIONS:
     'حداقل دو گزینه‌ی معتبر لازم است و هر گزینه حداکثر ۲۵۵ کاراکتر دارد.',

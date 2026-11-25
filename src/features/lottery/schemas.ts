@@ -53,15 +53,24 @@ export const createLotterySchema = z
         option.weight >= 1 &&
         option.weight <= LOTTERY_WEIGHT_TOTAL;
       if (!valid) {
+        // The last option is calculated, so a value below 1 means that the
+        // other options already use up everything.
+        const nothingLeft =
+          index === values.options.length - 1 && option.weight < 1;
         ctx.addIssue({
           code: 'custom',
           path: ['options', index, 'weight'],
-          message: `درصد باید عددی صحیح بین ۱ تا ${toPersianNumber(LOTTERY_WEIGHT_TOTAL)} باشد.`,
+          message: nothingLeft
+            ? 'برای گزینه‌ی آخر درصدی باقی نمانده است؛ درصد بقیه را کمتر کنید.'
+            : `درصد باید عددی صحیح بین ۱ تا ${toPersianNumber(LOTTERY_WEIGHT_TOTAL)} باشد.`,
         });
       }
     });
 
-    const total = values.options.reduce((sum, option) => sum + option.weight, 0);
+    const total = values.options.reduce(
+      (sum, option) => sum + option.weight,
+      0,
+    );
     if (total !== LOTTERY_WEIGHT_TOTAL) {
       ctx.addIssue({
         code: 'custom',

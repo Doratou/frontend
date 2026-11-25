@@ -8,17 +8,23 @@ export interface CreatePollInput {
   question: string;
   options: string[];
   isAnonymous: boolean;
+  allowMultiple: boolean;
 }
 
 export async function createPoll(
-  { groupId, question, options, isAnonymous }: CreatePollInput,
+  { groupId, question, options, isAnonymous, allowMultiple }: CreatePollInput,
   signal?: AbortSignal,
 ): Promise<Poll> {
   const response = await pollRequest(() =>
     apiClient.post<unknown>(
       groupPollsPath(groupId),
-      // Visibility cannot be changed later; PRIVATE hides voter identities from everyone.
-      { question, visibility: isAnonymous ? 'PRIVATE' : 'PUBLIC', options },
+      // Visibility and the voting mode cannot be changed later.
+      {
+        question,
+        visibility: isAnonymous ? 'PRIVATE' : 'PUBLIC',
+        allow_multiple_choices: allowMultiple,
+        options,
+      },
       { signal },
     ),
   );
