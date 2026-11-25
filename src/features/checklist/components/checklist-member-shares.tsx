@@ -42,32 +42,39 @@ export function ChecklistMemberShares({
         </span>
       </header>
 
-      <ul className="flex flex-col gap-2.5">
+      <ul className="flex flex-col gap-3">
         {members.map((member, index) => {
           const share =
             claimedTotal > 0
               ? Math.round((member.claimedItemCount / claimedTotal) * 100)
               : 0;
           return (
-            <li key={member.memberId} className="flex items-center gap-2">
-              <ChecklistAvatar
-                name={member.name}
-                avatarUrl={member.avatarUrl}
-                className="size-6"
-              />
-              <span className="w-24 shrink-0 truncate text-caption font-bold text-primary-80">
-                {member.name}
-                {member.memberId === viewerMemberId && (
-                  <span className="font-normal text-neutral-60"> (شما)</span>
-                )}
-              </span>
+            <li key={member.memberId} className="flex flex-col gap-1.5">
+              <div className="flex items-start gap-2">
+                <ChecklistAvatar
+                  name={member.name}
+                  avatarUrl={member.avatarUrl}
+                  className="mt-0.5 size-6"
+                />
+                {/* No truncation: a long name wraps so it is always readable in full. */}
+                <span className="min-w-0 flex-1 text-caption font-bold break-words text-primary-80">
+                  {member.name}
+                  {member.memberId === viewerMemberId && (
+                    <span className="font-normal text-neutral-60"> (شما)</span>
+                  )}
+                </span>
+                <span className="shrink-0 text-caption whitespace-nowrap text-neutral-70">
+                  {formatItemCount(member.claimedItemCount)}
+                </span>
+              </div>
+              {/* ms-8 aligns the bar with the name (avatar size-6 + gap-2). */}
               <div
                 role="progressbar"
                 aria-label={`سهم ${member.name}`}
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={share}
-                className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-neutral-20"
+                className="ms-8 h-1.5 overflow-hidden rounded-full bg-neutral-20"
               >
                 <div
                   className={cn(
@@ -77,9 +84,6 @@ export function ChecklistMemberShares({
                   style={{ width: `${share}%` }}
                 />
               </div>
-              <span className="w-14 shrink-0 text-end text-caption whitespace-nowrap text-neutral-70">
-                {formatItemCount(member.claimedItemCount)}
-              </span>
             </li>
           );
         })}
