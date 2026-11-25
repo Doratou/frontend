@@ -212,7 +212,8 @@ function LotteryContent({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    // p-4 is the mobile page margin; from md up the layout provides its own spacing.
+    <div className="flex flex-col gap-4 p-4 md:p-0">
       <LotteryPageHeader
         disabled={isLocked || isCheckingDraft || hasDraft}
         disabledReason={
