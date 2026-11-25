@@ -1,6 +1,13 @@
 import type { ReactNode } from 'react';
 import { Dialog } from '@base-ui/react/dialog';
-import { Calendar, Clock, Crown, LoaderPinwheel, Trophy, X } from 'lucide-react';
+import {
+  Calendar,
+  Clock,
+  Crown,
+  LoaderPinwheel,
+  Trophy,
+  X,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';

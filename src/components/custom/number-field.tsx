@@ -71,7 +71,7 @@ export function NumberField({
                   radius="md"
                   hoverScale={1}
                   pressScale={1}
-                  className="size-7.5 rounded-none p-0 text-primary-60 transition-colors duration-120 ease-out last:border-s last:border-primary-20 hover:bg-primary-20 hover:text-primary-80 active:bg-primary-30 max-sm:size-11 pointer-coarse:size-11 group-data-[size=md]/nf:size-6.5 [&_svg]:size-3.75 group-data-[size=md]/nf:[&_svg]:size-3"
+                  className="size-7.5 rounded-none p-0 text-primary-60 transition-colors duration-120 ease-out group-data-[size=md]/nf:size-6.5 last:border-s last:border-primary-20 hover:bg-primary-20 hover:text-primary-80 active:bg-primary-30 max-sm:size-11 pointer-coarse:size-11 [&_svg]:size-3.75 group-data-[size=md]/nf:[&_svg]:size-3"
                 />
               }
             >
