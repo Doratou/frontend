@@ -2,13 +2,21 @@ import { useMemo, useState } from 'react';
 import { ChevronDown, Plus, Users } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { EmptyState } from '@/components/custom/empty-state';
-import { toast } from '@/components/custom/toast';
+import { ErrorState } from '@/components/custom/error-state';
+import { PageLoading } from '@/components/custom/page-loading';
 import { Button } from '@/components/ui/button';
+import {
+  mapArchivedFiltersToQuery,
+  mapSortOptionToBackend,
+} from '@/features/groups/api/contracts';
+import { useGroups } from '@/features/groups/api/get-groups';
+import { useDirectInvites } from '@/features/groups/api/get-invitations';
 import { toPersianDigits } from '@/features/groups/components/GroupHeader';
 import {
-  MOCK_GROUP_INVITATIONS,
-  MOCK_GROUPS,
-} from '@/features/groups/mock/groups.mock';
+  useCloneGroup,
+  useCreateGroup,
+  useRespondInvite,
+} from '@/features/groups/hooks/use-group-mutations';
 import {
   DEFAULT_ARCHIVED_FILTERS,
   type ArchivedFilterState,
@@ -67,160 +75,133 @@ function SectionHeader({
   );
 }
 
-function filterArchivedGroups(
-  groups: GroupItem[],
-  filters: ArchivedFilterState,
-): GroupItem[] {
-  return groups.filter((group) => {
-    if (filters.plan !== 'ALL' && group.plan !== filters.plan) return false;
-    if (filters.role !== 'ALL' && group.myRole !== filters.role) return false;
-    if (filters.year !== 'ALL' && group.tripYear !== filters.year) return false;
-    return true;
-  });
-}
-
-function sortArchivedGroups(
-  groups: GroupItem[],
-  sortBy: ArchivedSortOption,
-): GroupItem[] {
-  const copy = [...groups];
-  switch (sortBy) {
-    case 'newest_trip':
-      return copy.sort((a, b) => b.startTimestamp - a.startTimestamp);
-    case 'oldest_trip':
-      return copy.sort((a, b) => a.startTimestamp - b.startTimestamp);
-    case 'name_asc':
-      return copy.sort((a, b) => a.title.localeCompare(b.title, 'fa'));
-    case 'most_members':
-      return copy.sort((a, b) => b.memberCount - a.memberCount);
-    case 'archived_at':
-      return copy.sort(
-        (a, b) => (b.archivedAtTimestamp ?? 0) - (a.archivedAtTimestamp ?? 0),
-      );
-  }
-}
-
 export function GroupsView() {
   const navigate = useNavigate();
 
-  const [invitations, setInvitations] = useState<GroupInvitation[]>(
-    MOCK_GROUP_INVITATIONS,
-  );
-  const [groups, setGroups] = useState<GroupItem[]>(MOCK_GROUPS);
   const [activeTab, setActiveTab] = useState<GroupFilterTab>('ALL');
-
   const [archivedFilters, setArchivedFilters] = useState<ArchivedFilterState>(
     DEFAULT_ARCHIVED_FILTERS,
   );
   const [archivedSort, setArchivedSort] =
     useState<ArchivedSortOption>('newest_trip');
-  const [archivedVisibleCount, setArchivedVisibleCount] =
-    useState(ARCHIVED_PAGE_SIZE);
+  const [archivedLimit, setArchivedLimit] = useState(ARCHIVED_PAGE_SIZE);
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [cloneSourceGroupId, setCloneSourceGroupId] = useState<string | null>(
+    null,
+  );
   const [createInitialValues, setCreateInitialValues] =
     useState<Partial<CreateGroupFormValues> | null>(null);
 
-  const activeGroups = useMemo(
-    () => groups.filter((g) => g.status === 'ACTIVE'),
-    [groups],
-  );
-  const settlingGroups = useMemo(
-    () => groups.filter((g) => g.status === 'SETTLING'),
-    [groups],
-  );
+  const invitesQuery = useDirectInvites();
+  const activeQuery = useGroups({ status: 'ACTIVE', limit: 100 });
+  const settlingQuery = useGroups({ status: 'SETTLING', limit: 100 });
+  const archivedQuery = useGroups({
+    status: 'CLOSED',
+    page: 1,
+    limit: archivedLimit,
+    ...mapArchivedFiltersToQuery(archivedFilters),
+    sort_by: mapSortOptionToBackend(archivedSort),
+  });
+
+  const createGroupMutation = useCreateGroup();
+  const cloneGroupMutation = useCloneGroup();
+  const respondInviteMutation = useRespondInvite();
+
+  const invitations = invitesQuery.data ?? [];
+  const activeGroups = activeQuery.data?.items ?? [];
+  const settlingGroups = settlingQuery.data?.items ?? [];
   const archivedGroups = useMemo(
-    () => groups.filter((g) => g.status === 'ARCHIVED'),
-    [groups],
+    () => archivedQuery.data?.items ?? [],
+    [archivedQuery.data?.items],
   );
+
+  const activeTotal = activeQuery.data?.total ?? 0;
+  const settlingTotal = settlingQuery.data?.total ?? 0;
+  const archivedTotal = archivedQuery.data?.total ?? 0;
+  const allTotal = activeTotal + settlingTotal + archivedTotal;
+
+  const hasMoreArchived = archivedGroups.length < archivedTotal;
 
   const availableYears = useMemo(() => {
-    const years = Array.from(new Set(archivedGroups.map((g) => g.tripYear)));
-    return years.sort((a, b) => b - a);
+    const baseYears = [1405, 1404, 1403];
+    const fromData = archivedGroups.map((g) => g.tripYear);
+    return Array.from(new Set([...baseYears, ...fromData])).sort(
+      (a, b) => b - a,
+    );
   }, [archivedGroups]);
 
-  const filteredArchived = useMemo(
-    () =>
-      sortArchivedGroups(
-        filterArchivedGroups(archivedGroups, archivedFilters),
-        archivedSort,
-      ),
-    [archivedGroups, archivedFilters, archivedSort],
-  );
-
-  const visibleArchived = useMemo(
-    () => filteredArchived.slice(0, archivedVisibleCount),
-    [filteredArchived, archivedVisibleCount],
-  );
-
-  const hasMoreArchived = visibleArchived.length < filteredArchived.length;
-
   const tabs: { id: GroupFilterTab; label: string; count: number }[] = [
-    { id: 'ALL', label: 'همه', count: groups.length },
-    { id: 'ACTIVE', label: 'فعال', count: activeGroups.length },
-    { id: 'SETTLING', label: 'در حال تسویه', count: settlingGroups.length },
-    { id: 'ARCHIVED', label: 'آرشیو شده', count: archivedGroups.length },
+    { id: 'ALL', label: 'همه', count: allTotal },
+    { id: 'ACTIVE', label: 'فعال', count: activeTotal },
+    { id: 'SETTLING', label: 'در حال تسویه', count: settlingTotal },
+    { id: 'ARCHIVED', label: 'آرشیو شده', count: archivedTotal },
   ];
 
+  const isInitialLoading = activeQuery.isLoading || settlingQuery.isLoading;
+  const isArchivedUpdating = archivedQuery.isFetching;
+
+  const firstError =
+    activeQuery.error ??
+    settlingQuery.error ??
+    archivedQuery.error ??
+    invitesQuery.error;
+
+  const handleRetryAll = () => {
+    void invitesQuery.refetch();
+    void activeQuery.refetch();
+    void settlingQuery.refetch();
+    void archivedQuery.refetch();
+  };
+
   const handleAcceptInvitation = (invitation: GroupInvitation) => {
-    setInvitations((prev) => prev.filter((item) => item.id !== invitation.id));
-    const joinedGroup: GroupItem = {
-      id: invitation.groupId,
-      title: invitation.groupName,
-      description: `دعوت‌شده توسط ${invitation.inviterName}`,
-      plan: 'NORMAL',
-      status: 'ACTIVE',
-      myRole: 'MEMBER',
-      members: [
-        { id: `inviter-${invitation.id}`, name: invitation.inviterName },
-      ],
-      memberCount: invitation.memberCount,
-      creator: { name: invitation.inviterName },
-      dateRangeLabel: invitation.startDateLabel,
-      tripYear: 1405,
-      startTimestamp: Date.now(),
-    };
-    setGroups((prev) => [joinedGroup, ...prev]);
-    toast.success(`به «${invitation.groupName}» پیوستید`);
+    respondInviteMutation.mutate({
+      inviteId: invitation.id,
+      groupName: invitation.groupName,
+      response: 'ACCEPTED',
+    });
   };
 
   const handleRejectInvitation = (invitation: GroupInvitation) => {
-    setInvitations((prev) => prev.filter((item) => item.id !== invitation.id));
-    toast.info(`دعوت «${invitation.groupName}» رد شد`);
+    respondInviteMutation.mutate({
+      inviteId: invitation.id,
+      groupName: invitation.groupName,
+      response: 'REJECTED',
+    });
   };
 
   const handleOpenCreate = () => {
+    setCloneSourceGroupId(null);
     setCreateInitialValues(null);
     setCreateDialogOpen(true);
   };
 
   const handleCreateSimilar = (group: GroupItem) => {
+    setCloneSourceGroupId(group.id);
     setCreateInitialValues({
       title: `${group.title} (جدید)`,
-      description: group.description,
+      description:
+        group.description === 'بدون توضیحات' ? '' : group.description,
     });
     setCreateDialogOpen(true);
   };
 
-  const handleCreateGroup = (payload: CreateGroupSubmitPayload) => {
-    const members = [{ id: 'me', name: 'شما' }, ...payload.invitedFriends];
-    const newGroup: GroupItem = {
-      id: String(Date.now()),
+  const handleSubmitDialog = async (payload: CreateGroupSubmitPayload) => {
+    if (cloneSourceGroupId) {
+      await cloneGroupMutation.mutateAsync({
+        sourceGroupId: cloneSourceGroupId,
+        title: payload.title,
+        description: payload.description || undefined,
+      });
+      return;
+    }
+
+    await createGroupMutation.mutateAsync({
       title: payload.title,
-      description: payload.description || 'بدون توضیحات',
-      plan: 'NORMAL',
-      status: 'ACTIVE',
-      myRole: 'OWNER',
-      photoSrc: payload.photoSrc,
-      members,
-      memberCount: members.length,
-      creator: { name: 'شما' },
-      dateRangeLabel: 'از امروز',
-      tripYear: 1405,
-      startTimestamp: Date.now(),
-    };
-    setGroups((prev) => [newGroup, ...prev]);
-    toast.success(`اکیپ «${payload.title}» ساخته شد`);
+      description: payload.description || undefined,
+      coverFile: payload.coverFile,
+      invitedUserIds: payload.invitedFriendIds,
+    });
   };
 
   const handleEnterGroup = (group: GroupItem) => {
@@ -228,25 +209,37 @@ export function GroupsView() {
   };
 
   const handlePayDebts = (group: GroupItem) => {
-    toast.info(`در حال انتقال به صفحه تسویه «${group.title}»...`);
     void navigate(`/group/${group.id}`);
   };
 
   const handleReviewMemories = (group: GroupItem) => {
-    toast.info(`نمایش گالری خاطرات «${group.title}»`);
     void navigate(`/group/${group.id}`);
-  };
-
-  const handleCopyInviteLink = (group: GroupItem) => {
-    const url = `${window.location.origin}/group/${group.id}`;
-    void navigator.clipboard?.writeText(url);
-    toast.success(`لینک دعوت «${group.title}» کپی شد`);
   };
 
   const handleFiltersChange = (next: ArchivedFilterState) => {
     setArchivedFilters(next);
-    setArchivedVisibleCount(ARCHIVED_PAGE_SIZE);
+    setArchivedLimit(ARCHIVED_PAGE_SIZE);
   };
+
+  if (isInitialLoading) {
+    return (
+      <div className="mx-auto flex w-full max-w-6xl flex-col rounded-2xl border border-primary-30/80 bg-white p-6 sm:rounded-3xl">
+        <PageLoading />
+      </div>
+    );
+  }
+
+  if (firstError && allTotal === 0) {
+    return (
+      <div className="mx-auto flex w-full max-w-6xl flex-col rounded-2xl border border-primary-30/80 bg-white p-6 sm:rounded-3xl">
+        <ErrorState
+          title="دریافت اطلاعات اکیپ‌ها انجام نشد"
+          error={firstError}
+          onRetry={handleRetryAll}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 rounded-2xl border border-primary-30/80 bg-white p-3.5 sm:gap-6 sm:rounded-3xl sm:p-6">
@@ -319,7 +312,7 @@ export function GroupsView() {
           <SectionHeader
             dotClassName="bg-secondary-60"
             title="اکیپ‌های فعال"
-            countLabel={`${toPersianDigits(activeGroups.length)} اکیپ`}
+            countLabel={`${toPersianDigits(activeTotal)} اکیپ`}
           />
           {activeGroups.length > 0 ? (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -331,7 +324,6 @@ export function GroupsView() {
                   onPayDebts={handlePayDebts}
                   onReviewMemories={handleReviewMemories}
                   onCreateSimilar={handleCreateSimilar}
-                  onCopyInviteLink={handleCopyInviteLink}
                 />
               ))}
             </div>
@@ -352,7 +344,7 @@ export function GroupsView() {
             dotClassName="bg-info-40"
             title="اکیپ‌های در حال تسویه"
             subtitle="در این مرحله فقط پرداخت دنگ‌ها ممکن است؛ پس از تسویهٔ همه، اکیپ آرشیو می‌شود."
-            countLabel={`${toPersianDigits(settlingGroups.length)} اکیپ`}
+            countLabel={`${toPersianDigits(settlingTotal)} اکیپ`}
           />
           {settlingGroups.length > 0 ? (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -364,7 +356,6 @@ export function GroupsView() {
                   onPayDebts={handlePayDebts}
                   onReviewMemories={handleReviewMemories}
                   onCreateSimilar={handleCreateSimilar}
-                  onCopyInviteLink={handleCopyInviteLink}
                 />
               ))}
             </div>
@@ -384,13 +375,13 @@ export function GroupsView() {
           <SectionHeader
             dotClassName="bg-primary-40"
             title="اکیپ‌های آرشیو شده"
-            countLabel={`${toPersianDigits(filteredArchived.length)} اکیپ`}
+            countLabel={`${toPersianDigits(archivedTotal)} اکیپ`}
           />
 
           <ArchivedToolbar
-            visibleCount={visibleArchived.length}
-            totalFilteredCount={filteredArchived.length}
-            totalArchivedCount={archivedGroups.length}
+            visibleCount={archivedGroups.length}
+            totalFilteredCount={archivedTotal}
+            totalArchivedCount={archivedTotal}
             filters={archivedFilters}
             onFiltersChange={handleFiltersChange}
             sortBy={archivedSort}
@@ -398,10 +389,17 @@ export function GroupsView() {
             availableYears={availableYears}
           />
 
-          {visibleArchived.length > 0 ? (
+          {archivedQuery.isLoading && archivedGroups.length === 0 ? (
+            <PageLoading />
+          ) : archivedGroups.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                {visibleArchived.map((group) => (
+              <div
+                className={cn(
+                  'grid grid-cols-1 gap-4 transition-opacity lg:grid-cols-2',
+                  isArchivedUpdating && 'opacity-60',
+                )}
+              >
+                {archivedGroups.map((group) => (
                   <GroupCard
                     key={group.id}
                     group={group}
@@ -409,7 +407,6 @@ export function GroupsView() {
                     onPayDebts={handlePayDebts}
                     onReviewMemories={handleReviewMemories}
                     onCreateSimilar={handleCreateSimilar}
-                    onCopyInviteLink={handleCopyInviteLink}
                   />
                 ))}
               </div>
@@ -423,7 +420,7 @@ export function GroupsView() {
                     size="lg"
                     radius="lg"
                     onClick={() =>
-                      setArchivedVisibleCount((c) => c + ARCHIVED_PAGE_SIZE)
+                      setArchivedLimit((c) => c + ARCHIVED_PAGE_SIZE)
                     }
                     endIcon={
                       <ChevronDown className="size-4" aria-hidden="true" />
@@ -440,29 +437,21 @@ export function GroupsView() {
               icon={<Users className="size-6" aria-hidden="true" />}
               title="اکیپی با این فیلترها پیدا نشد"
               description="فیلترهای انتخاب‌شده را تغییر دهید یا پاک کنید."
-              action={
-                <Button
-                  type="button"
-                  variant="outline"
-                  tone="primary"
-                  size="md"
-                  radius="md"
-                  onClick={() => handleFiltersChange(DEFAULT_ARCHIVED_FILTERS)}
-                >
-                  پاک کردن فیلترها
-                </Button>
-              }
             />
           )}
         </section>
       )}
 
-      {/* Create Group Modal */}
+      {/* Create / Clone Group Modal */}
       <CreateGroupDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         initialValues={createInitialValues}
-        onCreate={handleCreateGroup}
+        isCloning={Boolean(cloneSourceGroupId)}
+        isPending={
+          createGroupMutation.isPending || cloneGroupMutation.isPending
+        }
+        onCreate={handleSubmitDialog}
       />
     </div>
   );

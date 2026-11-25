@@ -3,7 +3,6 @@ import {
   ArrowLeft,
   BookHeart,
   Calendar,
-  Copy,
   Crown,
   Ellipsis,
   Leaf,
@@ -20,6 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useGroupCoverUrl } from '@/features/groups/api/get-group-cover-url';
 import { toPersianDigits } from '@/features/groups/components/GroupHeader';
 import { GROUP_HEADER_ASSETS } from '@/features/groups/components/groupHeaderAssets';
 import { MemberAvatar } from '@/features/groups/components/MemberAvatar';
@@ -33,7 +33,6 @@ interface GroupCardProps {
   onPayDebts: (group: GroupItem) => void;
   onReviewMemories: (group: GroupItem) => void;
   onCreateSimilar: (group: GroupItem) => void;
-  onCopyInviteLink: (group: GroupItem) => void;
 }
 
 const MAX_VISIBLE_AVATARS = 3;
@@ -44,11 +43,15 @@ export function GroupCard({
   onPayDebts,
   onReviewMemories,
   onCreateSimilar,
-  onCopyInviteLink,
 }: GroupCardProps) {
   const isArchived = group.status === 'ARCHIVED';
   const isSettling = group.status === 'SETTLING';
   const isPremium = group.plan === 'PREMIUM';
+
+  const { data: resolvedCoverUrl } = useGroupCoverUrl(
+    group.photoSrc ? undefined : group.coverAttachmentId,
+  );
+  const photoSrc = group.photoSrc ?? resolvedCoverUrl;
 
   const visibleMembers = group.members.slice(0, MAX_VISIBLE_AVATARS);
   const extraCount = Math.max(group.memberCount - visibleMembers.length, 0);
@@ -141,16 +144,6 @@ export function GroupCard({
                 <ArrowLeft className="size-4 text-primary-60" />
                 <span>ورود به اکیپ</span>
               </DropdownMenuItem>
-              {!isArchived && (
-                <DropdownMenuItem onClick={() => onCopyInviteLink(group)}>
-                  <Copy className="size-4 text-primary-60" />
-                  <span>کپی لینک دعوت</span>
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuItem onClick={() => onCreateSimilar(group)}>
-                <UserPlus className="size-4 text-secondary-60" />
-                <span>ساخت اکیپ مشابه</span>
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -161,9 +154,9 @@ export function GroupCard({
         {/* Header Row: Overlapping Photo on Right + Title/Desc */}
         <div className="flex items-start gap-3">
           <div className="-mt-11 grid size-21 shrink-0 place-items-center overflow-hidden rounded-2xl border-2 border-primary-30 bg-white p-0.5 shadow-sm">
-            {group.photoSrc ? (
+            {photoSrc ? (
               <img
-                src={group.photoSrc}
+                src={photoSrc}
                 alt={group.title}
                 draggable={false}
                 className={cn(

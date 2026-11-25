@@ -25,6 +25,7 @@ export interface GroupItem {
   status: GroupListStatus;
   myRole: GroupRole;
   photoSrc?: string;
+  coverAttachmentId?: string;
   bannerSrc?: string;
   members: GroupMemberPreview[];
   memberCount: number;
