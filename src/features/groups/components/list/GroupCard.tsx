@@ -20,12 +20,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useGroupCoverUrl } from '@/features/groups/api/get-group-cover-url';
-import { toPersianDigits } from '@/features/groups/components/GroupHeader';
 import { GROUP_HEADER_ASSETS } from '@/features/groups/components/groupHeaderAssets';
 import { MemberAvatar } from '@/features/groups/components/MemberAvatar';
 import type { GroupItem } from '@/features/groups/types';
 import { cn } from '@/lib/utils';
-import { formatNumber } from '@/utils/format';
+import { formatNumber, toPersianDigits } from '@/utils/format';
 
 interface GroupCardProps {
   group: GroupItem;

@@ -68,7 +68,7 @@ export const routes: RouteObject[] = [
       },
       {
         path: 'profile',
-        element: <p>پروفایل کاربر</p>,
+        lazy: () => import('@/app/pages/profile'),
       },
     ],
   },

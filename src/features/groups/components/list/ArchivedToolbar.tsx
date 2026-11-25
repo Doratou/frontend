@@ -15,7 +15,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { toPersianDigits } from '@/features/groups/components/GroupHeader';
 import {
   DEFAULT_ARCHIVED_FILTERS,
   type ArchivedFilterState,
@@ -25,6 +24,7 @@ import {
 } from '@/features/groups/types';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { cn } from '@/lib/utils';
+import { toPersianDigits } from '@/utils/format';
 
 interface ArchivedToolbarProps {
   visibleCount: number;

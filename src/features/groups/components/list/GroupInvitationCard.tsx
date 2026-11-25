@@ -1,7 +1,7 @@
 import { Check, User, Users, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { toPersianDigits } from '@/features/groups/components/GroupHeader';
 import type { GroupInvitation } from '@/features/groups/types';
+import { toPersianDigits } from '@/utils/format';
 
 interface GroupInvitationCardProps {
   invitation: GroupInvitation;

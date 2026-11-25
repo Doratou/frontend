@@ -11,7 +11,6 @@ import {
 } from '@/features/groups/api/contracts';
 import { useGroups } from '@/features/groups/api/get-groups';
 import { useDirectInvites } from '@/features/groups/api/get-invitations';
-import { toPersianDigits } from '@/features/groups/components/GroupHeader';
 import {
   useCloneGroup,
   useCreateGroup,
@@ -26,6 +25,7 @@ import {
   type GroupItem,
 } from '@/features/groups/types';
 import { cn } from '@/lib/utils';
+import { toPersianDigits } from '@/utils/format';
 import { ArchivedToolbar } from './ArchivedToolbar';
 import {
   CreateGroupDialog,

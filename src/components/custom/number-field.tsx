@@ -35,7 +35,7 @@ export function NumberField({
   return (
     <FormField
       className={cn(
-        'dorato-text-field dorato-number-field max-sm:[--field-font-size:1rem] max-sm:[--field-height:3rem] pointer-coarse:[--field-font-size:1rem] pointer-coarse:[--field-height:3rem]',
+        'dorato-text-field dorato-number-field group/nf max-sm:[--field-font-size:1rem] max-sm:[--field-height:3rem] pointer-coarse:[--field-font-size:1rem] pointer-coarse:[--field-height:3rem]',
         className,
       )}
       data-size={fieldSize}
@@ -58,7 +58,7 @@ export function NumberField({
         />
         <div
           dir="ltr"
-          className="dorato-number-stepper flex shrink-0 items-center overflow-hidden rounded-lg border border-primary-20 bg-primary-10 text-primary-60"
+          className="dorato-number-stepper flex shrink-0 items-center overflow-hidden rounded-lg border border-primary-20 bg-primary-10 text-primary-60 group-data-[size=md]/nf:rounded-md"
         >
           {stepperControls.map(({ Control, Icon, action }) => (
             <Control
@@ -71,7 +71,7 @@ export function NumberField({
                   radius="md"
                   hoverScale={1}
                   pressScale={1}
-                  className="size-7.5 rounded-none p-0 text-primary-60 transition-colors duration-120 ease-out last:border-s last:border-primary-20 hover:bg-primary-20 hover:text-primary-80 active:bg-primary-30 max-sm:size-11 pointer-coarse:size-11 [&_svg]:size-3.75"
+                  className="size-7.5 rounded-none p-0 text-primary-60 transition-colors duration-120 ease-out group-data-[size=md]/nf:size-6.5 last:border-s last:border-primary-20 hover:bg-primary-20 hover:text-primary-80 active:bg-primary-30 max-sm:size-11 pointer-coarse:size-11 [&_svg]:size-3.75 group-data-[size=md]/nf:[&_svg]:size-3"
                 />
               }
             >

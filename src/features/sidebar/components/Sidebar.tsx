@@ -142,10 +142,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
     return navLinkIsActive;
   };
 
-  const renderNavItems = (collapsed: boolean, withTooltip: boolean) => (
+  const renderNavItems = (
+    collapsed: boolean,
+    withTooltip: boolean,
+    isMobile = false,
+  ) => (
     <nav
       aria-label="منوی اصلی"
-      className={`${theme.navTopMarginClass} flex w-full flex-col gap-1.5`}
+      className={`${isMobile ? (page === 'homepage' ? 'mt-28' : 'mt-16') : theme.navTopMarginClass} flex w-full flex-col gap-1.5`}
     >
       {navItems.map((item) => {
         const IconComponent = item.icon;
@@ -178,7 +182,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <>
                   <span
                     aria-hidden="true"
-                    className={`w-0.9 absolute top-1/2 right-0.5 h-5.5 -translate-y-1/2 rounded-xs transition-opacity duration-200 motion-reduce:transition-none ${theme.activeIndicatorClass} ${
+                    className={`absolute top-1/2 right-0.5 h-5.5 w-1 -translate-y-1/2 rounded-full transition-opacity duration-200 motion-reduce:transition-none ${theme.activeIndicatorClass} ${
                       isActive && !collapsed ? 'opacity-100' : 'opacity-0'
                     }`}
                   />
@@ -381,12 +385,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </aside>
 
       {/* =====================================================================
-2. MOBILE DRAWER (< 1024px)
+2. MOBILE DRAWER (< 768px)
       ===================================================================== */}
       <div
         dir="rtl"
         inert={!isMobileOpen ? true : undefined}
-        className={`fixed inset-0 z-50 lg:hidden ${
+        className={`fixed inset-0 z-50 md:hidden ${
           isMobileOpen ? 'pointer-events-auto' : 'pointer-events-none'
         }`}
       >
@@ -407,12 +411,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
         >
           <SidebarBackground page={page} isCollapsed={false} />
 
-          <div className="relative z-2 flex h-full flex-col justify-between px-4 pt-7 pb-4">
+          <div className="relative z-2 flex h-full [scrollbar-width:none] flex-col justify-between overflow-y-auto px-4 pt-6 pb-5 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             <div className="flex w-full flex-col">
-              <div className="flex h-13 w-full flex-row items-center justify-between">
-                <span className="w-7 shrink-0" aria-hidden="true" />
+              <div className="flex h-13 w-full shrink-0 flex-row items-center justify-between">
+                <span className="w-8 shrink-0" aria-hidden="true" />
                 <NavLink to="/" className="no-underline">
-                  <div className="flex flex-row items-center gap-2.5 pr-1">
+                  <div className="flex flex-row items-center gap-2.5">
                     <div className="relative flex h-13 w-12 shrink-0 items-center justify-center">
                       <img
                         src={openLogoSrc}
@@ -437,7 +441,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </button>
               </div>
 
-              {renderNavItems(false, false)}
+              {renderNavItems(false, false, true)}
             </div>
 
             {renderBackButton(false, false)}

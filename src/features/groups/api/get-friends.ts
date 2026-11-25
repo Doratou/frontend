@@ -2,7 +2,7 @@ import { queryOptions, useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import {
   friendsResponseSchema,
-  mapFriendDto,
+  mapFriendSummaryDto,
   unwrapGroupEnvelope,
   type FriendSummary,
 } from './contracts';
@@ -18,7 +18,7 @@ export async function getFriends(
   const parsed = friendsResponseSchema.parse(
     unwrapGroupEnvelope(response.data),
   );
-  return parsed.items.map(mapFriendDto);
+  return parsed.items.map(mapFriendSummaryDto);
 }
 
 export const friendsQueryOptions = () =>
