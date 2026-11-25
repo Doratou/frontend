@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { getMemberTone } from '@/features/groups/member-tone';
 
 interface ChecklistAvatarProps {
+  userId: string;
   name: string;
   avatarUrl: string | null;
   className?: string;
 }
 
 export function ChecklistAvatar({
+  userId,
   name,
   avatarUrl,
   className,
@@ -20,7 +23,8 @@ export function ChecklistAvatar({
     <span
       aria-hidden="true"
       className={cn(
-        'grid size-5 shrink-0 place-items-center overflow-hidden rounded-full bg-secondary-70 text-[10px] leading-none font-bold text-white select-none',
+        'grid size-5 shrink-0 place-items-center overflow-hidden rounded-full text-[10px] leading-none font-bold text-white select-none',
+        getMemberTone(userId),
         className,
       )}
     >

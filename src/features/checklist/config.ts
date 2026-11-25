@@ -52,12 +52,3 @@ export const CHECKLIST_SECTIONS: Record<ChecklistSectionKey, SectionMeta> = {
     addLabel: 'عنوان وسیله‌ی شخصی',
   },
 };
-
-// Static class names so Tailwind can detect them.
-export const MEMBER_BAR_CLASSES = [
-  'bg-primary-60',
-  'bg-danger-40',
-  'bg-accent-40',
-  'bg-secondary-70',
-  'bg-info-40',
-] as const;

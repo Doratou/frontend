@@ -22,9 +22,9 @@ export function ChecklistAssigneeChip({
     >
       <span className="truncate">{isMine ? 'شما' : assignee.name}</span>
       <ChecklistAvatar
+        userId={assignee.userId}
         name={assignee.name}
         avatarUrl={assignee.avatarUrl}
-        className={isMine ? 'bg-secondary-70' : 'bg-primary-60'}
       />
     </span>
   );

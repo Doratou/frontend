@@ -1,6 +1,6 @@
 import { useId } from 'react';
 import { cn } from '@/lib/utils';
-import { MEMBER_BAR_CLASSES } from '@/features/checklist/config';
+import { getMemberTone } from '@/features/groups/member-tone';
 import {
   formatItemCount,
   formatMemberCount,
@@ -43,7 +43,7 @@ export function ChecklistMemberShares({
       </header>
 
       <ul className="flex flex-col gap-3">
-        {members.map((member, index) => {
+        {members.map((member) => {
           const share =
             claimedTotal > 0
               ? Math.round((member.claimedItemCount / claimedTotal) * 100)
@@ -52,6 +52,7 @@ export function ChecklistMemberShares({
             <li key={member.memberId} className="flex flex-col gap-1.5">
               <div className="flex items-start gap-2">
                 <ChecklistAvatar
+                  userId={member.userId}
                   name={member.name}
                   avatarUrl={member.avatarUrl}
                   className="mt-0.5 size-6"
@@ -77,10 +78,7 @@ export function ChecklistMemberShares({
                 className="ms-8 h-1.5 overflow-hidden rounded-full bg-neutral-20"
               >
                 <div
-                  className={cn(
-                    'h-full rounded-full',
-                    MEMBER_BAR_CLASSES[index % MEMBER_BAR_CLASSES.length],
-                  )}
+                  className={cn('h-full rounded-full', getMemberTone(member.userId))}
                   style={{ width: `${share}%` }}
                 />
               </div>
