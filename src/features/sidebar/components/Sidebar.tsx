@@ -10,7 +10,7 @@ import {
 } from './sidebar.config';
 import { SidebarTooltip, SidebarTooltipProvider } from './SidebarTooltip';
 import { getBackground, getLogo, type SidebarPage } from './sidebarAssets';
-import { useSidebarStore } from '../stores/sidebar-store';
+import { useSidebarStore } from '@/stores/sidebar-store';
 
 const OPEN_WIDTH = 250;
 const CLOSED_WIDTH = 80;

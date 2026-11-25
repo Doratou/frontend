@@ -17,6 +17,7 @@ import {
   useUpdateGroupInfo,
 } from '../../hooks/use-group-settings';
 import type { GroupSettingsData } from '../../types';
+import { useGroupSettingsContext } from './group-settings-context';
 import { GroupAvatar } from './GroupSettingsShared';
 
 function OverviewMetaRow({ label, value }: { label: string; value: string }) {
@@ -114,17 +115,8 @@ function OverviewInfoForm({
   );
 }
 
-export function OverviewSection({
-  group,
-  isOwner,
-  coverSrc,
-  onCoverError,
-}: {
-  group: GroupSettingsData;
-  isOwner: boolean;
-  coverSrc?: string;
-  onCoverError?: () => void;
-}) {
+export function OverviewSection() {
+  const { group, isOwner, cover } = useGroupSettingsContext();
   const updateCoverMutation = useUpdateGroupCover(group.id);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
@@ -149,8 +141,8 @@ export function OverviewSection({
         <div className="relative shrink-0">
           <GroupAvatar
             title={group.title}
-            src={coverSrc}
-            onError={onCoverError}
+            src={cover.src}
+            onError={cover.onError}
             className="size-16 text-2xl"
           />
           {canEdit && (

@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Calendar,
   Cloud,
@@ -45,7 +44,7 @@ const PREMIUM_LABEL = 'پریمیوم کردن';
 const MORE_ARIA_LABEL = 'گزینه‌های بیشتر';
 const CREATED_BY_LABEL = 'ایجاد شده توسط';
 
-export const GroupHeader: React.FC<GroupHeaderProps> = ({
+export function GroupHeader({
   title,
   description,
   statusLabel,
@@ -62,7 +61,7 @@ export const GroupHeader: React.FC<GroupHeaderProps> = ({
   onMoreClick,
   onMembersClick,
   className = '',
-}) => {
+}: GroupHeaderProps) {
   const { label: storageLabel, percent: storagePercent } =
     formatGroupStorage(storage);
 
@@ -242,6 +241,6 @@ export const GroupHeader: React.FC<GroupHeaderProps> = ({
       </div>
     </header>
   );
-};
+}
 
 export default GroupHeader;

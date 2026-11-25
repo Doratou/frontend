@@ -121,5 +121,4 @@ export const GroupPageHeader: React.FC<GroupPageHeaderProps> = ({
   );
 };
 
-export { GroupPageHeader as GroupTabHeader };
 export default GroupPageHeader;

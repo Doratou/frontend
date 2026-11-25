@@ -12,7 +12,7 @@ import {
   Sidebar,
   type SidebarProps,
 } from '@/features/sidebar/components/Sidebar';
-import { useSidebarStore } from '@/features/sidebar/stores/sidebar-store';
+import { useSidebarStore } from '@/stores/sidebar-store';
 import { RoleGuard } from './RoleGuard';
 
 interface RouteHeaderMeta {

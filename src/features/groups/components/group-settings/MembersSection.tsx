@@ -5,19 +5,12 @@ import {
   useRemoveGroupMember,
   useTransferGroupOwnership,
 } from '../../hooks/use-group-settings';
-import type { GroupSettingsData } from '../../types';
 import { MemberAvatar } from '../MemberAvatar';
+import { useGroupSettingsContext } from './group-settings-context';
 import { InlineConfirm } from './GroupSettingsShared';
 
-export function MembersSection({
-  group,
-  isOwner,
-  onInvite,
-}: {
-  group: GroupSettingsData;
-  isOwner: boolean;
-  onInvite: () => void;
-}) {
+export function MembersSection() {
+  const { group, isOwner, openInvite: onInvite } = useGroupSettingsContext();
   const removeMemberMutation = useRemoveGroupMember(group.id);
   const transferOwnershipMutation = useTransferGroupOwnership(group.id);
   const [pendingAction, setPendingAction] = useState<{
@@ -99,7 +92,7 @@ export function MembersSection({
                       cancelAriaLabel="لغو انتقال مالکیت"
                       isLoading={transferOwnershipMutation.isPending}
                       tone="accent"
-                      compact
+                      size="compact"
                       onConfirm={() =>
                         transferOwnershipMutation.mutate(member.userId, {
                           onSuccess: () => setPendingAction(null),
@@ -115,7 +108,7 @@ export function MembersSection({
                       cancelAriaLabel="لغو حذف"
                       isLoading={removeMemberMutation.isPending}
                       tone="danger"
-                      compact
+                      size="compact"
                       onConfirm={() =>
                         removeMemberMutation.mutate(member.memberId, {
                           onSuccess: () => setPendingAction(null),
