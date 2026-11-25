@@ -223,7 +223,7 @@ export function GroupsView() {
 
   if (isInitialLoading) {
     return (
-      <div className="mx-auto flex w-full max-w-6xl flex-col rounded-2xl border border-primary-30/80 bg-white p-6 sm:rounded-3xl">
+      <div className="mx-auto flex w-full max-w-6xl flex-col rounded-2xl border border-primary-70 bg-white p-6 sm:rounded-3xl">
         <PageLoading />
       </div>
     );
@@ -231,7 +231,7 @@ export function GroupsView() {
 
   if (firstError && allTotal === 0) {
     return (
-      <div className="mx-auto flex w-full max-w-6xl flex-col rounded-2xl border border-primary-30/80 bg-white p-6 sm:rounded-3xl">
+      <div className="mx-auto flex w-full max-w-6xl flex-col rounded-2xl border border-primary-70 bg-white p-6 sm:rounded-3xl">
         <ErrorState
           title="دریافت اطلاعات اکیپ‌ها انجام نشد"
           error={firstError}
@@ -242,7 +242,7 @@ export function GroupsView() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 rounded-2xl border border-primary-30/80 bg-white p-3.5 sm:gap-6 sm:rounded-3xl sm:p-6">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 rounded-2xl border border-primary-70 bg-white p-3.5 sm:gap-6 sm:rounded-3xl sm:p-6">
       {/* Top Action & Filter Tabs Bar */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <Button

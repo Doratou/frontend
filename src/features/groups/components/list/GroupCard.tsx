@@ -20,8 +20,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useGroupCoverUrl } from '@/features/groups/api/get-group-cover-url';
+import { useGroupMembers } from '@/features/groups/api/get-group-members';
 import { GROUP_HEADER_ASSETS } from '@/features/groups/components/groupHeaderAssets';
-import { MemberAvatar } from '@/features/groups/components/MemberAvatar';
+import { GroupMemberStack } from '@/features/groups/components/MemberAvatar';
 import type { GroupItem } from '@/features/groups/types';
 import { cn } from '@/lib/utils';
 import { formatNumber, toPersianDigits } from '@/utils/format';
@@ -33,8 +34,6 @@ interface GroupCardProps {
   onReviewMemories: (group: GroupItem) => void;
   onCreateSimilar: (group: GroupItem) => void;
 }
-
-const MAX_VISIBLE_AVATARS = 3;
 
 export function GroupCard({
   group,
@@ -52,8 +51,14 @@ export function GroupCard({
   );
   const photoSrc = group.photoSrc ?? resolvedCoverUrl;
 
-  const visibleMembers = group.members.slice(0, MAX_VISIBLE_AVATARS);
-  const extraCount = Math.max(group.memberCount - visibleMembers.length, 0);
+  const { data: fetchedMembers } = useGroupMembers(group.id);
+  const resolvedMembers =
+    group.members.length > 0
+      ? group.members
+      : (fetchedMembers ?? []).map((member) => ({
+          id: member.userId,
+          name: member.name,
+        }));
 
   return (
     <article
@@ -182,26 +187,15 @@ export function GroupCard({
 
         {/* Members Row */}
         <div className="flex items-center justify-between pt-0.5">
-          <div className="flex items-center">
-            {visibleMembers.map((member, index) => (
-              <MemberAvatar
-                key={member.id}
-                member={member}
-                style={{ zIndex: index + 1 }}
-                className={cn(
-                  'size-6.5 border border-white text-[11px]',
-                  index > 0 && '-mr-1.5',
-                )}
-              />
-            ))}
-            {extraCount > 0 && (
-              <span
-                style={{ zIndex: visibleMembers.length + 1 }}
-                className="relative -mr-1.5 flex size-6.5 items-center justify-center rounded-full border border-primary-30 bg-primary-10 text-[11px] font-bold text-primary-70"
-              >
-                +{toPersianDigits(extraCount)}
-              </span>
-            )}
+          <div
+            dir="ltr"
+            className="flex shrink-0 items-center pt-0.5 whitespace-nowrap"
+          >
+            <GroupMemberStack
+              members={resolvedMembers}
+              maxVisibleMembers={3}
+              onMembersClick={() => onEnterGroup(group)}
+            />
           </div>
 
           <span className="text-caption font-medium text-neutral-60">
