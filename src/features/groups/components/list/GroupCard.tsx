@@ -19,10 +19,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useGroupCoverUrl } from '@/features/groups/api/get-group-cover-url';
 import { useGroupMembers } from '@/features/groups/api/get-group-members';
 import { GROUP_HEADER_ASSETS } from '@/features/groups/components/groupHeaderAssets';
 import { GroupMemberStack } from '@/features/groups/components/MemberAvatar';
+import { useGroupCoverPhoto } from '@/features/groups/hooks/use-group-cover-photo';
 import type { GroupItem } from '@/features/groups/types';
 import { cn } from '@/lib/utils';
 import { formatNumber, toPersianDigits } from '@/utils/format';
@@ -46,10 +46,10 @@ export function GroupCard({
   const isSettling = group.status === 'SETTLING';
   const isPremium = group.plan === 'PREMIUM';
 
-  const { data: resolvedCoverUrl } = useGroupCoverUrl(
-    group.photoSrc ? undefined : group.coverAttachmentId,
+  const { src: photoSrc, onError: onPhotoError } = useGroupCoverPhoto(
+    group.photoSrc,
+    group.coverAttachmentId,
   );
-  const photoSrc = group.photoSrc ?? resolvedCoverUrl;
 
   const { data: fetchedMembers } = useGroupMembers(group.id);
   const resolvedMembers =
@@ -162,6 +162,7 @@ export function GroupCard({
               <img
                 src={photoSrc}
                 alt={group.title}
+                onError={onPhotoError}
                 draggable={false}
                 className={cn(
                   'size-full rounded-xl object-cover',

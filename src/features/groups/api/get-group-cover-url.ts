@@ -10,7 +10,7 @@ const attachmentUrlSchema = z.object({
   access_url: z.url(),
 });
 
-async function getGroupCoverUrl(
+export async function getGroupCoverUrl(
   attachmentId: string,
   signal?: AbortSignal,
 ): Promise<string> {
