@@ -4,6 +4,7 @@ import axios from 'axios';
 import { X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { LoadingButton } from '@/components/custom/loading-button';
+import { PasswordChangedSuccess } from '@/components/custom/password-changed-success';
 import { PasswordField } from '@/components/custom/password-field';
 import { Button } from '@/components/ui/button';
 import {
@@ -45,6 +46,7 @@ function ProfilePasswordDialogBody({
   onChangePassword: ProfilePasswordDialogProps['onChangePassword'];
 }) {
   const [isPending, setIsPending] = useState(false);
+  const [isSucceeded, setIsSucceeded] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
   const form = useForm<ChangePasswordFormValues>({
@@ -64,7 +66,7 @@ function ProfilePasswordDialogBody({
       });
       if (result.ok) {
         form.reset();
-        onClose();
+        setIsSucceeded(true);
         return;
       }
       if (result.fields) {
@@ -99,6 +101,30 @@ function ProfilePasswordDialogBody({
       onBusyChange(false);
     }
   });
+
+  if (isSucceeded) {
+    return (
+      <div className="p-4">
+        <DialogTitle className="sr-only">رمز عبور با موفقیت تغییر کرد</DialogTitle>
+        <DialogDescription className="sr-only">
+          رمز عبور حساب کاربری شما به‌روزرسانی شد.
+        </DialogDescription>
+        <PasswordChangedSuccess
+          description="رمز عبور حساب کاربری شما با موفقیت به‌روزرسانی شد."
+          action={
+            <Button
+              type="button"
+              variant="link"
+              onClick={onClose}
+              className="min-h-11 text-button-md font-bold text-primary-60 hover:text-primary-70 dark:text-primary-30"
+            >
+              بازگشت به پروفایل
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
 
   return (
     <>

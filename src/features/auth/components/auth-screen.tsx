@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate } from 'react-router';
 import { useIsMutating } from '@tanstack/react-query';
 import { ChevronRight } from 'lucide-react';
+import { PasswordChangedSuccess } from '@/components/custom/password-changed-success';
 import { Button } from '@/components/ui/button';
 import { authKeys } from '@/features/auth/api/query-keys';
 import type { AuthView } from '@/features/auth/config';
@@ -35,6 +36,9 @@ export function Component() {
 
 function AuthScreen({ view }: { view: AuthView }) {
   const heading = useRef<HTMLHeadingElement>(null);
+  const [succeededView, setSucceededView] = useState<
+    'reset-password' | 'change-password' | null
+  >(null);
   const flow = useAuthFlow();
   const status = useAuthStore((state) => state.status);
   const busy = useIsMutating({ mutationKey: authKeys.all }) > 0;
@@ -63,6 +67,36 @@ function AuthScreen({ view }: { view: AuthView }) {
     return <Navigate to="/login" replace />;
   if (!isChange && status === 'authenticated')
     return <Navigate to="/home" replace />;
+
+  const isPasswordSuccess =
+    (view === 'reset-password' || view === 'change-password') &&
+    succeededView === view;
+
+  if (isPasswordSuccess) {
+    const isChangeView = view === 'change-password';
+    return (
+      <section aria-label="تغییر موفق رمز عبور" className="min-w-0">
+        <PasswordChangedSuccess
+          description={
+            isChangeView
+              ? 'رمز عبور حساب کاربری شما با موفقیت به‌روزرسانی شد.'
+              : 'رمز عبور شما به‌روزرسانی شد. اکنون می‌توانید با رمز عبور جدید وارد شوید.'
+          }
+          action={
+            <Button
+              asChild
+              variant="link"
+              className="min-h-11 text-button-md font-bold text-primary-60 hover:text-primary-70 dark:text-primary-30"
+            >
+              <Link to={isChangeView ? '/home' : '/login'} replace={!isChangeView}>
+                {isChangeView ? 'بازگشت به صفحه اصلی' : 'بازگشت به صفحه ورود'}
+              </Link>
+            </Button>
+          }
+        />
+      </section>
+    );
+  }
 
   const purpose =
     view === 'verify-signup'
@@ -117,11 +151,20 @@ function AuthScreen({ view }: { view: AuthView }) {
         ))}
       {view === 'reset-password' &&
         (flow.resetGrant ? (
-          <ResetPasswordForm grant={flow.resetGrant} disabled={busy} />
+          <ResetPasswordForm
+            grant={flow.resetGrant}
+            disabled={busy}
+            onSuccess={() => setSucceededView('reset-password')}
+          />
         ) : (
           <AuthRecovery reset />
         ))}
-      {isChange && <ChangePasswordForm disabled={busy} />}
+      {isChange && (
+        <ChangePasswordForm
+          disabled={busy}
+          onSuccess={() => setSucceededView('change-password')}
+        />
+      )}
       {isReset || isChange ? (
         <div className="text-center">
           <Button
