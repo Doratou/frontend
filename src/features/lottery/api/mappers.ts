@@ -1,4 +1,9 @@
-import type { Lottery, LotteryMode, LotteryOption, LotterySummary } from '../types';
+import type {
+  Lottery,
+  LotteryMode,
+  LotteryOption,
+  LotterySummary,
+} from '../types';
 
 export interface CandidateDto {
   type: 'TEXT' | 'USER';
@@ -66,9 +71,10 @@ export function toLottery(dto: DrawDetailDto): Lottery {
     options: dto.candidates.map(toOption),
     totalWeight: dto.total_weight,
     createdAt: dto.created_at,
-    result: dto.result && dto.completed_at
-      ? { optionId: String(dto.result.index), drawnAt: dto.completed_at }
-      : null,
+    result:
+      dto.result && dto.completed_at
+        ? { optionId: String(dto.result.index), drawnAt: dto.completed_at }
+        : null,
   };
 }
 
@@ -81,13 +87,14 @@ export function toSummary(dto: DrawSummaryDto): LotterySummary {
     optionCount: dto.candidate_count,
     isFrozen: dto.is_frozen,
     createdAt: dto.created_at,
-    result: dto.result && dto.completed_at
-      ? {
-          kind: toKind(dto.result.type),
-          value: String(dto.result.value),
-          weight: dto.result.weight,
-          drawnAt: dto.completed_at,
-        }
-      : null,
+    result:
+      dto.result && dto.completed_at
+        ? {
+            kind: toKind(dto.result.type),
+            value: String(dto.result.value),
+            weight: dto.result.weight,
+            drawnAt: dto.completed_at,
+          }
+        : null,
   };
 }

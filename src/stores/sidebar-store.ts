@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-interface SidebarStore {
+export interface SidebarStore {
   isMobileOpen: boolean;
   openMobile: () => void;
   closeMobile: () => void;
@@ -13,3 +13,5 @@ export const useSidebarStore = create<SidebarStore>((set) => ({
   closeMobile: () => set({ isMobileOpen: false }),
   toggleMobile: () => set((state) => ({ isMobileOpen: !state.isMobileOpen })),
 }));
+
+export default useSidebarStore;

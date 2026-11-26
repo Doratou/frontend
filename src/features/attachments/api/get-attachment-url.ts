@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { z } from 'zod';
 import { apiClient } from '@/lib/api/client';
+import { env } from '@/lib/api/env';
 import { attachmentKeys } from './query-keys';
 
 // The access URL is presigned and valid for 1 hour by default, so cached URLs are
@@ -14,6 +15,13 @@ const envelopeSchema = z.object({
 
 // Only the presigned URL is needed; the other metadata fields are ignored.
 const attachmentSchema = z.object({ access_url: z.url() });
+
+export function getAttachmentDownloadUrl(
+  attachmentId: string | number,
+): string {
+  const base = env.VITE_API_BASE_URL.replace(/\/$/, '');
+  return `${base}/attachments/${encodeURIComponent(String(attachmentId))}/download`;
+}
 
 /** Resolves an attachment id (for example a profile picture) to a viewable URL. */
 export async function getAttachmentUrl(

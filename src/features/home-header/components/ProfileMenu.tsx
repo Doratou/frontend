@@ -35,6 +35,7 @@ export function ProfileMenu({
         <UserAvatar
           name={user.displayName}
           avatarUrl={user.avatarUrl}
+          fallbackAvatarUrl={user.fallbackAvatarUrl}
           size="md"
           className="md:size-9.5 md:text-heading-mobile-5"
         />
@@ -140,7 +141,11 @@ export function ProfileMenu({
         startIcon={
           <LogOut
             aria-hidden="true"
+<<<<<<< HEAD
             className="size-4.5! shrink-0 rtl:-scale-x-100"
+=======
+            className="size-4.5 shrink-0 rtl:-scale-x-100"
+>>>>>>> develop
             strokeWidth={2}
           />
         }

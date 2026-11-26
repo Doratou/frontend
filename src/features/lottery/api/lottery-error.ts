@@ -10,8 +10,7 @@ const MESSAGES: Record<string, string> = {
     'این اکیپ یک قرعه‌کشی اجرانشده دارد. ابتدا همان را اجرا کنید.',
   DRAW_GROUP_INACTIVE:
     'اکیپ غیرفعال است و قرعه‌کشی‌ها فعلاً قابل تغییر نیستند.',
-  DRAW_CANDIDATE_NOT_MEMBER:
-    'گزینه‌های عضو باید عضو فعال همین اکیپ باشند.',
+  DRAW_CANDIDATE_NOT_MEMBER: 'گزینه‌های عضو باید عضو فعال همین اکیپ باشند.',
   DRAW_DUPLICATE_CANDIDATES: 'نام گزینه‌ها نباید تکراری باشد.',
   DRAW_INVALID_CANDIDATES:
     'گزینه‌ها معتبر نیستند. تعداد و نام گزینه‌ها را بررسی کنید.',

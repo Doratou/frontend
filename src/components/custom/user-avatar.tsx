@@ -19,6 +19,7 @@ const AVATAR_SIZE_CLASSES: Record<keyof typeof AVATAR_PIXEL_SIZES, string> = {
 export interface UserAvatarProps {
   name: string;
   avatarUrl?: string | null;
+  fallbackAvatarUrl?: string | null;
   size?: keyof typeof AVATAR_PIXEL_SIZES;
   className?: string;
 }
@@ -26,14 +27,20 @@ export interface UserAvatarProps {
 export function UserAvatar({
   name,
   avatarUrl,
+  fallbackAvatarUrl,
   size = 'md',
   className,
 }: UserAvatarProps) {
-  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  const [failedUrls, setFailedUrls] = useState<string[]>([]);
   const trimmedName = name.trim();
   const initial = Array.from(trimmedName)[0];
-  const showImage = Boolean(avatarUrl && avatarUrl !== failedUrl);
   const px = AVATAR_PIXEL_SIZES[size];
+  const activeUrl =
+    avatarUrl && !failedUrls.includes(avatarUrl)
+      ? avatarUrl
+      : fallbackAvatarUrl && !failedUrls.includes(fallbackAvatarUrl)
+        ? fallbackAvatarUrl
+        : null;
 
   return (
     <span
@@ -43,14 +50,18 @@ export function UserAvatar({
         className,
       )}
     >
-      {showImage && avatarUrl ? (
+      {activeUrl ? (
         <img
-          src={avatarUrl}
+          src={activeUrl}
           alt={trimmedName || 'تصویر کاربر'}
           width={px}
           height={px}
           draggable={false}
-          onError={() => setFailedUrl(avatarUrl)}
+          onError={() =>
+            setFailedUrls((prev) =>
+              prev.includes(activeUrl) ? prev : [...prev, activeUrl],
+            )
+          }
           className="size-full object-cover"
         />
       ) : initial ? (

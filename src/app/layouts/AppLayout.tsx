@@ -21,16 +21,19 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
 }) => {
   return (
     <RoleGuard>
-      <div className="box-border flex h-dvh items-stretch gap-0 bg-background p-2 md:gap-2.5 md:p-4">
+      <div
+        dir="rtl"
+        className="fixed inset-0 box-border flex h-dvh w-full items-stretch gap-0 overflow-hidden overscroll-none bg-[#f3f0ff] p-2 md:gap-2.5 md:p-4 dark:bg-background"
+      >
         {/* Sidebar container: desktop rail visible >= md, mobile drawer rendered as fixed overlay */}
-        <div className="h-full shrink-0">
+        <div className="h-full min-h-0 shrink-0">
           <Sidebar page="homepage" {...sidebarProps} />
         </div>
 
         {/* Main area: grows smoothly when sidebar collapses */}
-        <main className="flex min-w-0 flex-1 flex-col gap-2.5">
+        <main className="flex min-h-0 min-w-0 flex-1 flex-col gap-2.5">
           <AppHomeHeader headerProps={headerProps} />
-          <div className="min-h-0 flex-1 overflow-auto">
+          <div className="min-h-0 flex-1 [scrollbar-width:none] overflow-x-hidden overflow-y-auto overscroll-contain px-0.5 pt-1 pb-2.5 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {children ?? <Outlet />}
           </div>
         </main>

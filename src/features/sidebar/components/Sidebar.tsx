@@ -10,7 +10,7 @@ import {
 } from './sidebar.config';
 import { SidebarTooltip, SidebarTooltipProvider } from './SidebarTooltip';
 import { getBackground, getLogo, type SidebarPage } from './sidebarAssets';
-import { useSidebarStore } from '../stores/sidebar-store';
+import { useSidebarStore } from '@/stores/sidebar-store';
 
 const OPEN_WIDTH = 250;
 const CLOSED_WIDTH = 80;
@@ -142,10 +142,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
     return navLinkIsActive;
   };
 
-  const renderNavItems = (collapsed: boolean, withTooltip: boolean) => (
+  const renderNavItems = (
+    collapsed: boolean,
+    withTooltip: boolean,
+    isMobile = false,
+  ) => (
     <nav
       aria-label="منوی اصلی"
-      className={`${theme.navTopMarginClass} flex w-full flex-col gap-1.5`}
+      className={`${isMobile ? (page === 'homepage' ? 'mt-28' : 'mt-16') : theme.navTopMarginClass} flex w-full flex-col gap-1.5`}
     >
       {navItems.map((item) => {
         const IconComponent = item.icon;
@@ -160,7 +164,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             aria-label={collapsed ? item.label : undefined}
             className={({ isActive: navLinkIsActive }) => {
               const isActive = checkIsItemActive(item.href, navLinkIsActive);
-              return `${theme.focusOutlineClass} group relative flex h-11 w-full items-center overflow-hidden rounded-2xl border-[1.5px] no-underline transition-[background-color,border-color,box-shadow] duration-200 motion-reduce:transition-none ${
+              return `${theme.focusOutlineClass} group relative flex h-11 w-full items-center overflow-hidden rounded-xl border-[1.5px] no-underline transition-[background-color,border-color,box-shadow] duration-200 motion-reduce:transition-none ${
                 isActive
                   ? collapsed
                     ? `${theme.activeItemClass} ${theme.activeClosedBorderClass} shadow-[0_2px_4px_0_rgba(0,0,0,0.10)]`
@@ -171,40 +175,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
               }`;
             }}
           >
-            {({ isActive: navLinkIsActive }) => {
-              const isActive = checkIsItemActive(item.href, navLinkIsActive);
+            <span className="flex h-full w-10.25 shrink-0 items-center justify-center">
+              <IconComponent
+                className={`pointer-events-none h-4.5 w-4.5 shrink-0 text-primary-80 transition-transform duration-150 motion-reduce:transition-none ${
+                  collapsed ? 'group-hover:scale-105' : ''
+                }`}
+                strokeWidth={1.75}
+              />
+            </span>
 
-              return (
-                <>
-                  <span
-                    aria-hidden="true"
-                    className={`w-0.9 absolute top-1/2 right-0.5 h-5.5 -translate-y-1/2 rounded-xs transition-opacity duration-200 motion-reduce:transition-none ${theme.activeIndicatorClass} ${
-                      isActive && !collapsed ? 'opacity-100' : 'opacity-0'
-                    }`}
-                  />
-
-                  <span className="flex h-full w-10.25 shrink-0 items-center justify-center">
-                    <IconComponent
-                      className={`pointer-events-none h-4.5 w-4.5 shrink-0 text-primary-80 transition-transform duration-150 motion-reduce:transition-none ${
-                        collapsed ? 'group-hover:scale-105' : ''
-                      }`}
-                      strokeWidth={1.75}
-                    />
-                  </span>
-
-                  <span
-                    aria-hidden={collapsed || undefined}
-                    className={`min-w-0 flex-1 truncate pl-3 text-right text-sm leading-5.5 font-medium tracking-normal whitespace-nowrap text-primary-80 transition-[opacity,transform] motion-reduce:transition-none ${
-                      collapsed
-                        ? 'pointer-events-none -translate-x-1.5 opacity-0 duration-150 ease-in'
-                        : 'translate-x-0 opacity-100 delay-100 duration-220 ease-out'
-                    }`}
-                  >
-                    {item.label}
-                  </span>
-                </>
-              );
-            }}
+            <span
+              aria-hidden={collapsed || undefined}
+              className={`min-w-0 flex-1 truncate pl-3 text-right text-sm leading-5.5 font-medium tracking-normal whitespace-nowrap text-primary-80 transition-[opacity,transform] motion-reduce:transition-none ${
+                collapsed
+                  ? 'pointer-events-none -translate-x-1.5 opacity-0 duration-150 ease-in'
+                  : 'translate-x-0 opacity-100 delay-100 duration-220 ease-out'
+              }`}
+            >
+              {item.label}
+            </span>
           </NavLink>
         );
 
@@ -381,12 +370,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </aside>
 
       {/* =====================================================================
-2. MOBILE DRAWER (< 1024px)
+2. MOBILE DRAWER (< 768px)
       ===================================================================== */}
       <div
         dir="rtl"
         inert={!isMobileOpen ? true : undefined}
-        className={`fixed inset-0 z-50 lg:hidden ${
+        className={`fixed inset-0 z-50 md:hidden ${
           isMobileOpen ? 'pointer-events-auto' : 'pointer-events-none'
         }`}
       >
@@ -407,12 +396,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
         >
           <SidebarBackground page={page} isCollapsed={false} />
 
-          <div className="relative z-2 flex h-full flex-col justify-between px-4 pt-7 pb-4">
+          <div className="relative z-2 flex h-full [scrollbar-width:none] flex-col justify-between overflow-y-auto px-4 pt-6 pb-5 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             <div className="flex w-full flex-col">
-              <div className="flex h-13 w-full flex-row items-center justify-between">
-                <span className="w-7 shrink-0" aria-hidden="true" />
+              <div className="flex h-13 w-full shrink-0 flex-row items-center justify-between">
+                <span className="w-8 shrink-0" aria-hidden="true" />
                 <NavLink to="/" className="no-underline">
-                  <div className="flex flex-row items-center gap-2.5 pr-1">
+                  <div className="flex flex-row items-center gap-2.5">
                     <div className="relative flex h-13 w-12 shrink-0 items-center justify-center">
                       <img
                         src={openLogoSrc}
@@ -437,7 +426,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </button>
               </div>
 
-              {renderNavItems(false, false)}
+              {renderNavItems(false, false, true)}
             </div>
 
             {renderBackButton(false, false)}

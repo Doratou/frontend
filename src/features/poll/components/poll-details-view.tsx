@@ -1,10 +1,13 @@
-import { useId, useState } from 'react';
+import { useId, useState, type ComponentType } from 'react';
+import { useNavigate } from 'react-router';
 import {
   ArrowLeft,
   BarChart2,
   CalendarCheck,
   CheckSquare,
+  LoaderPinwheel,
   Trash2,
+  Undo2,
   Users,
   X,
 } from 'lucide-react';
@@ -18,15 +21,23 @@ import {
   useDeletePoll,
 } from '@/features/poll/hooks/use-manage-poll';
 import { useVotePoll } from '@/features/poll/hooks/use-vote-poll';
-import { getOptionPercent, isPollVotable } from '@/features/poll/utils';
+import {
+  pollToLotteryDraft,
+  type PollLotteryState,
+} from '@/features/poll/to-lottery';
+import {
+  getOptionPercent,
+  isPollVotable,
+  toggleSelection,
+} from '@/features/poll/utils';
 import { cn } from '@/lib/utils';
 import { formatNumber } from '@/utils/format';
 import { PollDialogHeader } from './poll-dialog-header';
 import { PollOptionBar } from './poll-option-bar';
+import { PollVisibilityBadge } from './poll-visibility-badge';
 import type { Poll, PollOption } from '@/features/poll/types';
 
 const badgeTones = {
-  success: 'border-success-40 bg-success-10 text-success-60',
   info: 'border-info-40 bg-info-10 text-info-50',
   neutral: 'border-neutral-40 bg-neutral-10 text-neutral-70',
 } as const;
@@ -50,13 +61,48 @@ function MetaBadge({
   );
 }
 
+function ActionRow({
+  icon: Icon,
+  title,
+  description,
+  onClick,
+}: {
+  icon: ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center gap-3 rounded-xl border border-neutral-20 p-3 text-start outline-hidden transition-colors hover:bg-primary-10/50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring motion-reduce:transition-none"
+    >
+      <span
+        aria-hidden="true"
+        className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary-10 text-primary-70"
+      >
+        <Icon className="size-5" />
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="text-button-sm font-bold">{title}</span>
+        <span className="text-caption text-neutral-60">{description}</span>
+      </span>
+      <ArrowLeft
+        className="size-5 shrink-0 text-primary-70"
+        aria-hidden="true"
+      />
+    </button>
+  );
+}
+
 interface ChoiceRowProps {
   option: PollOption;
   poll: Poll;
   maxVotes: number;
   isBusy: boolean;
-  /** Pass null to take the vote back. */
-  onVote: (optionId: string | null) => void;
+  /** Saves the whole selection; an empty list withdraws every vote. */
+  onVote: (optionIds: string[]) => void;
 }
 
 // The same option row as on the poll card (results included), wrapped in the bordered
@@ -74,13 +120,14 @@ function ChoiceRow({ option, poll, maxVotes, isBusy, onVote }: ChoiceRowProps) {
     >
       <PollOptionBar
         label={option.label}
-        percent={getOptionPercent(option, poll.totalVotes)}
+        percent={getOptionPercent(option, poll.totalVoters)}
         isLeading={maxVotes > 0 && option.votes === maxVotes}
         isClosed={poll.status === 'closed'}
         isSelected={isSelected}
         showIndicator={isVotable || poll.votedOptionIds.length > 0}
+        multiple={poll.allowMultiple}
         onSelect={
-          isVotable ? () => onVote(isSelected ? null : option.id) : undefined
+          isVotable ? () => onVote(toggleSelection(poll, option.id)) : undefined
         }
         disabled={isBusy}
       />
@@ -102,12 +149,15 @@ export function PollDetailsView({
   const questionId = useId();
   const groupId = useCurrentGroupId();
   const isOwner = useIsPollOwner(poll.createdByMemberId);
+  const navigate = useNavigate();
   const vote = useVotePoll(groupId);
   const closePoll = useClosePoll(groupId);
   const deletePoll = useDeletePoll(groupId);
   const [confirming, setConfirming] = useState<'close' | 'delete' | null>(null);
 
   const isActive = poll.status === 'active';
+  const isVotable = isPollVotable(poll);
+  const canConvert = isOwner && isVotable;
   const hasVoted = poll.votedOptionIds.length > 0;
   const maxVotes = Math.max(0, ...poll.options.map((option) => option.votes));
   const subtitle = !isActive
@@ -116,7 +166,20 @@ export function PollDetailsView({
       ? 'گروه غیرفعال است و امکان تغییر رأی وجود ندارد'
       : hasVoted
         ? 'رأی شما ثبت شده است'
-        : 'روی گزینه مدنظر خود کلیک کنید و رأی خود را ثبت کنید';
+        : poll.allowMultiple
+          ? 'روی یک یا چند گزینه کلیک کنید و رأی خود را ثبت کنید'
+          : 'روی گزینه مدنظر خود کلیک کنید و رأی خود را ثبت کنید';
+
+  // The lottery page opens its create dialog prefilled from this poll. The poll is
+  // closed there, once the lottery has actually been created.
+  const convertToLottery = () => {
+    const state: PollLotteryState = {
+      pollId: poll.id,
+      draft: pollToLotteryDraft(poll),
+    };
+    onClose();
+    void navigate(`/group/${encodeURIComponent(groupId)}/lottery`, { state });
+  };
 
   return (
     <>
@@ -142,7 +205,7 @@ export function PollDetailsView({
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-caption text-neutral-70">
           <span className="flex items-center gap-1.5">
             <Users className="size-4" aria-hidden="true" />
-            {formatNumber(poll.totalVotes)} رأی
+            {formatNumber(poll.totalVoters)} رأی
           </span>
           <span className="flex items-center gap-1.5">
             <CalendarCheck className="size-4" aria-hidden="true" />
@@ -152,9 +215,10 @@ export function PollDetailsView({
             {formatPollPeriod(poll.createdAt, poll.closedAt)}
           </span>
           <span className="ms-auto flex items-center gap-2">
-            <MetaBadge tone={poll.isAnonymous ? 'neutral' : 'success'}>
-              {poll.isAnonymous ? 'ناشناس' : 'پابلیک'}
-            </MetaBadge>
+            <PollVisibilityBadge isAnonymous={poll.isAnonymous} />
+            {poll.allowMultiple && (
+              <MetaBadge tone="neutral">چندگزینه‌ای</MetaBadge>
+            )}
             <MetaBadge tone={isActive ? 'info' : 'neutral'}>
               {isActive ? 'فعال' : 'تمام شده'}
             </MetaBadge>
@@ -179,41 +243,53 @@ export function PollDetailsView({
                   poll={poll}
                   maxVotes={maxVotes}
                   isBusy={vote.isPending}
-                  onVote={(optionId) =>
-                    vote.mutate({ pollId: poll.id, optionId })
+                  onVote={(optionIds) =>
+                    vote.mutate({ pollId: poll.id, optionIds })
                   }
                 />
               </li>
             ))}
           </ul>
+          {poll.allowMultiple && (
+            <p className="mt-3 text-caption text-neutral-60">
+              درصد هر گزینه نسبت به تعداد رأی‌دهندگان است و مجموع درصدها
+              می‌تواند بیشتر از ۱۰۰ شود.
+            </p>
+          )}
+          {isVotable && hasVoted && poll.allowMultiple && (
+            <div className="mt-2">
+              <Button
+                type="button"
+                variant="ghost"
+                startIcon={<Undo2 className="size-4" />}
+                disabled={vote.isPending}
+                onClick={() => vote.mutate({ pollId: poll.id, optionIds: [] })}
+                className="text-neutral-70"
+              >
+                پس‌گرفتن همه‌ی رأی‌ها
+              </Button>
+            </div>
+          )}
         </section>
 
         {/* Anonymous polls never reveal who voted, so there is nothing to open. */}
         {!poll.isAnonymous && (
-          <button
-            type="button"
+          <ActionRow
+            icon={Users}
+            title="مشاهده رأی‌دهندگان"
+            description="چه کسانی به هر گزینه رأی داده‌اند"
             onClick={onShowVoters}
-            className="flex w-full items-center gap-3 rounded-xl border border-neutral-20 p-3 text-start outline-hidden transition-colors hover:bg-primary-10/50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring motion-reduce:transition-none"
-          >
-            <span
-              aria-hidden="true"
-              className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary-10 text-primary-70"
-            >
-              <Users className="size-5" />
-            </span>
-            <span className="flex min-w-0 flex-1 flex-col">
-              <span className="text-button-sm font-bold">
-                مشاهده رأی‌دهندگان
-              </span>
-              <span className="text-caption text-neutral-60">
-                چه کسانی به هر گزینه رأی داده‌اند
-              </span>
-            </span>
-            <ArrowLeft
-              className="size-5 shrink-0 text-primary-70"
-              aria-hidden="true"
-            />
-          </button>
+          />
+        )}
+
+        {/* Only the creator of an open poll can hand its result over to a lottery. */}
+        {canConvert && (
+          <ActionRow
+            icon={LoaderPinwheel}
+            title="تبدیل به قرعه‌کشی"
+            description="انتخاب برنده بین گزینه‌ها؛ پس از ساخت قرعه‌کشی نظرسنجی بسته می‌شود"
+            onClick={convertToLottery}
+          />
         )}
       </div>
 

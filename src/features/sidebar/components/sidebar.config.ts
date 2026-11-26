@@ -11,7 +11,7 @@ import {
   Coins,
   CheckSquare,
   BarChart2,
-  Dices,
+  LoaderPinwheel,
   Sparkles,
 } from 'lucide-react';
 import type { SidebarPage } from './sidebarAssets';
@@ -34,7 +34,7 @@ export const SIDEBAR_NAV_ITEMS: Record<SidebarPage, SidebarNavItem[]> = {
       href: '/home/',
       icon: LayoutGrid,
     },
-    { id: 'crews', label: 'اکیپ‌ها', href: '/home/crews', icon: Users },
+    { id: 'groups', label: 'اکیپ‌ها', href: '/home/groups', icon: Users },
     {
       id: 'memories',
       label: 'خاطرات',
@@ -56,7 +56,7 @@ export const SIDEBAR_NAV_ITEMS: Record<SidebarPage, SidebarNavItem[]> = {
       icon: CheckSquare,
     },
     { id: 'poll', label: 'نظرسنجی', href: 'poll', icon: BarChart2 },
-    { id: 'lottery', label: 'قرعه‌کشی', href: 'lottery', icon: Dices },
+    { id: 'lottery', label: 'قرعه‌کشی', href: 'lottery', icon: LoaderPinwheel },
     { id: 'gallery', label: 'گالری', href: 'gallery', icon: ImageIcon },
     { id: 'assistant', label: 'همیار', href: 'assistant', icon: Sparkles },
   ],

@@ -6,7 +6,7 @@ import { isPollVotable } from '@/features/poll/utils';
 import { formatNumber } from '@/utils/format';
 import { PollDetailsDialog } from './poll-details-dialog';
 import { PollOptionList } from './poll-option-list';
-import { PollStatusBadge } from './poll-status-badge';
+import { PollVisibilityBadge } from './poll-visibility-badge';
 import type { Poll } from '@/features/poll/types';
 
 export function PollCard({ poll }: { poll: Poll }) {
@@ -27,9 +27,9 @@ export function PollCard({ poll }: { poll: Poll }) {
       >
         <p className="flex items-center gap-1.5 text-caption whitespace-nowrap text-neutral-80">
           <Users className="size-4 shrink-0" aria-hidden="true" />
-          {formatNumber(poll.totalVotes)} رأی
+          {formatNumber(poll.totalVoters)} رأی
         </p>
-        <PollStatusBadge status={poll.status} />
+        <PollVisibilityBadge isAnonymous={poll.isAnonymous} />
       </header>
 
       {/* flex-1 + mt-auto on the footer keeps buttons aligned across cards in one grid row. */}
@@ -43,7 +43,9 @@ export function PollCard({ poll }: { poll: Poll }) {
             <p className="text-caption text-neutral-60">
               {poll.votedOptionIds.length > 0
                 ? 'رأی شما ثبت شد'
-                : 'یک گزینه را انتخاب کنید'}
+                : poll.allowMultiple
+                  ? 'یک یا چند گزینه را انتخاب کنید'
+                  : 'یک گزینه را انتخاب کنید'}
             </p>
           )}
         </div>

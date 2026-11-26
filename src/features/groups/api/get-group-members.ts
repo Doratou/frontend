@@ -1,12 +1,9 @@
 import { queryOptions, useQuery } from '@tanstack/react-query';
 import { z } from 'zod';
 import { apiClient } from '@/lib/api/client';
+import { groupEnvelopeSchema } from './contracts';
+import { toGroupError } from './group-error';
 import { groupKeys } from './query-keys';
-
-const envelopeSchema = z.object({
-  success: z.literal(true),
-  data: z.unknown(),
-});
 
 const memberSchema = z
   .object({
@@ -31,18 +28,25 @@ export async function getGroupMembers(
   groupId: string,
   signal?: AbortSignal,
 ): Promise<GroupMember[]> {
-  // Relative to VITE_API_BASE_URL, which already includes the /api/v1 prefix.
-  const response = await apiClient.get<unknown>(
-    `/groups/${encodeURIComponent(groupId)}/members`,
-    { signal },
-  );
-  return z.array(memberSchema).parse(envelopeSchema.parse(response.data).data);
+  try {
+    // Relative to VITE_API_BASE_URL, which already includes the /api/v1 prefix.
+    const response = await apiClient.get<unknown>(
+      `/groups/${encodeURIComponent(groupId)}/members`,
+      { signal },
+    );
+    return z
+      .array(memberSchema)
+      .parse(groupEnvelopeSchema.parse(response.data).data);
+  } catch (error) {
+    throw toGroupError(error);
+  }
 }
 
 export const groupMembersQueryOptions = (groupId: string) =>
   queryOptions({
-    queryKey: [...groupKeys.detail(groupId), 'members'] as const,
+    queryKey: groupKeys.members(groupId),
     queryFn: ({ signal }) => getGroupMembers(groupId, signal),
+    enabled: Boolean(groupId),
   });
 
 export function useGroupMembers(groupId: string) {

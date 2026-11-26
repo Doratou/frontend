@@ -59,6 +59,10 @@ export const routes: RouteObject[] = [
     element: <DashboardLayout />,
     children: [
       {
+        path: 'groups',
+        lazy: () => import('@/app/pages/home/groups'),
+      },
+      {
         path: 'notification',
         lazy: () => import('@/app/pages/notifications'),
       },
@@ -68,7 +72,7 @@ export const routes: RouteObject[] = [
       },
       {
         path: 'profile',
-        element: <p>پروفایل کاربر</p>,
+        lazy: () => import('@/app/pages/profile'),
       },
     ],
   },

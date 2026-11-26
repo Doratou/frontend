@@ -2,7 +2,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PasswordField } from '@/components/custom/password-field';
 import { LoadingButton } from '@/components/custom/loading-button';
-import { toast } from '@/components/custom/toast';
 import { authApi } from '@/features/auth/api/auth-api';
 import { useAuthMutation } from '@/features/auth/hooks/use-auth-mutation';
 import {
@@ -11,7 +10,13 @@ import {
 } from '@/features/auth/schemas';
 import { applyAuthFieldErrors } from './auth-form-errors';
 
-export function ChangePasswordForm({ disabled }: { disabled: boolean }) {
+export function ChangePasswordForm({
+  disabled,
+  onSuccess,
+}: {
+  disabled: boolean;
+  onSuccess: () => void;
+}) {
   const change = useAuthMutation(authApi.changePassword);
   const form = useForm<ChangePasswordValues>({
     resolver: zodResolver(changePasswordSchema),
@@ -28,7 +33,7 @@ export function ChangePasswordForm({ disabled }: { disabled: boolean }) {
           {
             onSuccess: () => {
               form.reset();
-              toast.success('رمز عبور تغییر کرد');
+              onSuccess();
             },
             onError: (error) =>
               applyAuthFieldErrors(error, form.setError, [
