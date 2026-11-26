@@ -117,6 +117,7 @@ export function Component() {
   const headerProps = {
     title: group.title,
     description: group.description,
+    status: group.status,
     statusLabel: GROUP_STATUS_LABELS[group.status],
     typeLabel: group.plan === 'PREMIUM' ? 'گروه پریمیوم' : 'گروه عادی',
     groupPhotoSrc: coverImage.src ?? GROUP_HEADER_ASSETS.groupPhotoSample,

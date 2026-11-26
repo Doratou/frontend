@@ -1,4 +1,5 @@
 import {
+  Archive,
   Calendar,
   Cloud,
   Crown,
@@ -7,8 +8,10 @@ import {
   Settings,
   User,
   Users,
+  Wallet,
 } from 'lucide-react';
 import { formatGroupStorage } from '../constants';
+import type { GroupStatus } from '../types';
 import { GROUP_HEADER_ASSETS } from './groupHeaderAssets';
 import { GroupMemberStack, MemberAvatar } from './MemberAvatar';
 
@@ -22,6 +25,7 @@ export interface GroupHeaderMember {
 export interface GroupHeaderProps {
   title: string;
   description: string;
+  status?: GroupStatus;
   statusLabel: string;
   typeLabel: string;
   groupPhotoSrc?: string;
@@ -52,6 +56,7 @@ const CREATED_BY_LABEL = 'ایجاد شده توسط';
 export function GroupHeader({
   title,
   description,
+  status = 'ACTIVE',
   statusLabel,
   typeLabel,
   groupPhotoSrc = GROUP_HEADER_ASSETS.groupPhotoSample,
@@ -148,15 +153,25 @@ export function GroupHeader({
           </p>
 
           <div className="flex shrink-0 items-center gap-1.5 whitespace-nowrap">
-            <span className="flex h-6.5 items-center justify-center gap-1.5 overflow-hidden rounded-full border border-[#14b8a6] bg-white px-2.5 py-1">
-              <span className="h-2 w-2 shrink-0 rounded-full bg-[#3f9f46]" />
-              <span
-                dir="auto"
-                className="text-center text-xs leading-4.5 font-medium text-[#005249]"
-              >
-                {statusLabel}
+            {status === 'SETTLING' ? (
+              <span className="inline-flex h-6.5 items-center gap-1.5 rounded-full border border-info-40 bg-info-10/95 px-2.5 text-caption font-medium text-info-50">
+                <span dir="auto">{statusLabel}</span>
+                <Wallet className="size-3.5 text-info-50" aria-hidden="true" />
               </span>
-            </span>
+            ) : status === 'CLOSED' ? (
+              <span className="inline-flex h-6.5 items-center gap-1 rounded-full border border-primary-30 bg-white/95 px-2.5 text-caption font-medium text-primary-70">
+                <span dir="auto">{statusLabel}</span>
+                <Archive
+                  className="size-3.5 text-primary-60"
+                  aria-hidden="true"
+                />
+              </span>
+            ) : (
+              <span className="inline-flex h-6.5 items-center gap-1.5 rounded-full border border-secondary-60 bg-white/95 px-2.5 text-caption font-medium text-secondary-80">
+                <span dir="auto">{statusLabel}</span>
+                <span className="size-2 shrink-0 rounded-full bg-success-40" />
+              </span>
+            )}
 
             <span className="flex h-6.5 items-center justify-center gap-1.5 overflow-hidden rounded-full border border-[#14b8a6] bg-white px-2.5 py-1 text-[#005249]">
               <Leaf className="pointer-events-none h-3.5 w-3.5 stroke-[1.8] text-[#14b8a6]" />

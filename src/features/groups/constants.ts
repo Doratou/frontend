@@ -2,8 +2,8 @@ import type { GroupStatus } from './types';
 
 export const GROUP_STATUS_LABELS: Readonly<Record<GroupStatus, string>> = {
   ACTIVE: 'فعال',
-  SETTLING: 'آرشیوشده',
-  CLOSED: 'بسته‌شده',
+  SETTLING: 'در حال تسویه',
+  CLOSED: 'آرشیو شده',
 };
 
 export const GROUP_TITLE_MAX_LENGTH = 150;

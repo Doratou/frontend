@@ -75,6 +75,19 @@ function toExpiryIso(
   return dateTimeToApi(parsed, { hour: 23, minute: 59, second: 59 });
 }
 
+export function downloadGroupAttachment(
+  attachmentId: string,
+  signal?: AbortSignal,
+): Promise<Blob> {
+  return withGroupError(async () => {
+    const response = await apiClient.get<Blob>(
+      `/attachments/${encodeURIComponent(attachmentId)}/download`,
+      { responseType: 'blob', signal },
+    );
+    return response.data;
+  });
+}
+
 export function getGroupAttachmentDownloadUrl(
   attachmentId: string | number,
 ): string {
