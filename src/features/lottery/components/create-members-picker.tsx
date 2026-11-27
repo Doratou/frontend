@@ -39,7 +39,6 @@ export function CreateMembersPicker({
             اعضای انتخاب‌شده به‌عنوان گزینه به گردونه اضافه می‌شوند
           </p>
         </div>
-        {/* TODO: confirm with design whether this is a collapse toggle or a source filter. */}
         <button
           type="button"
           aria-expanded={isExpanded}

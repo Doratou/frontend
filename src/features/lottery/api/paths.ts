@@ -8,9 +8,3 @@ export const drawPath = (groupId: string, lotteryId: string) =>
 
 export const runDrawPath = (groupId: string, lotteryId: string) =>
   `${drawPath(groupId, lotteryId)}/run`;
-
-export const groupMembersPath = (groupId: string) =>
-  `/groups/${encodeURIComponent(groupId)}/members`;
-
-export const userProfilePath = (userId: string) =>
-  `/users/${encodeURIComponent(userId)}/profile`;

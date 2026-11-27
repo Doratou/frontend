@@ -1,22 +1,21 @@
 import { useMemo, useState } from 'react';
-import { LoaderPinwheel, Plus } from 'lucide-react';
 import { ErrorState } from '@/components/custom/error-state';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { GroupPageHeader } from '@/components/custom/group-page-header';
+import { useGroupId } from '@/features/groups/hooks/use-group-id';
 import { LotteryCreateDialog } from '@/features/lottery/components/lottery-create-dialog';
 import { LotteryDetailsDialog } from '@/features/lottery/components/lottery-details-dialog';
 import { LotteryEmptyState } from '@/features/lottery/components/lottery-empty-state';
+import { LotteryFrame } from '@/features/lottery/components/lottery-frame';
 import { LotteryHistory } from '@/features/lottery/components/lottery-history';
+import { LotteryPageHeader } from '@/features/lottery/components/lottery-page-header';
 import { LotteryStage } from '@/features/lottery/components/lottery-stage';
 import type { LotteryDraft } from '@/features/lottery/draft';
 import { useActiveLottery } from '@/features/lottery/hooks/use-active-lottery';
-import { useGroupMembers } from '@/features/lottery/hooks/use-group-members';
 import { useLotteryDetail } from '@/features/lottery/hooks/use-lottery-detail';
 import { useLotteryDraftBuilder } from '@/features/lottery/hooks/use-lottery-draft-builder';
-import { useGroupId } from '@/features/groups/hooks/use-group-id';
 import { useLotteryHistory } from '@/features/lottery/hooks/use-lottery-history';
-import { useUserProfiles } from '@/features/lottery/hooks/use-user-profiles';
+import { useLotteryMembers } from '@/features/lottery/hooks/use-lottery-members';
 import type { Lottery, LotteryMember } from '@/features/lottery/types';
 import {
   buildDirectory,
@@ -26,6 +25,7 @@ import {
   resolveOptionProfiles,
   toHistoryEntries,
 } from '@/features/lottery/utils';
+import { useUserProfiles } from '@/features/users/hooks/use-user-profiles';
 
 // Stable fallback, so memoized values do not change while members load.
 const NO_MEMBERS: LotteryMember[] = [];
@@ -43,7 +43,9 @@ export function LotteryView({
   initialDraft = null,
   onCreatedFromDraft,
 }: LotteryViewProps) {
+  // The shared hook throws for an invalid route, so the group is always known here.
   const groupId = useGroupId();
+
   return (
     <LotteryContent
       groupId={groupId}
@@ -64,7 +66,7 @@ function LotteryContent({
 }: LotteryContentProps) {
   const activeQuery = useActiveLottery(groupId);
   const historyQuery = useLotteryHistory(groupId);
-  const membersQuery = useGroupMembers(groupId);
+  const membersQuery = useLotteryMembers(groupId);
   const draftBuilder = useLotteryDraftBuilder(groupId);
   // A lottery that must stay on stage regardless of the queries: the one just
   // created, and the one just drawn (its result stays visible after the refresh
@@ -154,8 +156,8 @@ function LotteryContent({
   if (isCheckingDraft) {
     stage = (
       <div className="grid gap-4 lg:grid-cols-2">
-        <Skeleton className="h-96" />
-        <Skeleton className="h-96" />
+        <Skeleton className="h-96 rounded-2xl" />
+        <Skeleton className="h-96 rounded-2xl" />
       </div>
     );
   } else if (pinned === null && activeQuery.isError) {
@@ -182,15 +184,21 @@ function LotteryContent({
 
   let historySection;
   if (historyQuery.isPending) {
-    historySection = <Skeleton className="h-64" />;
+    historySection = (
+      <LotteryFrame>
+        <Skeleton className="h-56 rounded-2xl" />
+      </LotteryFrame>
+    );
   } else if (historyQuery.isError && historyQuery.data === undefined) {
     historySection = (
-      <ErrorState
-        error={historyQuery.error}
-        title="دریافت تاریخچه انجام نشد"
-        onRetry={() => void historyQuery.refetch()}
-        isRetrying={historyQuery.isRefetching}
-      />
+      <LotteryFrame>
+        <ErrorState
+          error={historyQuery.error}
+          title="دریافت تاریخچه انجام نشد"
+          onRetry={() => void historyQuery.refetch()}
+          isRetrying={historyQuery.isRefetching}
+        />
+      </LotteryFrame>
     );
   } else {
     historySection = (
@@ -211,24 +219,14 @@ function LotteryContent({
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <GroupPageHeader
-        title="قرعه‌کشی"
-        logo={<LoaderPinwheel className="size-6" />}
-        action={
-          <Button
-            size="lg"
-            tone="secondary"
-            radius="lg"
-            className="shrink-0 bg-secondary-70 hover:bg-secondary-80 max-sm:w-10.5 max-sm:px-0"
-            disabled={isLocked || isCheckingDraft || hasDraft}
-            title={hasDraft ? 'ابتدا قرعه‌کشی فعلی را اجرا کنید.' : undefined}
-            onClick={openCreate}
-            endIcon={<Plus />}
-          >
-            <span className="max-sm:sr-only">قرعه‌کشی جدید</span>
-          </Button>
+    // p-4 is the mobile page margin; from md up the layout provides its own spacing.
+    <div className="flex flex-col gap-3 p-4 md:p-0">
+      <LotteryPageHeader
+        disabled={isLocked || isCheckingDraft || hasDraft}
+        disabledReason={
+          hasDraft ? 'ابتدا قرعه‌کشی فعلی را اجرا کنید.' : undefined
         }
+        onCreate={openCreate}
       />
       {draft !== null && hasDraft && (
         <div
@@ -244,7 +242,7 @@ function LotteryContent({
           </Button>
         </div>
       )}
-      {stage}
+      <LotteryFrame>{stage}</LotteryFrame>
       {historySection}
       <LotteryCreateDialog
         key={draftKey}

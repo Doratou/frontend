@@ -1,13 +1,9 @@
-import { Dialog } from '@base-ui/react/dialog';
-import { motion, useReducedMotion } from 'motion/react';
-import { Crown, Trophy, X } from 'lucide-react';
+import { Crown, Trophy } from 'lucide-react';
+import { DialogTitleBar } from '@/components/custom/dialog-title-bar';
 import { Button } from '@/components/ui/button';
-import {
-  formatChance,
-  formatLotteryDate,
-  formatLotteryTime,
-  toPersianNumber,
-} from '@/features/lottery/format';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { formatPersianClock, formatPersianLongDate } from '@/lib/persian-date';
+import { formatChance, toPersianNumber } from '@/features/lottery/format';
 import { ModeBadge } from '@/features/lottery/components/lottery-badges';
 import { OptionAvatar } from '@/features/lottery/components/option-avatar';
 import type { LotteryMode, LotteryOption } from '@/features/lottery/types';
@@ -49,110 +45,73 @@ export function LotteryResultDialog({
   chance,
   drawnAt,
 }: LotteryResultDialogProps) {
-  const reducedMotion = useReducedMotion();
-
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 z-50 bg-neutral-80/50 backdrop-blur-sm" />
-        <Dialog.Popup
-          dir="rtl"
-          className="fixed top-1/2 left-1/2 z-50 w-[min(92vw,26rem)] -translate-x-1/2 -translate-y-1/2 outline-none"
-        >
-          <motion.div
-            initial={reducedMotion ? false : { opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: 'spring', stiffness: 320, damping: 24 }}
-            className="overflow-hidden rounded-3xl border border-accent-30 bg-accent-10 text-accent-80 shadow-xl"
-          >
-            <header className="flex items-center gap-3 border-b border-accent-20 bg-accent-20/50 p-4">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogTitleBar
+          tone="accent"
+          icon={<Trophy className="size-6" />}
+          title="نتیجه‌ی قرعه‌کشی"
+          description={lotteryTitle}
+          onClose={() => onOpenChange(false)}
+        />
+
+        <div className="flex flex-col gap-4 bg-accent-10 p-5 text-accent-80">
+          <div className="relative flex flex-col items-center gap-2 overflow-hidden rounded-2xl border border-accent-20 bg-accent-20/60 px-4 py-6 text-center">
+            {CONFETTI.map((piece, index) => (
               <span
+                key={index}
                 aria-hidden="true"
-                className="grid size-11 shrink-0 place-items-center rounded-xl bg-accent-40 text-white"
-              >
-                <Trophy className="size-6" />
-              </span>
-              <div className="flex min-w-0 flex-1 flex-col">
-                <Dialog.Title className="text-heading-5">
-                  نتیجه‌ی قرعه‌کشی
-                </Dialog.Title>
-                <Dialog.Description className="truncate text-caption text-accent-70">
-                  {lotteryTitle}
-                </Dialog.Description>
-              </div>
-              <Button
-                variant="outline"
-                tone="accent"
-                size="icon-md"
-                radius="md"
-                aria-label="بستن"
-                className="size-9 bg-neutral-10"
-                onClick={() => onOpenChange(false)}
-              >
-                <X className="size-4" />
-              </Button>
-            </header>
-
-            <div className="flex flex-col gap-4 p-5">
-              <div className="relative flex flex-col items-center gap-2 overflow-hidden rounded-2xl border border-accent-20 bg-accent-20/60 px-4 py-6 text-center">
-                {CONFETTI.map((piece, index) => (
-                  <span
-                    key={index}
-                    aria-hidden="true"
-                    className={`absolute size-1.5 rounded-xs ${piece.color}`}
-                    style={{
-                      top: piece.top,
-                      left: piece.left,
-                      rotate: `${piece.rotate}deg`,
-                    }}
-                  />
-                ))}
-                <span className="text-caption text-accent-70">
-                  گزینه‌ی انتخاب‌شده
-                </span>
-                <Crown className="size-6 text-accent-50" aria-hidden="true" />
-                <div className="flex items-center gap-3">
-                  {winner?.member && (
-                    <OptionAvatar
-                      member={winner.member}
-                      size="md"
-                      className="ring-2 ring-accent-40"
-                    />
-                  )}
-                  <span className="text-heading-4">{winner?.label}</span>
-                </div>
-                <span className={CHIP_CLASS}>شانس: {formatChance(chance)}</span>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                {drawnAt && (
-                  <span className={CHIP_CLASS}>
-                    {formatLotteryDate(drawnAt)} · {formatLotteryTime(drawnAt)}
-                  </span>
-                )}
-                <span className={CHIP_CLASS}>
-                  {toPersianNumber(optionCount)} گزینه
-                </span>
-                <ModeBadge
-                  mode={mode}
-                  className="border-accent-40 bg-accent-30 text-accent-80"
+                className={`absolute size-1.5 rounded-xs ${piece.color}`}
+                style={{
+                  top: piece.top,
+                  left: piece.left,
+                  rotate: `${piece.rotate}deg`,
+                }}
+              />
+            ))}
+            <span className="text-caption text-accent-70">
+              گزینه‌ی انتخاب‌شده
+            </span>
+            <Crown className="size-6 text-accent-50" aria-hidden="true" />
+            <div className="flex items-center gap-3">
+              {winner?.member && (
+                <OptionAvatar
+                  member={winner.member}
+                  size="md"
+                  className="ring-2 ring-accent-40"
                 />
-              </div>
-
-              <Button
-                variant="outline"
-                tone="accent"
-                size="lg"
-                radius="md"
-                className="w-full bg-neutral-10"
-                onClick={() => onOpenChange(false)}
-              >
-                بستن
-              </Button>
+              )}
+              <span className="text-heading-4">{winner?.label}</span>
             </div>
-          </motion.div>
-        </Dialog.Popup>
-      </Dialog.Portal>
-    </Dialog.Root>
+            <span className={CHIP_CLASS}>شانس: {formatChance(chance)}</span>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {drawnAt && (
+              <span className={CHIP_CLASS}>
+                {formatPersianLongDate(drawnAt)} · {formatPersianClock(drawnAt)}
+              </span>
+            )}
+            <span className={CHIP_CLASS}>
+              {toPersianNumber(optionCount)} گزینه
+            </span>
+            <ModeBadge
+              mode={mode}
+              className="border-accent-40 bg-accent-30 text-accent-80"
+            />
+          </div>
+
+          <Button
+            variant="outline"
+            tone="accent"
+            className="w-full"
+            onClick={() => onOpenChange(false)}
+          >
+            بستن
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

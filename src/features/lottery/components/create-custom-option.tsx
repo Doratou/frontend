@@ -53,16 +53,14 @@ export function CreateCustomOption({ onAdd }: CreateCustomOptionProps) {
             }
           }}
         />
-        {/* Same height as the field; an outline keeps it lighter than the
-            primary "create" action in the footer. */}
+        {/* h-9.5 matches the height of the text field next to it. */}
         <Button
           variant="outline"
           tone="secondary"
-          size="md"
-          radius="lg"
-          className="h-9.5 shrink-0 px-3 text-button-sm font-bold [&_svg]:size-4"
+          radius="md"
+          className="h-9.5 shrink-0"
           onClick={submit}
-          endIcon={<Plus />}
+          endIcon={<Plus className="size-4" />}
         >
           افزودن
         </Button>

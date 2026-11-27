@@ -29,7 +29,7 @@ export function LotterySectionCard({
       <header className="flex items-center justify-between gap-3">
         <h2
           id={headingId}
-          className="flex min-w-0 items-center gap-2 text-heading-mobile-4 sm:text-heading-5"
+          className="flex min-w-0 items-center gap-2 text-heading-6 text-primary-80"
         >
           <span
             aria-hidden="true"

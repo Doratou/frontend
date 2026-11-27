@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
-import { Dialog } from '@base-ui/react/dialog';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { LoaderPinwheel, Plus, X } from 'lucide-react';
+import { LoaderPinwheel, Plus } from 'lucide-react';
 import { useFieldArray, useForm, useWatch } from 'react-hook-form';
+import { DialogTitleBar } from '@/components/custom/dialog-title-bar';
 import { TextField } from '@/components/custom/text-field';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import {
   LOTTERY_MAX_OPTIONS,
   LOTTERY_TITLE_MAX_LENGTH,
@@ -162,119 +163,87 @@ export function LotteryCreateDialog({
   };
 
   return (
-    <Dialog.Root open={open} onOpenChange={handleOpenChange}>
-      <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 z-50 bg-neutral-80/50 backdrop-blur-sm" />
-        <Dialog.Popup
-          dir="rtl"
-          className="fixed top-1/2 left-1/2 z-50 flex max-h-[92dvh] w-[min(94vw,36rem)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-3xl border bg-card text-card-foreground shadow-xl outline-none"
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent>
+        <DialogTitleBar
+          icon={<LoaderPinwheel className="size-6" />}
+          title="قرعه‌کشی جدید"
+          description="گزینه‌ها و نوع قرعه‌کشی را تنظیم کنید"
+          tone="primary"
+          onClose={() => handleOpenChange(false)}
+        />
+
+        <form
+          noValidate
+          onSubmit={(event) => {
+            // The last weighted option is calculated, so its value is stored
+            // right before the form is validated.
+            if (mode === 'weighted' && options.length > 0) {
+              setValue(
+                `options.${options.length - 1}.weight`,
+                getLastWeight(options.map((option) => option.weight)),
+              );
+            }
+            void handleSubmit(onSubmit)(event);
+          }}
+          className="flex flex-col"
         >
-          <header className="flex items-center gap-3 border-b bg-muted/60 p-4">
-            <span
-              aria-hidden="true"
-              className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary-70 text-white"
-            >
-              <LoaderPinwheel className="size-6" />
-            </span>
-            <div className="flex min-w-0 flex-1 flex-col">
-              <Dialog.Title className="text-heading-5">
-                قرعه‌کشی جدید
-              </Dialog.Title>
-              <Dialog.Description className="text-caption text-muted-foreground">
-                گزینه‌ها و نوع قرعه‌کشی را تنظیم کنید
-              </Dialog.Description>
-            </div>
-            <Button
-              variant="outline"
-              size="icon-md"
-              radius="md"
-              aria-label="بستن"
-              className="size-9"
-              onClick={() => handleOpenChange(false)}
-            >
-              <X className="size-4" />
-            </Button>
-          </header>
+          <div className="flex max-h-[60dvh] flex-col gap-5 overflow-y-auto p-4 sm:p-5">
+            <TextField
+              label="عنوان قرعه‌کشی"
+              autoComplete="off"
+              maxLength={LOTTERY_TITLE_MAX_LENGTH}
+              error={errors.title?.message}
+              {...register('title')}
+            />
 
-          <form
-            noValidate
-            onSubmit={(event) => {
-              // The last weighted option is calculated, so its value is stored
-              // right before the form is validated.
-              if (mode === 'weighted' && options.length > 0) {
-                setValue(
-                  `options.${options.length - 1}.weight`,
-                  getLastWeight(options.map((option) => option.weight)),
-                );
-              }
-              void handleSubmit(onSubmit)(event);
-            }}
-            className="flex min-h-0 flex-1 flex-col"
-          >
-            <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4 sm:p-5">
-              <TextField
-                label="عنوان قرعه‌کشی"
-                autoComplete="off"
-                maxLength={LOTTERY_TITLE_MAX_LENGTH}
-                error={errors.title?.message}
-                {...register('title')}
+            <div className="border-t pt-5">
+              <CreateMembersPicker
+                members={members}
+                status={membersStatus}
+                selectedMemberIds={selectedMemberIds}
+                isFull={options.length >= LOTTERY_MAX_OPTIONS}
+                allSelected={allMembersSelected}
+                onToggle={toggleMember}
+                onToggleAll={toggleAllMembers}
               />
-
-              <div className="border-t pt-5">
-                <CreateMembersPicker
-                  members={members}
-                  status={membersStatus}
-                  selectedMemberIds={selectedMemberIds}
-                  isFull={options.length >= LOTTERY_MAX_OPTIONS}
-                  allSelected={allMembersSelected}
-                  onToggle={toggleMember}
-                  onToggleAll={toggleAllMembers}
-                />
-              </div>
-
-              <div className="border-t pt-5">
-                <CreateCustomOption onAdd={addCustomOption} />
-              </div>
-
-              <div className="border-t pt-5">
-                <CreateModeSwitch value={mode} onChange={changeMode} />
-              </div>
-
-              <div className="border-t pt-5">
-                <CreateOptionsList
-                  mode={mode}
-                  rows={rows}
-                  weights={options.map((option) => option.weight)}
-                  register={register}
-                  errors={errors}
-                  onRemove={removeOption}
-                />
-              </div>
             </div>
 
-            <footer className="flex gap-2 border-t p-4">
-              <Button
-                type="submit"
-                size="lg"
-                radius="lg"
-                className="flex-1"
-                disabled={createLottery.isPending}
-                endIcon={<Plus />}
-              >
-                {createLottery.isPending ? 'در حال ساخت…' : 'افزودن قرعه‌کشی'}
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                radius="lg"
-                onClick={() => handleOpenChange(false)}
-              >
-                انصراف
-              </Button>
-            </footer>
-          </form>
-        </Dialog.Popup>
-      </Dialog.Portal>
-    </Dialog.Root>
+            <div className="border-t pt-5">
+              <CreateCustomOption onAdd={addCustomOption} />
+            </div>
+
+            <div className="border-t pt-5">
+              <CreateModeSwitch value={mode} onChange={changeMode} />
+            </div>
+
+            <div className="border-t pt-5">
+              <CreateOptionsList
+                mode={mode}
+                rows={rows}
+                weights={options.map((option) => option.weight)}
+                register={register}
+                errors={errors}
+                onRemove={removeOption}
+              />
+            </div>
+          </div>
+
+          <footer className="flex gap-2 border-t p-4">
+            <Button
+              type="submit"
+              className="flex-1"
+              disabled={createLottery.isPending}
+              endIcon={<Plus className="size-4" />}
+            >
+              {createLottery.isPending ? 'در حال ساخت…' : 'افزودن قرعه‌کشی'}
+            </Button>
+            <Button variant="outline" onClick={() => handleOpenChange(false)}>
+              انصراف
+            </Button>
+          </footer>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { paginationSchema } from '@/lib/api/pagination';
 import type { Poll, PollOptionVoters, PollVoter } from '@/features/poll/types';
 
 // Shapes follow the backend Bruno collection (Polls folder). Responses are wrapped in
@@ -6,12 +7,6 @@ import type { Poll, PollOptionVoters, PollVoter } from '@/features/poll/types';
 
 const id = z.number().int().positive();
 const timestamp = z.iso.datetime({ offset: true });
-
-export const paginationSchema = z.object({
-  page: z.number().int().positive(),
-  limit: z.number().int().positive(),
-  total: z.number().int().nonnegative(),
-});
 
 const optionDtoSchema = z.object({
   id,
@@ -47,8 +42,8 @@ function toPoll(dto: z.infer<typeof pollDtoSchema>): Poll {
     isAnonymous: dto.visibility === 'PRIVATE',
     allowMultiple: dto.allow_multiple_choices,
     createdByMemberId: String(dto.created_by_member_id),
-    createdAt: Date.parse(dto.created_at),
-    closedAt: dto.closed_at === null ? null : Date.parse(dto.closed_at),
+    createdAt: dto.created_at,
+    closedAt: dto.closed_at,
     votedOptionIds: dto.my_option_ids.map(String),
     totalVotes: dto.total_votes,
     totalVoters: dto.total_voters,
@@ -74,7 +69,9 @@ const voterDtoSchema = z.object({
     // Empty when the voter's account was deleted.
     name: z.string(),
     // Attachment id of the profile picture; null/absent when there is none.
-    avatar_attachment_id: z.union([id, z.string().min(1)]).nullish(),
+    avatar_attachment_id: z
+      .union([id, z.string().min(1)])
+      .nullish(),
   }),
   option_id: id,
   // updated_at is the latest vote write; created_at keeps the first one.
@@ -93,7 +90,7 @@ export const voterPageSchema = z.object({
             item.user.avatar_attachment_id == null
               ? null
               : String(item.user.avatar_attachment_id),
-          votedAt: Date.parse(item.updated_at),
+          votedAt: item.updated_at,
         },
       }),
     ),

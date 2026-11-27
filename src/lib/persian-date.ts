@@ -276,3 +276,21 @@ export function formatPersianDayMonthTime(
   const date = new Date(value);
   return `${dayMonthFormatter.format(date)} ${clockFormatter.format(date)}`;
 }
+
+
+const longDateFormatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+  timeZone: iranTimeZone,
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+
+/** Full date in the Persian calendar (Tehran time), e.g. "۱۴ تیر ۱۴۰۵". */
+export function formatPersianLongDate(value: string | number | Date): string {
+  return longDateFormatter.format(new Date(value));
+}
+
+/** Clock time (Tehran time), e.g. "۲۱:۱۵". */
+export function formatPersianClock(value: string | number | Date): string {
+  return clockFormatter.format(new Date(value));
+}
