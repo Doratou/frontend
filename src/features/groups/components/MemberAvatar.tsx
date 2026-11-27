@@ -77,7 +77,7 @@ export function GroupMemberStack({
   members,
   maxVisibleMembers = 3,
   onMembersClick,
-  overflowSizeClass = 'h-7 w-7',
+  overflowSizeClass = 'h-9 w-9 text-[13px]',
 }: {
   members: GroupHeaderMember[];
   maxVisibleMembers?: number;

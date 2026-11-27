@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Popover } from '@base-ui/react/popover';
 import {
   BadgeCheck,
   Camera,
@@ -113,6 +114,7 @@ export function ProfileHeroCard({
   const [failedAvatarUrls, setFailedAvatarUrls] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
   const [spinCount, setSpinCount] = useState(0);
+  const [confirmRefreshOpen, setConfirmRefreshOpen] = useState(false);
   const copyTimerRef = useRef<number | null>(null);
 
   const activeAvatarUrl =
@@ -324,29 +326,97 @@ export function ProfileHeroCard({
                   <Copy aria-hidden="true" className="size-4" />
                 )}
               </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon-md"
-                disabled={isRegeneratingFriendCode}
-                onClick={handleRefreshCode}
-                aria-label="تولید کد دوستی جدید"
-                className="size-9 touch-manipulation rounded-xl border-primary-20 bg-primary-10/60 text-primary-70 hover:bg-primary-10 dark:border-border dark:bg-card dark:text-primary-30 dark:hover:bg-muted"
+              <Popover.Root
+                open={confirmRefreshOpen}
+                onOpenChange={setConfirmRefreshOpen}
               >
-                <RefreshCw
-                  aria-hidden="true"
-                  style={
-                    !isRegeneratingFriendCode && spinCount > 0
-                      ? { transform: `rotate(${spinCount * 360}deg)` }
-                      : undefined
+                <Popover.Trigger
+                  disabled={isRegeneratingFriendCode}
+                  render={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon-md"
+                      disabled={isRegeneratingFriendCode}
+                      aria-label="تولید کد دوستی جدید"
+                      className="size-9 touch-manipulation rounded-xl border-primary-20 bg-primary-10/60 text-primary-70 hover:bg-primary-10 dark:border-border dark:bg-card dark:text-primary-30 dark:hover:bg-muted"
+                    >
+                      <RefreshCw
+                        aria-hidden="true"
+                        style={
+                          !isRegeneratingFriendCode && spinCount > 0
+                            ? { transform: `rotate(${spinCount * 360}deg)` }
+                            : undefined
+                        }
+                        className={cn(
+                          'size-4 transition-transform duration-500 motion-reduce:transition-none',
+                          isRegeneratingFriendCode &&
+                            'animate-spin motion-reduce:animate-none',
+                        )}
+                      />
+                    </Button>
                   }
-                  className={cn(
-                    'size-4 transition-transform duration-500 motion-reduce:transition-none',
-                    isRegeneratingFriendCode &&
-                      'animate-spin motion-reduce:animate-none',
-                  )}
                 />
-              </Button>
+
+                <Popover.Portal>
+                  <Popover.Positioner
+                    side="top"
+                    align="center"
+                    sideOffset={10}
+                    collisionPadding={12}
+                    className="z-50"
+                  >
+                    <Popover.Popup
+                      dir="rtl"
+                      className="w-56 origin-(--transform-origin) rounded-2xl border border-primary-20 bg-white/95 p-3 text-start shadow-[0_10px_28px_-6px_rgba(58,53,135,0.22)] outline-hidden backdrop-blur-md transition-[opacity,transform] duration-150 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0 dark:border-border dark:bg-card"
+                    >
+                      <Popover.Arrow className="data-[side=bottom]:-top-2 data-[side=bottom]:rotate-180 data-[side=top]:-bottom-2">
+                        <svg
+                          width="14"
+                          height="8"
+                          viewBox="0 0 14 8"
+                          fill="none"
+                          aria-hidden="true"
+                        >
+                          <path
+                            d="M0 0L7 7L14 0"
+                            className="fill-white stroke-primary-20 dark:fill-card dark:stroke-border"
+                            strokeWidth="1.2"
+                          />
+                        </svg>
+                      </Popover.Arrow>
+                      <p className="text-caption font-bold text-primary-80 dark:text-foreground">
+                        کد دوستی تغییر کند؟
+                      </p>
+                      <p className="mt-0.5 text-[11px] leading-relaxed text-neutral-60 dark:text-muted-foreground">
+                        کد قبلی شما دیگر قابل استفاده نخواهد بود.
+                      </p>
+                      <div className="mt-2.5 flex items-center justify-end gap-1.5">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          radius="lg"
+                          onClick={() => setConfirmRefreshOpen(false)}
+                          className="h-7.5 px-3 text-caption"
+                        >
+                          انصراف
+                        </Button>
+                        <Button
+                          type="button"
+                          radius="lg"
+                          onClick={() => {
+                            setConfirmRefreshOpen(false);
+                            handleRefreshCode();
+                          }}
+                          className="h-7.5 px-3 text-caption"
+                        >
+                          بله، تغییر بده
+                        </Button>
+                      </div>
+                    </Popover.Popup>
+                  </Popover.Positioner>
+                </Popover.Portal>
+              </Popover.Root>
             </div>
           </div>
         </div>

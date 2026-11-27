@@ -69,9 +69,9 @@ export function ProfileTelegramCard({
         type="button"
         variant={isConnected ? 'outline' : 'default'}
         size="lg"
+        radius="lg"
         onClick={onToggleConnection}
         startIcon={<Send className="size-4" />}
-        className="h-10 w-full touch-manipulation rounded-xl text-button-md"
       >
         {isConnected ? 'قطع اتصال تلگرام' : 'اتصال به تلگرام'}
       </Button>

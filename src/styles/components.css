@@ -32,9 +32,9 @@
   }
 
   .dorato-text-field {
-    --field-height: 2.375rem;
-    --field-font-size: 0.6875rem;
-    --field-icon-size: 0.875rem;
+    --field-height: 2.5rem;
+    --field-font-size: 0.8125rem;
+    --field-icon-size: 0.9375rem;
     --field-icon-circle: 1.5rem;
     --field-surface: var(--color-white);
     --field-color: var(--color-primary-60);
@@ -50,6 +50,17 @@
     --field-font-size: 0.875rem;
     --field-icon-size: 1rem;
     --field-icon-circle: 1.625rem;
+  }
+
+  /* Match GitHub Primer / shadcn-ui / Apple HIG mobile touch & 16px anti-zoom standards. */
+  @media (width < 48rem) {
+    .dorato-text-field {
+      --field-height: 2.75rem;
+    }
+
+    .dorato-text-field .dorato-floating-control {
+      font-size: 1rem;
+    }
   }
 
   .dorato-text-field[data-status='success'] {

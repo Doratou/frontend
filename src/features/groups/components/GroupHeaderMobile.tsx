@@ -117,7 +117,6 @@ export function GroupHeaderMobile({
               members={members}
               maxVisibleMembers={maxVisibleMembers}
               onMembersClick={onMembersClick}
-              overflowSizeClass="h-7.5 w-7.5"
             />
           </div>
         </div>

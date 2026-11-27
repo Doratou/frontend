@@ -91,11 +91,13 @@ function OverviewInfoForm({
           variant="ghost"
           tone="secondary"
           size="md"
+          radius="lg"
           disabled={!hasChanges}
           onClick={() => {
             setTitle(group.title);
             setDescription(group.description);
           }}
+          className="px-4"
         >
           بازگردانی
         </Button>
@@ -103,10 +105,12 @@ function OverviewInfoForm({
           type="submit"
           tone="secondary"
           size="md"
+          radius="lg"
           disabled={!canEdit || !hasChanges}
           isLoading={updateInfoMutation.isPending}
           loadingText="در حال ذخیره…"
           startIcon={<Save className="size-4 shrink-0" />}
+          className="px-4"
         >
           ذخیره تغییرات
         </LoadingButton>
@@ -174,7 +178,7 @@ export function OverviewSection() {
           )}
         </div>
         <div className="min-w-0">
-          <h3 className="line-clamp-1 text-heading-5 font-black text-primary-80">
+          <h3 className="line-clamp-1 text-heading-5 font-black text-neutral-80">
             {group.title}
           </h3>
           <p className="mt-1 line-clamp-2 text-caption text-neutral-60">

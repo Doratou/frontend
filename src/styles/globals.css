@@ -40,6 +40,10 @@
 }
 
 @layer base {
+  html {
+    /* Scale 1rem smoothly on 16"/17"+ displays so sidebar and page layouts keep 15.6" proportions. */
+    font-size: clamp(1rem, min(1.1vw, 2.2dvh), 1.3125rem);
+  }
   * {
     @apply border-border outline-ring/50;
   }

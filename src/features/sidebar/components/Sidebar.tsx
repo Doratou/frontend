@@ -12,8 +12,6 @@ import { SidebarTooltip, SidebarTooltipProvider } from './SidebarTooltip';
 import { getBackground, getLogo, type SidebarPage } from './sidebarAssets';
 import { useSidebarStore } from '@/stores/sidebar-store';
 
-const OPEN_WIDTH = 250;
-const CLOSED_WIDTH = 80;
 const SIDEBAR_EASE = 'ease-[cubic-bezier(0.22,1,0.36,1)]';
 
 export interface SidebarProps {
@@ -41,7 +39,6 @@ const BOTTOM_ART_MASK = 'linear-gradient(to top, black 82%, transparent 100%)';
 interface SidebarArtworkLayerProps {
   src: string;
   backdropGradient: string;
-  width: number;
   isClosed: boolean;
   className?: string;
 }
@@ -51,13 +48,14 @@ interface SidebarArtworkLayerProps {
 const SidebarArtworkLayer: React.FC<SidebarArtworkLayerProps> = ({
   src,
   backdropGradient,
-  width,
   isClosed,
   className = '',
 }) => (
   <div
-    className={`absolute top-0 right-0 h-full overflow-hidden ${className}`}
-    style={{ width: `${width}px`, background: backdropGradient }}
+    className={`absolute top-0 right-0 h-full overflow-hidden ${
+      isClosed ? 'w-20' : 'w-62.5'
+    } ${className}`}
+    style={{ background: backdropGradient }}
   >
     <div
       className={`absolute inset-x-0 top-0 overflow-hidden ${
@@ -108,7 +106,6 @@ const SidebarBackground: React.FC<SidebarBackgroundProps> = ({
       <SidebarArtworkLayer
         src={openBgSrc}
         backdropGradient={backdropGradient}
-        width={OPEN_WIDTH}
         isClosed={false}
       />
 
@@ -116,7 +113,6 @@ const SidebarBackground: React.FC<SidebarBackgroundProps> = ({
       <SidebarArtworkLayer
         src={closedBgSrc}
         backdropGradient={backdropGradient}
-        width={CLOSED_WIDTH}
         isClosed={true}
         className={`transition-opacity duration-380 ${SIDEBAR_EASE} motion-reduce:transition-none ${
           isCollapsed ? 'opacity-100' : 'opacity-0'

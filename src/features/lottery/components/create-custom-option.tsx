@@ -53,12 +53,12 @@ export function CreateCustomOption({ onAdd }: CreateCustomOptionProps) {
             }
           }}
         />
-        {/* h-9.5 matches the height of the text field next to it. */}
+        {/* Match the md text field height (44px on mobile, 40px on desktop). */}
         <Button
           variant="outline"
           tone="secondary"
           radius="md"
-          className="h-9.5 shrink-0"
+          className="h-11 shrink-0 md:h-10"
           onClick={submit}
           endIcon={<Plus className="size-4" />}
         >

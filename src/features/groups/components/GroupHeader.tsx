@@ -13,7 +13,7 @@ import {
 import { formatGroupStorage } from '../constants';
 import type { GroupStatus } from '../types';
 import { GROUP_HEADER_ASSETS } from './groupHeaderAssets';
-import { GroupMemberStack, MemberAvatar } from './MemberAvatar';
+import { GroupMemberStack } from './MemberAvatar';
 
 export interface GroupHeaderMember {
   id: string;
@@ -232,15 +232,6 @@ export function GroupHeader({
           >
             {creator.name}
           </span>
-          <MemberAvatar
-            member={{
-              id: 'creator',
-              name: creator.name,
-              avatarAttachmentId: creator.avatarAttachmentId,
-              avatarSrc: creator.avatarSrc,
-            }}
-            className="h-4.5 w-4.5 text-[10px]"
-          />
           <span
             dir="auto"
             className="text-right text-xs leading-4.5 font-normal tracking-normal whitespace-nowrap text-[#3a3587]"

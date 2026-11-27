@@ -57,7 +57,7 @@ export function ChecklistAddForm({ type, label }: ChecklistAddFormProps) {
         endIcon={<Plus className="size-4" />}
         isLoading={create.isPending}
         disabled={title.trim() === ''}
-        className="h-9.5 shrink-0"
+        className="h-11 shrink-0 md:h-10"
       >
         افزودن
       </LoadingButton>

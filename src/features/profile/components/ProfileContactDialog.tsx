@@ -264,17 +264,19 @@ function ProfileContactDialogBody({
             <Button
               type="button"
               variant="outline"
+              radius="lg"
               disabled={isBusy}
               onClick={onClose}
-              className="touch-manipulation"
+              className="px-4"
             >
               انصراف
             </Button>
             <LoadingButton
               type="submit"
+              radius="lg"
               isLoading={pendingPhase === 'sending'}
               loadingText="در حال ارسال کد…"
-              className="touch-manipulation px-5"
+              className="px-4"
             >
               ارسال کد تأیید
             </LoadingButton>
@@ -333,17 +335,19 @@ function ProfileContactDialogBody({
             <Button
               type="button"
               variant="outline"
+              radius="lg"
               disabled={isBusy}
               onClick={onClose}
-              className="touch-manipulation"
+              className="px-4"
             >
               انصراف
             </Button>
             <LoadingButton
               type="submit"
+              radius="lg"
               isLoading={pendingPhase === 'verifying'}
               loadingText="در حال تأیید…"
-              className="touch-manipulation px-5"
+              className="px-4"
             >
               تأیید و ذخیره
             </LoadingButton>
