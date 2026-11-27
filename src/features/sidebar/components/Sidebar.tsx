@@ -12,8 +12,6 @@ import { SidebarTooltip, SidebarTooltipProvider } from './SidebarTooltip';
 import { getBackground, getLogo, type SidebarPage } from './sidebarAssets';
 import { useSidebarStore } from '@/stores/sidebar-store';
 
-const OPEN_WIDTH = 250;
-const CLOSED_WIDTH = 80;
 const SIDEBAR_EASE = 'ease-[cubic-bezier(0.22,1,0.36,1)]';
 
 export interface SidebarProps {
@@ -30,12 +28,74 @@ interface SidebarBackgroundProps {
   isCollapsed: boolean;
 }
 
+const SIDEBAR_BACKDROP_GRADIENT: Record<SidebarPage, string> = {
+  homepage: 'linear-gradient(180deg, #e5dbfd 0%, #ede4fd 50%, #e1d4fd 100%)',
+  group: 'linear-gradient(180deg, #cef5f0 0%, #ddf7f6 50%, #e3f6fa 100%)',
+};
+
+const TOP_ART_MASK = 'linear-gradient(to bottom, black 78%, transparent 100%)';
+const BOTTOM_ART_MASK = 'linear-gradient(to top, black 82%, transparent 100%)';
+
+interface SidebarArtworkLayerProps {
+  src: string;
+  backdropGradient: string;
+  isClosed: boolean;
+  className?: string;
+}
+
+// Keep top and bottom artwork at natural width-proportional scale so tall 16"/17" screens
+// never stretch the sky clouds down onto the nav items or crop the bottom landscape.
+const SidebarArtworkLayer: React.FC<SidebarArtworkLayerProps> = ({
+  src,
+  backdropGradient,
+  isClosed,
+  className = '',
+}) => (
+  <div
+    className={`absolute top-0 right-0 h-full overflow-hidden ${
+      isClosed ? 'w-20' : 'w-62.5'
+    } ${className}`}
+    style={{ background: backdropGradient }}
+  >
+    <div
+      className={`absolute inset-x-0 top-0 overflow-hidden ${
+        isClosed ? 'h-52 max-h-[46%]' : 'h-46 max-h-[46%]'
+      }`}
+      style={{ maskImage: TOP_ART_MASK, WebkitMaskImage: TOP_ART_MASK }}
+    >
+      <img
+        src={src}
+        alt=""
+        draggable={false}
+        className={`absolute right-0 h-auto w-full max-w-none select-none ${
+          isClosed ? '-top-12' : '-top-8'
+        }`}
+      />
+    </div>
+
+    <div
+      className={`absolute inset-x-0 bottom-0 overflow-hidden ${
+        isClosed ? 'h-68 max-h-[48%]' : 'h-60 max-h-[48%]'
+      }`}
+      style={{ maskImage: BOTTOM_ART_MASK, WebkitMaskImage: BOTTOM_ART_MASK }}
+    >
+      <img
+        src={src}
+        alt=""
+        draggable={false}
+        className="absolute right-0 bottom-0 h-auto w-full max-w-none select-none"
+      />
+    </div>
+  </div>
+);
+
 const SidebarBackground: React.FC<SidebarBackgroundProps> = ({
   page,
   isCollapsed,
 }) => {
   const openBgSrc = getBackground(page, 'open');
   const closedBgSrc = getBackground(page, 'closed');
+  const backdropGradient = SIDEBAR_BACKDROP_GRADIENT[page];
 
   return (
     <div
@@ -43,32 +103,21 @@ const SidebarBackground: React.FC<SidebarBackgroundProps> = ({
       className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
     >
       {/* Base open artwork stays opaque underneath so cross-fade never washes out */}
-      <div
-        className="absolute top-0 right-0 h-full"
-        style={{ width: `${OPEN_WIDTH}px` }}
-      >
-        <img
-          src={openBgSrc}
-          alt=""
-          draggable={false}
-          className="h-full w-full object-cover select-none"
-        />
-      </div>
+      <SidebarArtworkLayer
+        src={openBgSrc}
+        backdropGradient={backdropGradient}
+        isClosed={false}
+      />
 
       {/* Closed artwork smoothly cross-fades on top as the rail narrows */}
-      <div
-        className={`absolute top-0 right-0 h-full transition-opacity duration-380 ${SIDEBAR_EASE} motion-reduce:transition-none ${
+      <SidebarArtworkLayer
+        src={closedBgSrc}
+        backdropGradient={backdropGradient}
+        isClosed={true}
+        className={`transition-opacity duration-380 ${SIDEBAR_EASE} motion-reduce:transition-none ${
           isCollapsed ? 'opacity-100' : 'opacity-0'
         }`}
-        style={{ width: `${CLOSED_WIDTH}px` }}
-      >
-        <img
-          src={closedBgSrc}
-          alt=""
-          draggable={false}
-          className="h-full w-full object-cover select-none"
-        />
-      </div>
+      />
     </div>
   );
 };

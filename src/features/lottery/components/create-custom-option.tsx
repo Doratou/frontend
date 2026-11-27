@@ -53,16 +53,14 @@ export function CreateCustomOption({ onAdd }: CreateCustomOptionProps) {
             }
           }}
         />
-        {/* Same height as the field; an outline keeps it lighter than the
-            primary "create" action in the footer. */}
+        {/* Match the md text field height (44px on mobile, 40px on desktop). */}
         <Button
           variant="outline"
           tone="secondary"
-          size="md"
-          radius="lg"
-          className="h-9.5 shrink-0 px-3 text-button-sm font-bold [&_svg]:size-4"
+          radius="md"
+          className="h-11 shrink-0 md:h-10"
           onClick={submit}
-          endIcon={<Plus />}
+          endIcon={<Plus className="size-4" />}
         >
           افزودن
         </Button>

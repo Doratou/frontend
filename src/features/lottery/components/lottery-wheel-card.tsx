@@ -41,14 +41,15 @@ export function LotteryWheelCard({
     <LotterySectionCard title="گردونه‌ی قرعه‌کشی" className={className}>
       <LotteryWheel options={options} ref={wheelRef} onSpinEnd={onSpinEnd} />
       <Button
-        size="lg"
         tone="secondary"
-        radius="lg"
-        className="w-full bg-secondary-70 hover:bg-secondary-80 sm:mx-auto sm:w-auto sm:min-w-48"
+        radius="md"
+        className="w-full sm:mx-auto sm:w-auto sm:min-w-48"
         disabled={isBusy || isDrawn || isFrozen || !canRun}
         onClick={onSpin}
         endIcon={
-          <RotateCw className={cn(isBusy && 'motion-safe:animate-spin')} />
+          <RotateCw
+            className={cn('size-4', isBusy && 'motion-safe:animate-spin')}
+          />
         }
       >
         {label}

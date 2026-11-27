@@ -5,8 +5,8 @@ import { ErrorState } from '@/components/custom/error-state';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { GroupPageHeader } from '@/components/custom/group-page-header';
+import { useGroupId } from '@/features/groups/hooks/use-group-id';
 import { usePolls } from '@/features/poll/api/get-polls';
-import { useCurrentGroupId } from '@/features/poll/hooks/use-current-group-id';
 import { useMyMemberId } from '@/features/poll/hooks/use-my-member-id';
 import { cn } from '@/lib/utils';
 import { CreatePollDialog } from './create-poll-dialog';
@@ -59,7 +59,7 @@ function PollListSkeleton() {
 }
 
 export function PollListView() {
-  const groupId = useCurrentGroupId();
+  const groupId = useGroupId();
   // Loads the group members early so owner actions are ready when a details dialog opens.
   useMyMemberId();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -70,7 +70,8 @@ export function PollListView() {
   const closedPolls = data?.filter((poll) => poll.status === 'closed') ?? [];
 
   return (
-    <div className="flex flex-col gap-3">
+    // p-4 is the mobile page margin; from md up the layout provides its own spacing.
+    <div className="flex flex-col gap-3 p-4 md:p-0">
       <GroupPageHeader
         title="نظرسنجی"
         logo={<BarChart2 className="size-5" />}

@@ -1,3 +1,14 @@
+import { z } from 'zod';
+
+/** The `pagination` block that list endpoints return next to `items`. */
+export const paginationSchema = z.object({
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+  total: z.number().int().nonnegative(),
+});
+
+export type Pagination = z.infer<typeof paginationSchema>;
+
 const PAGE_SIZE = 100;
 // Safety net so a misbehaving server can never keep the loop running forever.
 const MAX_PAGES = 20;

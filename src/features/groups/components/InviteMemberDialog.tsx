@@ -3,7 +3,6 @@ import {
   ArrowLeft,
   Check,
   Search,
-  Send,
   UserPlus,
   Users,
   X,
@@ -185,6 +184,7 @@ export function InviteMemberDialog({
                         member={{
                           id: friend.id,
                           name: friend.name,
+                          avatarAttachmentId: friend.avatarAttachmentId,
                           avatarSrc: friend.avatarSrc,
                         }}
                         className="size-5.5 text-[11px]"
@@ -251,6 +251,7 @@ export function InviteMemberDialog({
                         member={{
                           id: friend.id,
                           name: friend.name,
+                          avatarAttachmentId: friend.avatarAttachmentId,
                           avatarSrc: friend.avatarSrc,
                         }}
                         className="size-9"
@@ -286,13 +287,11 @@ export function InviteMemberDialog({
             type="button"
             tone="secondary"
             size="md"
-            radius="md"
+            radius="lg"
             disabled={selectedCount === 0}
             isLoading={inviteMutation.isPending}
             loadingText="در حال ارسال…"
-            startIcon={<Send className="size-3.5 shrink-0" />}
             onClick={handleAdd}
-            className="h-9 gap-1.5 rounded-xl px-4 text-xs font-bold shadow-2xs disabled:bg-neutral-20/80 disabled:text-neutral-50 disabled:shadow-none"
           >
             ارسال دعوتنامه
           </LoadingButton>

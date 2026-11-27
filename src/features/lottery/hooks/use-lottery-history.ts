@@ -26,8 +26,10 @@ export function useLotteryHistory(groupId: string) {
     queryFn: ({ pageParam, signal }) =>
       getLotteryHistoryPage(groupId, pageParam, signal),
     initialPageParam: 1,
-    getNextPageParam: (last) =>
-      last.page * last.limit < last.total ? last.page + 1 : undefined,
+    getNextPageParam: ({ pagination }) =>
+      pagination.page * pagination.limit < pagination.total
+        ? pagination.page + 1
+        : undefined,
     select: selectSummaries,
   });
 }

@@ -18,7 +18,7 @@ const memberSchema = z
     userId: String(member.user_id),
     name: member.name,
     role: member.role,
-    joinedAt: Date.parse(member.joined_at),
+    joinedAt: member.joined_at,
   }));
 
 export type GroupMember = z.output<typeof memberSchema>;

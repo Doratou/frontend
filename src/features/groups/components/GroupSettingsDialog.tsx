@@ -54,6 +54,7 @@ export type SettingsSection = 'overview' | 'members' | 'link' | 'archive';
 export interface GroupSettingsDialogProps {
   groupId: string;
   currentUserId?: string;
+  currentUserAvatarAttachmentId?: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onGroupExit?: () => void;
@@ -125,7 +126,7 @@ function NavItem({
         <Icon
           className={cn(
             'pointer-events-none h-4.5 w-4.5 shrink-0 transition-transform duration-150 motion-reduce:transition-none',
-            isDanger ? 'text-danger-50' : 'text-primary-80',
+            isDanger ? 'text-danger-50' : 'text-neutral-80',
           )}
           strokeWidth={1.75}
         />
@@ -134,12 +135,12 @@ function NavItem({
       <span
         className={cn(
           'flex min-w-0 flex-1 items-center gap-2 pl-3 text-sm leading-5.5 font-medium',
-          isDanger ? 'text-danger-50' : 'text-primary-80',
+          isDanger ? 'text-danger-50' : 'text-neutral-80',
         )}
       >
         <span className="min-w-0 flex-1 truncate text-right">{label}</span>
         {count !== undefined && (
-          <span className="shrink-0 rounded-full bg-white/75 px-2 py-0.5 text-caption font-bold text-secondary-80 shadow-2xs">
+          <span className="shrink-0 rounded-full bg-white/75 px-2 py-0.5 text-caption font-bold text-neutral-80 shadow-2xs">
             {formatNumber(count)}
           </span>
         )}
@@ -231,7 +232,7 @@ function GroupSettingsContent({
                 onError={cover.onError}
                 className="size-18 shrink-0 text-2xl"
               />
-              <h3 className="mt-3 line-clamp-1 w-full text-heading-5 font-black text-primary-80">
+              <h3 className="mt-3 line-clamp-1 w-full text-heading-5 font-black text-neutral-80">
                 {group.title}
               </h3>
               <div className="mt-2.5">
@@ -269,28 +270,21 @@ function GroupSettingsContent({
           </Button>
 
           <div className="shrink-0 md:hidden">
-            <div className="relative overflow-hidden border-b border-secondary-20/70 bg-secondary-10/75 px-4 py-3.5">
-              <img
-                src={settingsNavBg}
-                alt=""
-                aria-hidden="true"
-                draggable={false}
-                className="pointer-events-none absolute inset-0 z-0 h-full w-full object-cover object-top opacity-85"
-              />
-              <div className="relative z-10 flex items-center gap-3">
+            <div className="border-b border-secondary-20/80 bg-linear-to-bl from-[#d4f6f2] via-[#e7fbf9] to-[#f6fffe] px-4 py-3.5">
+              <div className="flex items-center gap-3">
                 <GroupAvatar
                   title={group.title}
                   src={cover.src}
                   onError={cover.onError}
-                  className="size-12 shrink-0 rounded-2xl text-base"
+                  className="size-12 shrink-0 rounded-2xl border-secondary-30/80 text-base"
                 />
                 <div className="min-w-0 flex-1">
-                  <h3 className="line-clamp-1 text-heading-6 font-black text-primary-80">
+                  <h3 className="line-clamp-1 text-heading-6 font-black text-neutral-80">
                     {group.title}
                   </h3>
                   <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                     <StatusChip status={group.status} />
-                    <span className="inline-flex items-center gap-1 rounded-full bg-white/75 px-2 py-0.5 text-caption font-bold text-primary-70 ring-1 ring-neutral-30/50">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-secondary-30/70 bg-white/90 px-2.5 py-0.5 text-caption font-bold text-secondary-80">
                       <Users className="size-3 text-secondary-70" />
                       {formatNumber(memberCount)} نفر
                     </span>
@@ -302,7 +296,7 @@ function GroupSettingsContent({
                   size="icon-md"
                   onClick={onClose}
                   aria-label="بستن تنظیمات"
-                  className="size-9 shrink-0 rounded-xl bg-white/75 text-neutral-70 shadow-2xs ring-1 ring-neutral-30/50 backdrop-blur-xs hover:bg-white"
+                  className="size-9 shrink-0 rounded-xl border border-secondary-20 bg-white/90 text-secondary-70 shadow-2xs hover:bg-white hover:text-secondary-80"
                 >
                   <X className="size-4.5" />
                 </Button>
@@ -345,7 +339,7 @@ function GroupSettingsContent({
           </div>
 
           <header className="hidden items-center border-b border-neutral-20 px-6 py-4 pl-12 md:flex">
-            <h2 className="text-heading-5 font-black text-primary-80">
+            <h2 className="text-heading-5 font-black text-neutral-80">
               {activeTitle}
             </h2>
           </header>
@@ -370,6 +364,7 @@ function GroupSettingsContent({
 export function GroupSettingsDialog({
   groupId,
   currentUserId,
+  currentUserAvatarAttachmentId,
   open,
   onOpenChange,
   onGroupExit,
@@ -386,12 +381,26 @@ export function GroupSettingsDialog({
   }, []);
 
   const {
-    data: group,
+    data: rawGroup,
     isLoading,
     isError,
     error,
     refetch,
   } = useGroupSettings(groupId, open);
+
+  const group = useMemo(() => {
+    if (!rawGroup || !currentUserId || !currentUserAvatarAttachmentId) {
+      return rawGroup;
+    }
+    return {
+      ...rawGroup,
+      members: rawGroup.members.map((member) =>
+        member.userId === currentUserId && !member.avatarAttachmentId
+          ? { ...member, avatarAttachmentId: currentUserAvatarAttachmentId }
+          : member,
+      ),
+    };
+  }, [rawGroup, currentUserId, currentUserAvatarAttachmentId]);
 
   const isOwner = useMemo(
     () =>
@@ -454,7 +463,9 @@ export function GroupSettingsDialog({
                   variant="outline"
                   tone="secondary"
                   size="md"
+                  radius="lg"
                   onClick={() => void refetch()}
+                  className="px-4"
                 >
                   تلاش مجدد
                 </Button>
@@ -463,7 +474,9 @@ export function GroupSettingsDialog({
                   variant="ghost"
                   tone="secondary"
                   size="md"
+                  radius="lg"
                   onClick={() => handleSettingsOpenChange(false)}
+                  className="px-4"
                 >
                   بستن
                 </Button>

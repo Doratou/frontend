@@ -1,5 +1,6 @@
 import type { z } from 'zod';
 import { apiClient } from '@/lib/api/client';
+import { env } from '@/lib/api/env';
 import { dateFromApi, dateTimeToApi } from '@/lib/persian-date';
 import type {
   DirectInviteResult,
@@ -8,8 +9,10 @@ import type {
   GroupSettingsData,
 } from '../types';
 import {
+  attachmentAccessUrlDtoSchema,
   directInviteResponseSchema,
   friendsListDtoSchema,
+  groupCoverAttachmentListDtoSchema,
   groupDetailDtoSchema,
   groupEnvelopeSchema,
   groupMessageSchema,
@@ -82,6 +85,52 @@ export function downloadGroupAttachment(
       { responseType: 'blob', signal },
     );
     return response.data;
+  });
+}
+
+export function getGroupAttachmentDownloadUrl(
+  attachmentId: string | number,
+): string {
+  const base = env.VITE_API_BASE_URL.replace(/\/$/, '');
+  return `${base}/attachments/${encodeURIComponent(String(attachmentId))}/download`;
+}
+
+export function getGroupAttachmentUrl(
+  attachmentId: string,
+  signal?: AbortSignal,
+): Promise<string> {
+  return withGroupError(async () => {
+    const response = await apiClient.get<unknown>(
+      `/attachments/${encodeURIComponent(attachmentId)}`,
+      { signal },
+    );
+    return parseEnvelope(response.data, attachmentAccessUrlDtoSchema)
+      .access_url;
+  });
+}
+
+export function getLatestGroupCoverAttachment(
+  groupId: string,
+  signal?: AbortSignal,
+): Promise<{ id: string; accessUrl?: string } | null> {
+  return withGroupError(async () => {
+    const response = await apiClient.get<unknown>(
+      `/attachments/group/${encodeURIComponent(groupId)}`,
+      {
+        params: { type: 'GROUP_COVER', page: 1, page_size: 1 },
+        signal,
+      },
+    );
+    const { items } = parseEnvelope(
+      response.data,
+      groupCoverAttachmentListDtoSchema,
+    );
+    const latest = items[0];
+    if (!latest) return null;
+    return {
+      id: String(latest.id),
+      accessUrl: latest.access_url ?? undefined,
+    };
   });
 }
 

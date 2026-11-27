@@ -251,3 +251,46 @@ export function validatePickerValue(
     ? 'این تاریخ قابل انتخاب نیست.'
     : '';
 }
+
+const dayMonthFormatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+  timeZone: iranTimeZone,
+  day: 'numeric',
+  month: 'long',
+});
+const clockFormatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+  timeZone: iranTimeZone,
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+});
+
+/** Day and month name in the Persian calendar (Tehran time), e.g. "۱۴ تیر". */
+export function formatPersianDayMonth(value: string | number | Date): string {
+  return dayMonthFormatter.format(new Date(value));
+}
+
+/** Day, month and clock time (Tehran time), e.g. "۱۴ تیر ۱۵:۲۷". */
+export function formatPersianDayMonthTime(
+  value: string | number | Date,
+): string {
+  const date = new Date(value);
+  return `${dayMonthFormatter.format(date)} ${clockFormatter.format(date)}`;
+}
+
+
+const longDateFormatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+  timeZone: iranTimeZone,
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+
+/** Full date in the Persian calendar (Tehran time), e.g. "۱۴ تیر ۱۴۰۵". */
+export function formatPersianLongDate(value: string | number | Date): string {
+  return longDateFormatter.format(new Date(value));
+}
+
+/** Clock time (Tehran time), e.g. "۲۱:۱۵". */
+export function formatPersianClock(value: string | number | Date): string {
+  return clockFormatter.format(new Date(value));
+}

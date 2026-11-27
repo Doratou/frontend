@@ -9,6 +9,7 @@ export interface GroupMemberItem {
   /** Account user ID (`user_id`), used for ownership transfer and comparisons. */
   userId: string;
   name: string;
+  avatarAttachmentId?: string | null;
   avatarSrc?: string;
   role: GroupRole;
 }
@@ -34,6 +35,7 @@ export interface GroupSettingsData {
   groupPhotoSrc?: string;
   creator: {
     name: string;
+    avatarAttachmentId?: string | null;
     avatarSrc?: string;
   };
   createdDateLabel: string;
@@ -49,6 +51,7 @@ export interface FriendItem {
   /** Friend's account user ID (`user.id`), used for direct group invitations. */
   id: string;
   name: string;
+  avatarAttachmentId?: string | null;
   avatarSrc?: string;
   mutualGroupCount?: number;
 }

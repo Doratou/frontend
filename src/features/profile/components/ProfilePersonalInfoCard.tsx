@@ -38,8 +38,6 @@ function ContactTextField({
   label,
   type,
   createLabel,
-  emptyStatusLabel,
-  unverifiedLabel,
   displayValue,
   isVerified,
   icon,
@@ -73,13 +71,6 @@ function ContactTextField({
           status={verified ? 'success' : 'default'}
           statusIconPosition="inside"
           startAdornment={icon}
-          description={
-            hasValue
-              ? isVerified
-                ? 'تأیید شده'
-                : unverifiedLabel
-              : emptyStatusLabel
-          }
           onClick={!hasValue ? onOpen : undefined}
           className={
             !hasValue
@@ -109,6 +100,7 @@ function ContactTextField({
         <Button
           type="button"
           variant="outline"
+          tone={verified ? 'secondary' : 'primary'}
           size="icon-md"
           radius="full"
           onClick={onOpen}
@@ -116,7 +108,7 @@ function ContactTextField({
           className={cn(
             'mt-1.5 size-8 shrink-0 shadow-2xs',
             verified
-              ? 'border-secondary-30/80 bg-white/95 text-secondary-70 hover:border-secondary-50 hover:bg-secondary-10/60'
+              ? 'border-secondary-30/80 bg-white/95 text-secondary-70 hover:border-secondary-50 hover:bg-secondary-10/60 active:border-secondary-50 active:bg-secondary-20/60'
               : 'border-primary-20 bg-primary-10/80 text-primary-70 hover:border-primary-30 hover:bg-primary-20/60',
           )}
         >

@@ -1,36 +1,33 @@
 import { useState } from 'react';
-import { X } from 'lucide-react';
+import { Archive, Wallet, X } from 'lucide-react';
 import { LoadingButton } from '@/components/custom/loading-button';
 import { cn } from '@/lib/utils';
 import { GROUP_STATUS_LABELS } from '../../constants';
 import type { GroupStatus } from '../../types';
 
 export function StatusChip({ status }: { status: GroupStatus }) {
-  const isActive = status === 'ACTIVE';
-  return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-caption font-bold shadow-2xs ring-1',
-        !isActive
-          ? 'bg-white/70 text-neutral-60 ring-neutral-30/60'
-          : 'bg-white/70 text-secondary-80 ring-secondary-30/60',
-      )}
-    >
-      <span className="relative flex size-2">
-        {isActive && (
-          <span
-            aria-hidden="true"
-            className="absolute inline-flex h-full w-full animate-ping rounded-full bg-secondary-60 opacity-60 motion-reduce:hidden"
-          />
-        )}
-        <span
-          className={cn(
-            'relative inline-flex size-2 rounded-full',
-            isActive ? 'bg-secondary-60' : 'bg-neutral-40',
-          )}
-        />
+  if (status === 'SETTLING') {
+    return (
+      <span className="inline-flex h-6.5 items-center gap-1.5 rounded-full border border-info-40 bg-info-10/95 px-2.5 text-caption font-medium text-info-50">
+        <Wallet className="size-3.5 text-info-50" aria-hidden="true" />
+        {GROUP_STATUS_LABELS.SETTLING}
       </span>
-      {GROUP_STATUS_LABELS[status]}
+    );
+  }
+
+  if (status === 'CLOSED') {
+    return (
+      <span className="inline-flex h-6.5 items-center gap-1 rounded-full border border-primary-30 bg-white/95 px-2.5 text-caption font-medium text-primary-70">
+        <Archive className="size-3.5 text-primary-60" aria-hidden="true" />
+        {GROUP_STATUS_LABELS.CLOSED}
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex h-6.5 items-center gap-1.5 rounded-full border border-secondary-60 bg-white/95 px-2.5 text-caption font-medium text-secondary-80">
+      <span className="size-2 rounded-full bg-success-40" />
+      {GROUP_STATUS_LABELS.ACTIVE}
     </span>
   );
 }

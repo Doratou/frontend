@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { LotteryView } from '@/features/lottery/components/lottery-view';
-import { useCurrentGroupId } from '@/features/poll/hooks/use-current-group-id';
+import { useGroupId } from '@/features/groups/hooks/use-group-id';
 import { useClosePoll } from '@/features/poll/hooks/use-manage-poll';
 import { parsePollLotteryState } from '@/features/poll/to-lottery';
 
 // Route modules loaded with `lazy` must export `Component`.
 export function Component() {
-  const groupId = useCurrentGroupId();
+  const groupId = useGroupId();
   const location = useLocation();
   const navigate = useNavigate();
   const closePoll = useClosePoll(groupId);

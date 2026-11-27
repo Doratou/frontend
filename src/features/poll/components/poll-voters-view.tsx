@@ -6,7 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAttachmentUrl } from '@/features/attachments/api/get-attachment-url';
 import { usePollVoters } from '@/features/poll/api/get-poll-voters';
 import { formatVoteTime } from '@/features/poll/format';
-import { useCurrentGroupId } from '@/features/poll/hooks/use-current-group-id';
+import { useGroupId } from '@/features/groups/hooks/use-group-id';
 import { getOptionPercent } from '@/features/poll/utils';
 import { formatNumber } from '@/utils/format';
 import { PollDialogHeader } from './poll-dialog-header';
@@ -138,7 +138,7 @@ export function PollVotersView({
   poll: Poll;
   onBack: () => void;
 }) {
-  const groupId = useCurrentGroupId();
+  const groupId = useGroupId();
   const { data, isPending, isError, error, refetch, isRefetching } =
     usePollVoters(groupId, poll.id);
   const votersByOption = new Map(

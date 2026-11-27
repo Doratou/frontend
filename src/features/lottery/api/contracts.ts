@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { toPersianNumber } from '../format';
+import { paginationSchema } from '@/lib/api/pagination';
 import { toLottery, toSummary } from './mappers';
 
 // Lucky draws use the same `{ success: true, data }` envelope as Auth.
@@ -42,50 +42,10 @@ export const lotteryDetailSchema = z
   })
   .transform(toLottery);
 
-export const lotterySummaryPageSchema = z
-  .object({
-    items: z.array(z.object(summaryShape).transform(toSummary)),
-    pagination: z.object({
-      page: z.number().int(),
-      limit: z.number().int(),
-      total: z.number().int(),
-    }),
-  })
-  .transform(({ items, pagination }) => ({ items, ...pagination }));
-
-const displayName = (name: string | null | undefined, userId: number) =>
-  name?.trim() || `کاربر ${toPersianNumber(userId)}`;
-
-// GET /groups/:groupID/members returns a plain array. Draw candidates refer to
-// `user_id`, never to `member_id`.
-export const groupMembersSchema = z
-  .array(
-    z.object({
-      member_id: z.number().int().positive(),
-      user_id: z.number().int().positive(),
-      name: z.string().nullish(),
-    }),
-  )
-  .transform((items) =>
-    items.map((item) => ({
-      id: String(item.user_id),
-      name: displayName(item.name, item.user_id),
-    })),
-  );
-
-// GET /users/:userID/profile: public fields only.
-export const userProfileSchema = z
-  .object({
-    id: z.number().int().positive(),
-    name: z.string().nullish(),
-    avatar_url: z.string().nullish(),
-  })
-  .transform((profile) => ({
-    id: String(profile.id),
-    name: displayName(profile.name, profile.id),
-    // Null when the avatar is missing or inaccessible: the UI shows a fallback.
-    avatarUrl: profile.avatar_url ?? undefined,
-  }));
+export const lotterySummaryPageSchema = z.object({
+  items: z.array(z.object(summaryShape).transform(toSummary)),
+  pagination: paginationSchema,
+});
 
 export function parseData<T extends z.ZodType>(
   schema: T,

@@ -51,7 +51,12 @@ export function Component() {
   const { groupId = '' } = useParams();
   const navigate = useNavigate();
   const isDesktop = useIsDesktop();
-  const currentUserId = useAuthStore((state) => state.user?.id);
+  const authUser = useAuthStore((state) => state.user);
+  const currentUserId = authUser?.id;
+  const currentUserAvatarAttachmentId =
+    authUser?.avatarAttachmentId != null
+      ? String(authUser.avatarAttachmentId)
+      : null;
   const openMobileSidebar = useSidebarStore((state) => state.openMobile);
   const {
     data: group,
@@ -112,6 +117,7 @@ export function Component() {
   const headerProps = {
     title: group.title,
     description: group.description,
+    status: group.status,
     statusLabel: GROUP_STATUS_LABELS[group.status],
     typeLabel: group.plan === 'PREMIUM' ? 'گروه پریمیوم' : 'گروه عادی',
     groupPhotoSrc: coverImage.src ?? GROUP_HEADER_ASSETS.groupPhotoSample,
@@ -119,11 +125,21 @@ export function Component() {
     members: group.members.map((m) => ({
       id: m.memberId,
       name: m.name,
+      avatarAttachmentId:
+        m.avatarAttachmentId ??
+        (m.userId === currentUserId ? currentUserAvatarAttachmentId : null),
       avatarSrc: m.avatarSrc,
     })),
     maxVisibleMembers: 3,
     storage: group.storage,
-    creator: group.creator,
+    creator: {
+      ...group.creator,
+      avatarAttachmentId:
+        group.creator.avatarAttachmentId ??
+        (group.members.find((m) => m.role === 'OWNER')?.userId === currentUserId
+          ? currentUserAvatarAttachmentId
+          : null),
+    },
     dateRangeLabel: group.createdDateLabel,
     onSettingsClick: () => openSettings('overview'),
     onMembersClick: () => openSettings('members'),
@@ -149,6 +165,7 @@ export function Component() {
           <GroupSettingsDialog
             groupId={groupId}
             currentUserId={currentUserId}
+            currentUserAvatarAttachmentId={currentUserAvatarAttachmentId}
             open={isSettingsOpen}
             onOpenChange={setIsSettingsOpen}
             section={settingsSection}

@@ -14,12 +14,9 @@ import {
 import { ConfirmDialog } from '@/components/custom/confirm-dialog';
 import { Button } from '@/components/ui/button';
 import { formatPollPeriod } from '@/features/poll/format';
-import { useCurrentGroupId } from '@/features/poll/hooks/use-current-group-id';
+import { useGroupId } from '@/features/groups/hooks/use-group-id';
 import { useIsPollOwner } from '@/features/poll/hooks/use-is-poll-owner';
-import {
-  useClosePoll,
-  useDeletePoll,
-} from '@/features/poll/hooks/use-manage-poll';
+import { useClosePoll, useDeletePoll } from '@/features/poll/hooks/use-manage-poll';
 import { useVotePoll } from '@/features/poll/hooks/use-vote-poll';
 import {
   pollToLotteryDraft,
@@ -76,7 +73,7 @@ function ActionRow({
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-xl border border-neutral-20 p-3 text-start outline-hidden transition-colors hover:bg-primary-10/50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring motion-reduce:transition-none"
+      className="flex w-full items-center gap-3 rounded-xl border border-neutral-20 p-3 text-start transition-colors outline-hidden hover:bg-primary-10/50 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring motion-reduce:transition-none"
     >
       <span
         aria-hidden="true"
@@ -127,7 +124,9 @@ function ChoiceRow({ option, poll, maxVotes, isBusy, onVote }: ChoiceRowProps) {
         showIndicator={isVotable || poll.votedOptionIds.length > 0}
         multiple={poll.allowMultiple}
         onSelect={
-          isVotable ? () => onVote(toggleSelection(poll, option.id)) : undefined
+          isVotable
+            ? () => onVote(toggleSelection(poll, option.id))
+            : undefined
         }
         disabled={isBusy}
       />
@@ -147,7 +146,7 @@ export function PollDetailsView({
   onShowVoters,
 }: PollDetailsViewProps) {
   const questionId = useId();
-  const groupId = useCurrentGroupId();
+  const groupId = useGroupId();
   const isOwner = useIsPollOwner(poll.createdByMemberId);
   const navigate = useNavigate();
   const vote = useVotePoll(groupId);
@@ -165,10 +164,10 @@ export function PollDetailsView({
     : poll.isFrozen
       ? 'گروه غیرفعال است و امکان تغییر رأی وجود ندارد'
       : hasVoted
-        ? 'رأی شما ثبت شده است'
-        : poll.allowMultiple
-          ? 'روی یک یا چند گزینه کلیک کنید و رأی خود را ثبت کنید'
-          : 'روی گزینه مدنظر خود کلیک کنید و رأی خود را ثبت کنید';
+      ? 'رأی شما ثبت شده است'
+      : poll.allowMultiple
+        ? 'روی یک یا چند گزینه کلیک کنید و رأی خود را ثبت کنید'
+        : 'روی گزینه مدنظر خود کلیک کنید و رأی خود را ثبت کنید';
 
   // The lottery page opens its create dialog prefilled from this poll. The poll is
   // closed there, once the lottery has actually been created.
@@ -252,8 +251,8 @@ export function PollDetailsView({
           </ul>
           {poll.allowMultiple && (
             <p className="mt-3 text-caption text-neutral-60">
-              درصد هر گزینه نسبت به تعداد رأی‌دهندگان است و مجموع درصدها
-              می‌تواند بیشتر از ۱۰۰ شود.
+              درصد هر گزینه نسبت به تعداد رأی‌دهندگان است و مجموع درصدها می‌تواند
+              بیشتر از ۱۰۰ شود.
             </p>
           )}
           {isVotable && hasVoted && poll.allowMultiple && (

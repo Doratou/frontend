@@ -251,7 +251,6 @@ export function Component() {
   }): Promise<PasswordChangeResult> => {
     try {
       await authApi.changePassword({ oldPassword, newPassword });
-      toast.success('رمز عبور با موفقیت تغییر کرد.');
       return { ok: true };
     } catch (error) {
       if (axios.isCancel(error)) throw error;

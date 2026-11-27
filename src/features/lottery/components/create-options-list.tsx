@@ -95,9 +95,6 @@ export function CreateOptionsList({
                   <span className="min-w-0 flex-1 truncate text-paragraph-sm">
                     {row.label}
                   </span>
-                  {isAuto && (
-                    <span className="shrink-0 text-caption text-muted-foreground"></span>
-                  )}
                   {isWeighted && (
                     <div className="relative w-24 shrink-0">
                       {isAuto ? (
@@ -127,7 +124,7 @@ export function CreateOptionsList({
                       )}
                       <span
                         aria-hidden="true"
-                        className="pointer-events-none absolute inset-y-0 end-3 grid place-items-center text-caption text-muted-foreground"
+                        className="pointer-events-none absolute inset-y-0 inset-e-3 grid place-items-center text-caption text-muted-foreground"
                       >
                         ٪
                       </span>
@@ -138,10 +135,10 @@ export function CreateOptionsList({
                     size="icon-md"
                     radius="md"
                     aria-label={`حذف ${row.label}`}
-                    className="size-8 shrink-0 [&_svg]:size-4"
+                    className="shrink-0"
                     onClick={() => onRemove(row.index)}
                   >
-                    <Trash2 />
+                    <Trash2 className="size-4" />
                   </Button>
                 </div>
                 {rowError && (
