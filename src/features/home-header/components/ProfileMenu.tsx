@@ -39,11 +39,8 @@ export function ProfileMenu({
           size="md"
           className="md:size-9.5 md:text-heading-mobile-5"
         />
-        <p
-          dir="auto"
-          className="min-w-0 flex-1 truncate text-start text-heading-mobile-6 text-primary-80 md:text-heading-mobile-5 dark:text-primary-10"
-        >
-          {user.displayName}
+        <p className="min-w-0 flex-1 truncate text-start text-heading-mobile-6 text-primary-80 md:text-heading-mobile-5 dark:text-primary-10">
+          <bdi>{user.displayName}</bdi>
         </p>
       </div>
 
