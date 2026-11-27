@@ -1,6 +1,7 @@
 import { Link, Outlet } from 'react-router';
 import { UsersRound } from 'lucide-react';
 import { ThemeToggle } from '@/components/custom/theme-toggle';
+import { AuthAccountActions } from '@/features/auth/components/auth-account-actions';
 
 export function PublicLayout() {
   return (
@@ -12,7 +13,7 @@ export function PublicLayout() {
         رفتن به محتوا
       </a>
       <header className="border-b border-border/70">
-        <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-6">
+        <div className="mx-auto flex min-h-20 max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <Link
             to="/"
             aria-label="دوراتو، صفحه اصلی"
@@ -23,7 +24,10 @@ export function PublicLayout() {
             </span>
             <span className="text-xl font-extrabold">دوراتو</span>
           </Link>
-          <ThemeToggle />
+          <div className="flex flex-wrap items-center gap-2">
+            <AuthAccountActions />
+            <ThemeToggle />
+          </div>
         </div>
       </header>
       <main

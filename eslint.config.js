@@ -75,6 +75,42 @@ export default defineConfig([
               from: './src/features',
               except: [`./${name}`],
             })),
+            ...featureNames.map((name) => ({
+              target: `./src/features/${name}/api`,
+              from: [
+                './src/components',
+                './src/hooks',
+                `./src/features/${name}/components`,
+                `./src/features/${name}/hooks`,
+              ],
+              message:
+                'Keep form, navigation and presentation logic outside API modules.',
+            })),
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ['src/features/*/api/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: [
+                'react-router',
+                'react-router/**',
+                'react-hook-form',
+                '@hookform/*',
+                'sonner',
+                'motion',
+                'motion/**',
+              ],
+              message:
+                'Keep form, navigation and presentation logic outside API modules.',
+            },
           ],
         },
       ],

@@ -36,7 +36,7 @@ export function Component() {
           از هماهنگی سفر و دورهمی تا تقسیم هزینه‌ها و نگه‌داشتن خاطره‌ها؛ همه در
           فضای مشترک اکیپ شما.
         </p>
-        <Button asChild>
+        <Button asChild radius="md">
           <Link to="/login">
             روش‌های ورود <ArrowUpLeft aria-hidden="true" />
           </Link>

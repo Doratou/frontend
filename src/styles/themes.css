@@ -1,0 +1,65 @@
+:root,
+.dark {
+  --card-foreground: var(--foreground);
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
+}
+
+:root {
+  color-scheme: light;
+  --radius: 0.75rem;
+  --background: var(--color-neutral-10);
+  --foreground: var(--color-neutral-80);
+  --card: var(--color-neutral-10);
+  --primary: var(--color-primary-60);
+  --primary-foreground: var(--color-neutral-10);
+  --secondary: var(--color-secondary-20);
+  --secondary-foreground: var(--color-secondary-80);
+  --muted: var(--color-primary-10);
+  --muted-foreground: var(--color-neutral-60);
+  --accent: var(--color-accent-20);
+  --accent-foreground: var(--color-accent-80);
+  --destructive: var(--color-danger-50);
+  --destructive-foreground: var(--color-danger-10);
+  --success: var(--color-success-60);
+  --success-foreground: var(--color-success-10);
+  --warning: var(--color-warning-60);
+  --warning-foreground: var(--color-warning-10);
+  --info: var(--color-info-50);
+  --info-foreground: var(--color-info-10);
+  --border: var(--color-neutral-30);
+  --input: var(--color-neutral-50);
+  /* Existing controls use ring/50, which needs a stronger source color. */
+  --ring: var(--color-primary-80);
+}
+
+/* Provisional mapping: Figma currently specifies only the light palette. */
+.dark {
+  color-scheme: dark;
+  --background: var(--color-neutral-80);
+  --foreground: var(--color-neutral-10);
+  --card: color-mix(
+    in srgb,
+    var(--color-neutral-80) 80%,
+    var(--color-neutral-70)
+  );
+  --primary: var(--color-primary-30);
+  --primary-foreground: var(--color-primary-80);
+  --secondary: var(--color-secondary-80);
+  --secondary-foreground: var(--color-secondary-10);
+  --muted: var(--color-neutral-70);
+  --muted-foreground: var(--color-neutral-20);
+  --accent: var(--color-accent-80);
+  --accent-foreground: var(--color-accent-10);
+  --destructive: var(--color-danger-20);
+  --destructive-foreground: var(--color-danger-60);
+  --success: var(--color-success-20);
+  --success-foreground: var(--color-success-60);
+  --warning: var(--color-warning-20);
+  --warning-foreground: var(--color-warning-60);
+  --info: var(--color-info-20);
+  --info-foreground: var(--color-info-60);
+  --border: var(--color-neutral-60);
+  --input: var(--color-neutral-40);
+  --ring: var(--color-primary-10);
+}

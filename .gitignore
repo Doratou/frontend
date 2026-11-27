@@ -17,10 +17,12 @@ dist-ssr
 *.tsbuildinfo
 .npm-cache
 tmp
+.impeccable/*
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea
 .DS_Store
 *.suo

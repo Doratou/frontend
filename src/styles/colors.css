@@ -1,0 +1,66 @@
+/* Figma swatch labels use 10–80; saved paint styles use 1–8. */
+@theme static {
+  --color-primary-10: #f5f4ff;
+  --color-primary-20: #d7d4ff;
+  --color-primary-30: #b9b4ff;
+  --color-primary-40: #9b95ff;
+  --color-primary-50: #7771d9;
+  --color-primary-60: #5650b0;
+  --color-primary-70: #3a3587;
+  --color-primary-80: #231f5e;
+
+  --color-secondary-10: #ebfffd;
+  --color-secondary-20: #befff8;
+  --color-secondary-30: #90fff3;
+  --color-secondary-40: #63ffee;
+  --color-secondary-50: #32ebd7;
+  --color-secondary-60: #14b8a6;
+  --color-secondary-70: #018576;
+  --color-secondary-80: #005249;
+
+  --color-accent-10: #fff7ea;
+  --color-accent-20: #ffe2ae;
+  --color-accent-30: #ffcc71;
+  --color-accent-40: #f9b233;
+  --color-accent-50: #d0901d;
+  --color-accent-60: #a7700d;
+  --color-accent-70: #7f5201;
+  --color-accent-80: #563700;
+
+  --color-neutral-10: #fcfcff;
+  --color-neutral-20: #dddffb;
+  --color-neutral-30: #bec0de;
+  --color-neutral-40: #a1a3c1;
+  --color-neutral-50: #8587a4;
+  --color-neutral-60: #6a6c87;
+  --color-neutral-70: #51536a;
+  --color-neutral-80: #393a4d;
+
+  --color-success-10: #f3fff4;
+  --color-success-20: #bfffc4;
+  --color-success-30: #8bff93;
+  --color-success-40: #63d26b;
+  --color-success-50: #3f9f46;
+  --color-success-60: #236c28;
+
+  --color-danger-10: #ffeeef;
+  --color-danger-20: #ffa3a6;
+  --color-danger-30: #ff585d;
+  --color-danger-40: #d93a3f;
+  --color-danger-50: #a61f23;
+  --color-danger-60: #730d10;
+
+  --color-warning-10: #fff4ea;
+  --color-warning-20: #ffd6ad;
+  --color-warning-30: #ffb76f;
+  --color-warning-40: #ff9832;
+  --color-warning-50: #d9730d;
+  --color-warning-60: #954b00;
+
+  --color-info-10: #eaf3ff;
+  --color-info-20: #add0ff;
+  --color-info-30: #70adff;
+  --color-info-40: #2f80ed;
+  --color-info-50: #0f51a9;
+  --color-info-60: #002b65;
+}

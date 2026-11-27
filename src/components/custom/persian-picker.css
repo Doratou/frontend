@@ -1,0 +1,146 @@
+@import '@daypicker/react/style.css';
+
+.dorato-calendar .rdp-root {
+  --rdp-accent-color: var(--color-primary-60);
+  --rdp-accent-background-color: var(--color-primary-10);
+  --rdp-day_button-border-radius: 8px;
+  --rdp-day_button-height: 38px;
+  --rdp-day_button-width: 38px;
+  --rdp-day-height: 42px;
+  --rdp-day-width: 44px;
+  margin: 0;
+  width: 100%;
+  font: inherit;
+}
+.dorato-calendar .rdp-months,
+.dorato-calendar .rdp-month {
+  width: 100%;
+  max-width: none;
+}
+.dorato-calendar .rdp-month_grid {
+  width: 100%;
+  table-layout: fixed;
+}
+.dorato-calendar .rdp-month_caption {
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  height: 44px;
+  padding-inline: 0;
+  margin-bottom: 8px;
+}
+.dorato-calendar .rdp-chevron {
+  fill: var(--color-primary-60);
+  width: 19px;
+  height: 19px;
+}
+.dorato-calendar .rdp-button_next,
+.dorato-calendar .rdp-button_previous {
+  width: 36px;
+  height: 40px;
+  border-radius: 8px;
+}
+.dorato-calendar .rdp-button_next:hover,
+.dorato-calendar .rdp-button_previous:hover {
+  background: var(--muted);
+}
+.dorato-calendar .rdp-weekday {
+  font-size: 10px;
+  color: var(--muted-foreground);
+  font-weight: 500;
+  background: var(--color-primary-10);
+  padding-block: 7px;
+  white-space: nowrap;
+}
+.dorato-calendar .rdp-weekday:first-child {
+  border-start-start-radius: 8px;
+  border-end-start-radius: 8px;
+}
+.dorato-calendar .rdp-weekday:last-child {
+  border-start-end-radius: 8px;
+  border-end-end-radius: 8px;
+  color: var(--destructive);
+}
+.dorato-calendar .dorato-calendar-day {
+  width: 100%;
+  max-width: 40px;
+  height: 38px;
+  font-size: 14px;
+  font-weight: 500;
+  position: relative;
+  border: 0;
+  border-radius: 8px;
+  color: var(--foreground);
+  transition:
+    background-color 140ms ease-out,
+    color 140ms ease-out;
+}
+.dorato-calendar-day:is([data-weekend], [data-holiday]) {
+  color: var(--destructive);
+}
+.dorato-calendar
+  .dorato-calendar-day:is([data-weekend], [data-holiday], [data-estimated]):not(
+    [data-selected],
+    [data-today]
+  ) {
+  color: var(--destructive);
+}
+.dorato-calendar-day[data-estimated] {
+  color: var(--destructive);
+  text-decoration: underline dotted;
+  text-underline-offset: 5px;
+}
+.dorato-calendar-day[data-weekend]::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  left: calc(50% - 2px);
+  bottom: 3px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.dorato-calendar .dorato-calendar-day[data-today]:not([data-selected]) {
+  border: 1px solid var(--color-secondary-60);
+  background: var(--color-secondary-10);
+  color: var(--color-secondary-80);
+  font-weight: 700;
+}
+.dorato-calendar .dorato-calendar-day[data-selected],
+.dorato-calendar .dorato-calendar-day[data-selected]:hover {
+  color: white;
+  background: var(--color-primary-60);
+}
+.dorato-calendar .rdp-outside {
+  opacity: 0.55;
+}
+.dorato-calendar-day:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+.dorato-calendar .rdp-selected {
+  font-size: inherit;
+  font-weight: inherit;
+}
+.dorato-time-picker [data-rwp-highlight-wrapper] {
+  background: var(--color-primary-10);
+  color: var(--color-primary-70);
+}
+@media (pointer: coarse), (max-width: 639px) {
+  .dorato-calendar .rdp-root {
+    --rdp-day_button-height: 44px;
+    --rdp-day_button-width: 44px;
+    --rdp-day-height: 46px;
+    --rdp-nav_button-width: 44px;
+  }
+  .dorato-calendar .dorato-calendar-day {
+    height: 44px;
+    max-width: 44px;
+  }
+  .dorato-calendar .rdp-button_next,
+  .dorato-calendar .rdp-button_previous {
+    width: 44px;
+    height: 44px;
+  }
+}

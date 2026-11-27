@@ -1,14 +1,11 @@
 # API اکیپ‌ها
 
-محل درخواست‌ها، DTOها، query keyها و query/mutationهای مخصوص اکیپ:
+محل درخواست‌ها، DTOها، query keyها و گزینه‌های Query مخصوص اکیپ:
 
-- دریافت فهرست و جزئیات اکیپ.
-- ساخت و ویرایش اکیپ.
-- دعوت، عضویت و مدیریت اعضا.
-- انتقال مالکیت، آرشیو یا بازگشایی طبق قرارداد محصول.
+- `contracts.ts`: schemaهای Zod برای پاسخ‌های گروه، اعضا، لینک‌های دعوت، دوستان و پیوست‌ها و نگاشت DTO به مدل‌های داخلی `../types.ts`.
+- `group-error.ts`: کلاس `GroupError` و نگاشت کدهای خطای بک‌اند (`GROUP_*`، `INVITE_*`، `DIRECT_INVITE_*`) به پیام فارسی امن.
+- `query-keys.ts`: کلیدهای مشترک کش (`groupKeys.all`، `lists`، `detail`، `members`، `settings`، `inviteLinks` و `friends`). کلید `detail(groupId)` پیشوند `members`، `settings` و `inviteLinks` است.
+- `group-settings-api.ts`: درخواست‌های واقعی تنظیمات گروه (`GET/PATCH/DELETE /groups/:id`، آپلود و ثبت کاور، حذف عضو، خروج از گروه، انتقال مالکیت، آرشیو، مدیریت لینک دعوت و دعوت مستقیم دوستان).
+- `get-group-members.ts`: دریافت فهرست اعضای فعال اکیپ (`GET /groups/:id/members`)، `queryOptions` و هوک `useGroupMembers`.
 
-عملیات در فایل‌های مشخص مثل `get-groups.ts` و `create-group.ts` قرار می‌گیرند و `apiClient` را از `@/lib/api/client` مصرف می‌کنند. کنار mutation، invalidation داده‌های مرتبط با همان قابلیت تعریف می‌شود. داده اکیپ در cache مربوط به Query نگهداری می‌شود؛ برای نگهداری دوباره پاسخ API، store جدا نسازید.
-
-`query-keys.ts` اکنون کلیدهای مشترک `groupKeys.all`، `groupKeys.lists()` و `groupKeys.detail(groupId)` را دارد. برای query و invalidation از همین کلیدها استفاده کنید. وقتی فیلتر یا صفحه‌بندی اضافه شد، مقادیر موثر بر پاسخ را هم به کلید فهرست اضافه کنید. برای دسترسی به همان cache متصل به Provider، از `useQueryClient()` استفاده کنید.
-
-این پوشه هنوز endpoint فرضی ندارد. مدل‌های UI اکیپ در `../types.ts` و DTOهای درخواست/پاسخ در همین پوشه و کنار عملیات خود قرار می‌گیرند.
+تمام عملیات از `apiClient` مشترک در `@/lib/api/client` استفاده می‌کنند و `signal?: AbortSignal` را به Axios منتقل می‌کنند. منطق Toast، فرم و navigation خارج از این پوشه و در `../hooks/use-group-settings.ts` و کامپوننت‌ها نگهداری می‌شود؛ مطابق [قرارداد مشترک API قابلیت‌ها](../../../lib/api/README.md).

@@ -2,7 +2,7 @@ import type { ComponentProps, CSSProperties } from 'react';
 import { useTheme } from '@/lib/theme';
 import { Toaster as Sonner } from 'sonner';
 
-export function Toaster(props: ComponentProps<typeof Sonner>) {
+export function Toaster({ style, ...props }: ComponentProps<typeof Sonner>) {
   const { resolvedTheme } = useTheme();
   return (
     <Sonner
@@ -15,6 +15,7 @@ export function Toaster(props: ComponentProps<typeof Sonner>) {
           '--normal-bg': 'var(--popover)',
           '--normal-text': 'var(--popover-foreground)',
           '--normal-border': 'var(--border)',
+          ...style,
         } as CSSProperties
       }
       {...props}

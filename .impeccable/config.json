@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/components/custom/custom-toast.css"
+        ],
+        "createdAt": "2026-11-03T13:05:09.921Z",
+        "reason": "User requested the second toast reference screenshot, including its colored right-hand border; keep this intentional design."
+      }
+    ]
+  }
+}
