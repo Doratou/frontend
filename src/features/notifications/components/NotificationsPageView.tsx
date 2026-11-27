@@ -34,12 +34,10 @@ export function NotificationsPageView() {
   const unreadCount = unreadData?.unreadCount ?? latestUnreadCount;
 
   const paramId = searchParams.get('id');
-  const matchedNotification = paramId
+  const activeNotification = paramId
     ? (items.find((item) => item.id === paramId) ?? null)
     : null;
-  const activeNotification =
-    matchedNotification ?? (isDesktop ? (items[0] ?? null) : null);
-  const showMobileDetails = !isDesktop && matchedNotification !== null;
+  const showMobileDetails = !isDesktop && activeNotification !== null;
 
   const handleSelect = (item: NotificationItem) => {
     setSearchParams({ id: item.id });
@@ -55,15 +53,9 @@ export function NotificationsPageView() {
   };
 
   const handleDelete = (id: string) => {
-    const index = items.findIndex((item) => item.id === id);
-    const nextItem = items[index + 1] ?? items[index - 1] ?? null;
     deleteMutation.mutate(id, {
       onSuccess: () => {
-        if (isDesktop && nextItem) {
-          setSearchParams({ id: nextItem.id }, { replace: true });
-        } else {
-          setSearchParams({}, { replace: true });
-        }
+        setSearchParams({}, { replace: true });
       },
     });
   };
@@ -73,8 +65,8 @@ export function NotificationsPageView() {
       <div
         className={
           showMobileDetails
-            ? 'hidden h-full min-h-0 lg:block lg:w-88 lg:shrink-0 xl:w-96'
-            : 'h-full min-h-0 w-full lg:w-88 lg:shrink-0 xl:w-96'
+            ? 'hidden h-full min-h-0 lg:block lg:w-96 lg:shrink-0 xl:w-108'
+            : 'h-full min-h-0 w-full lg:w-96 lg:shrink-0 xl:w-108'
         }
       >
         <NotificationList

@@ -1,7 +1,8 @@
 import { useState, type ReactNode } from 'react';
-import { ArrowRight, Bell, Calendar, Trash2, Users } from 'lucide-react';
+import { ArrowRight, Calendar, Trash2, Users, X } from 'lucide-react';
+import { motion, useReducedMotion } from 'motion/react';
+import emptyInboxUrl from '@/assets/notifications/empty-inbox.png';
 import { ConfirmDialog } from '@/components/custom/confirm-dialog';
-import { EmptyState } from '@/components/custom/empty-state';
 import { UserAvatar } from '@/components/custom/user-avatar';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -16,6 +17,24 @@ export interface NotificationDetailsProps {
   isDeleting?: boolean;
   onBack?: () => void;
   onDelete: (id: string) => void;
+}
+
+function NotificationsIdleIllustration() {
+  return (
+    <div
+      aria-hidden="true"
+      className="relative flex w-60 items-center justify-center sm:w-68"
+    >
+      <div className="pointer-events-none absolute inset-x-4 bottom-2 h-24 rounded-full bg-primary-10/80 blur-2xl dark:bg-primary-70/25" />
+      <img
+        src={emptyInboxUrl}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        className="relative z-10 h-auto w-full object-contain select-none"
+      />
+    </div>
+  );
 }
 
 function InviterAvatar({ inviter }: { inviter: NotificationInviter }) {
@@ -72,19 +91,25 @@ export function NotificationDetails({
   onDelete,
 }: NotificationDetailsProps) {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const reducedMotion = useReducedMotion();
 
   if (!notification) {
     return (
       <section
         aria-label="جزئیات اعلان"
-        className="flex h-full min-h-0 flex-col items-center justify-center rounded-2xl border border-primary-30 bg-card p-6 dark:border-primary-50/40"
+        className="flex h-full min-h-0 flex-col items-center justify-center rounded-2xl border border-primary-30 bg-card p-6 text-center dark:border-primary-50/40"
       >
-        <EmptyState
-          icon={<Bell strokeWidth={1.8} />}
-          title="اعلانی انتخاب نشده است"
-          description="برای مشاهده جزئیات، یکی از اعلانات فهرست را انتخاب کنید."
-          className="border-0 p-4"
-        />
+        <div className="flex max-w-xs flex-col items-center gap-3">
+          <NotificationsIdleIllustration />
+          <div className="flex flex-col items-center gap-1.5">
+            <h2 className="text-heading-4 font-bold text-primary-80 dark:text-primary-10">
+              اعلان‌های شما
+            </h2>
+            <p className="mt-1 text-caption text-neutral-50 dark:text-neutral-40">
+              برای مشاهده جزئیات، یکی از اعلان‌های فهرست را انتخاب کنید.
+            </p>
+          </div>
+        </div>
       </section>
     );
   }
@@ -102,8 +127,12 @@ export function NotificationDetails({
 
   return (
     <>
-      <section
+      <motion.section
+        key={notification.id}
         aria-label="جزئیات اعلان"
+        initial={reducedMotion ? false : { opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
         className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-primary-30 bg-card dark:border-primary-50/40"
       >
         {/* Details Header */}
@@ -146,21 +175,37 @@ export function NotificationDetails({
             </div>
           </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            size="md"
-            radius="lg"
-            disabled={isDeleting}
-            onClick={() => setConfirmDeleteOpen(true)}
-            aria-label="حذف اعلان"
-            endIcon={
-              <Trash2 aria-hidden="true" className="size-4!" strokeWidth={2} />
-            }
-            className="h-9 shrink-0 touch-manipulation gap-1.5 rounded-[10px] border-danger-50 bg-danger-10 px-3 text-button-sm text-danger-50 hover:bg-danger-20/40 max-lg:w-9 max-lg:gap-0 max-lg:px-0 dark:border-danger-30 dark:bg-danger-60/30 dark:text-danger-20 dark:hover:bg-danger-60/50"
-          >
-            <span className="max-lg:sr-only">حذف اعلان</span>
-          </Button>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="md"
+              radius="lg"
+              disabled={isDeleting}
+              onClick={() => setConfirmDeleteOpen(true)}
+              aria-label="حذف اعلان"
+              endIcon={
+                <Trash2 aria-hidden="true" className="size-4!" strokeWidth={2} />
+              }
+              className="h-9 shrink-0 touch-manipulation gap-1.5 rounded-[10px] border-danger-50 bg-danger-10 px-3 text-button-sm text-danger-50 hover:bg-danger-20/40 max-lg:w-9 max-lg:gap-0 max-lg:px-0 dark:border-danger-30 dark:bg-danger-60/30 dark:text-danger-20 dark:hover:bg-danger-60/50"
+            >
+              <span className="max-lg:sr-only">حذف اعلان</span>
+            </Button>
+
+            {onBack ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-md"
+                radius="lg"
+                onClick={onBack}
+                aria-label="بستن جزئیات اعلان"
+                className="hidden size-9 shrink-0 touch-manipulation rounded-[10px] border-primary-20 bg-card text-primary-70 hover:bg-primary-10 lg:inline-flex dark:border-primary-50/40 dark:text-primary-20"
+              >
+                <X aria-hidden="true" className="size-4!" strokeWidth={2} />
+              </Button>
+            ) : null}
+          </div>
         </header>
 
         {/* Details Body */}
@@ -218,7 +263,7 @@ export function NotificationDetails({
             {notification.description}
           </p>
         </div>
-      </section>
+      </motion.section>
 
       <ConfirmDialog
         open={confirmDeleteOpen}
