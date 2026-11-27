@@ -390,6 +390,9 @@ export function mapGroupDtoToItem(dto: RawGroupDto): GroupItem {
       : undefined,
     members: [],
     memberCount: dto.member_count,
+    createdByUserId: dto.created_by_user_id
+      ? String(dto.created_by_user_id)
+      : undefined,
     creator: {
       name: dto.creator_name?.trim() || 'سازنده اکیپ',
     },

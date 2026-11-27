@@ -90,6 +90,7 @@ export interface GroupItem {
   bannerSrc?: string;
   members: GroupMemberPreview[];
   memberCount: number;
+  createdByUserId?: string;
   creator: {
     name: string;
     avatarSrc?: string;
