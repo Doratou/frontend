@@ -92,6 +92,10 @@ export const routes: RouteObject[] = [
         path: 'lottery',
         lazy: () => import('@/app/pages/group/lottery'),
       },
+      {
+        path: 'assistant',
+        lazy: () => import('@/app/pages/group/assistant'),
+      },
     ],
   },
 ];

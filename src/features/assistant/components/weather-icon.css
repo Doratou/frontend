@@ -1,0 +1,91 @@
+@keyframes weather-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes weather-sun-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes weather-cloud-drift {
+  0%,
+  100% {
+    transform: translate3d(-1.2px, 0, 0);
+  }
+  50% {
+    transform: translate3d(1.2px, 0, 0);
+  }
+}
+
+@keyframes weather-cloud-drift-reverse {
+  0%,
+  100% {
+    transform: translate3d(1px, 0, 0);
+  }
+  50% {
+    transform: translate3d(-1.2px, 0, 0);
+  }
+}
+
+@keyframes weather-rain-fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -1px, 0);
+  }
+  35% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(-1.2px, 3.8px, 0);
+  }
+}
+
+.weather-sun-rays {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: weather-spin 16s linear infinite;
+  will-change: transform;
+}
+
+.weather-sun-core {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: weather-sun-pulse 3s ease-in-out infinite;
+  will-change: transform;
+}
+
+.weather-cloud-front {
+  animation: weather-cloud-drift 4.2s ease-in-out infinite;
+  will-change: transform;
+}
+
+.weather-cloud-back {
+  animation: weather-cloud-drift-reverse 5s ease-in-out infinite;
+  will-change: transform;
+}
+
+.weather-rain-drop {
+  animation: weather-rain-fall 1.1s ease-in infinite;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .weather-sun-rays,
+  .weather-sun-core,
+  .weather-cloud-front,
+  .weather-cloud-back,
+  .weather-rain-drop {
+    animation: none;
+  }
+}
