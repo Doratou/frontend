@@ -6,6 +6,7 @@ import { useGroupId } from '@/features/groups/hooks/use-group-id';
 import { LotteryCreateDialog } from '@/features/lottery/components/lottery-create-dialog';
 import { LotteryDetailsDialog } from '@/features/lottery/components/lottery-details-dialog';
 import { LotteryEmptyState } from '@/features/lottery/components/lottery-empty-state';
+import { LotteryFrame } from '@/features/lottery/components/lottery-frame';
 import { LotteryHistory } from '@/features/lottery/components/lottery-history';
 import { LotteryPageHeader } from '@/features/lottery/components/lottery-page-header';
 import { LotteryStage } from '@/features/lottery/components/lottery-stage';
@@ -155,8 +156,8 @@ function LotteryContent({
   if (isCheckingDraft) {
     stage = (
       <div className="grid gap-4 lg:grid-cols-2">
-        <Skeleton className="h-96" />
-        <Skeleton className="h-96" />
+        <Skeleton className="h-96 rounded-2xl" />
+        <Skeleton className="h-96 rounded-2xl" />
       </div>
     );
   } else if (pinned === null && activeQuery.isError) {
@@ -183,15 +184,21 @@ function LotteryContent({
 
   let historySection;
   if (historyQuery.isPending) {
-    historySection = <Skeleton className="h-64" />;
+    historySection = (
+      <LotteryFrame>
+        <Skeleton className="h-56 rounded-2xl" />
+      </LotteryFrame>
+    );
   } else if (historyQuery.isError && historyQuery.data === undefined) {
     historySection = (
-      <ErrorState
-        error={historyQuery.error}
-        title="دریافت تاریخچه انجام نشد"
-        onRetry={() => void historyQuery.refetch()}
-        isRetrying={historyQuery.isRefetching}
-      />
+      <LotteryFrame>
+        <ErrorState
+          error={historyQuery.error}
+          title="دریافت تاریخچه انجام نشد"
+          onRetry={() => void historyQuery.refetch()}
+          isRetrying={historyQuery.isRefetching}
+        />
+      </LotteryFrame>
     );
   } else {
     historySection = (
@@ -213,7 +220,7 @@ function LotteryContent({
 
   return (
     // p-4 is the mobile page margin; from md up the layout provides its own spacing.
-    <div className="flex flex-col gap-4 p-4 md:p-0">
+    <div className="flex flex-col gap-3 p-4 md:p-0">
       <LotteryPageHeader
         disabled={isLocked || isCheckingDraft || hasDraft}
         disabledReason={
@@ -235,7 +242,7 @@ function LotteryContent({
           </Button>
         </div>
       )}
-      {stage}
+      <LotteryFrame>{stage}</LotteryFrame>
       {historySection}
       <LotteryCreateDialog
         key={draftKey}

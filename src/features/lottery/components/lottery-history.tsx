@@ -2,7 +2,7 @@ import type { UIEvent } from 'react';
 import { Calendar, Clock, Crown, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatPersianClock, formatPersianLongDate } from '@/lib/persian-date';
-import { LotterySectionCard } from '@/features/lottery/components/lottery-section-card';
+import { LotteryFrame } from '@/features/lottery/components/lottery-frame';
 import { OptionAvatar } from '@/features/lottery/components/option-avatar';
 import type {
   LotteryHistoryEntry,
@@ -67,7 +67,7 @@ function RowActions({
 }: RowActionsProps) {
   const isPreparing = creatingAgainId === entry.id;
   const isDisabled = createAgainDisabled || creatingAgainId !== null;
-  const buttonClass = stretch ? 'w-full' : '';
+  const buttonClass = stretch ? 'w-full' : undefined;
 
   return (
     <div
@@ -76,22 +76,20 @@ function RowActions({
       <Button
         variant="outline"
         tone="secondary"
-        size="md"
         radius="md"
-        className={`h-8 px-3 text-button-sm ${buttonClass}`}
+        className={buttonClass}
         onClick={() => onShowDetails(entry.id)}
       >
         جزئیات
       </Button>
       <Button
         variant="outline"
-        size="md"
         radius="md"
-        className={`h-8 px-3 text-button-sm [&_svg]:size-4 ${buttonClass}`}
+        className={buttonClass}
         disabled={isDisabled}
         title={createAgainDisabled ? createAgainDisabledReason : undefined}
         onClick={() => onCreateAgain(entry.id)}
-        endIcon={<Plus />}
+        endIcon={<Plus className="size-4" />}
       >
         {isPreparing ? 'در حال آماده‌سازی…' : 'ساخت دوباره'}
       </Button>
@@ -127,13 +125,16 @@ export function LotteryHistory({
   };
 
   return (
-    // The card is a size container, so the table/cards switch follows the width
-    // the card really gets (it changes with the sidebar), not the viewport.
-    <LotterySectionCard
-      title="تاریخچه‌ی قرعه‌کشی"
-      accent="amber"
-      className="@container"
-    >
+    // The frame is a size container, so the table/cards switch follows the width
+    // it really gets (it changes with the sidebar), not the viewport.
+    <LotteryFrame className="@container gap-4">
+      <h2 className="flex items-center gap-2 text-heading-6 text-primary-80">
+        <span
+          aria-hidden="true"
+          className="size-2 rounded-full bg-accent-50"
+        />
+        تاریخچه‌ی قرعه‌کشی
+      </h2>
       {entries.length === 0 ? (
         <p className="rounded-xl border border-dashed p-4 text-center text-paragraph-sm text-muted-foreground">
           هنوز قرعه‌ای انجام نشده است.
@@ -252,6 +253,6 @@ export function LotteryHistory({
           )}
         </div>
       )}
-    </LotterySectionCard>
+    </LotteryFrame>
   );
 }

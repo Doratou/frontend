@@ -96,7 +96,9 @@ export function CreateOptionsList({
                     {row.label}
                   </span>
                   {isAuto && (
-                    <span className="shrink-0 text-caption text-muted-foreground"></span>
+                    <span className="shrink-0 text-caption text-muted-foreground">
+                      خودکار
+                    </span>
                   )}
                   {isWeighted && (
                     <div className="relative w-24 shrink-0">
@@ -138,10 +140,10 @@ export function CreateOptionsList({
                     size="icon-md"
                     radius="md"
                     aria-label={`حذف ${row.label}`}
-                    className="size-8 shrink-0 [&_svg]:size-4"
+                    className="shrink-0"
                     onClick={() => onRemove(row.index)}
                   >
-                    <Trash2 />
+                    <Trash2 className="size-4" />
                   </Button>
                 </div>
                 {rowError && (

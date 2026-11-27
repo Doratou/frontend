@@ -17,19 +17,18 @@ export function LotteryPageHeader({
   return (
     <GroupPageHeader
       title="قرعه‌کشی"
-      logo={<LoaderPinwheel className="size-6" />}
+      logo={<LoaderPinwheel className="size-5" />}
       action={
         <Button
-          size="lg"
           tone="secondary"
-          radius="lg"
-          className="shrink-0 bg-secondary-70 hover:bg-secondary-80 max-sm:w-10.5 max-sm:px-0"
+          radius="md"
+          endIcon={<Plus className="size-4" />}
           disabled={disabled}
           title={disabled ? disabledReason : undefined}
           onClick={onCreate}
-          endIcon={<Plus />}
+          className="shrink-0 max-[400px]:w-8.75 max-[400px]:px-0"
         >
-          <span className="max-sm:sr-only">قرعه‌کشی جدید</span>
+          <span className="max-[400px]:sr-only">قرعه‌کشی جدید</span>
         </Button>
       }
     />
