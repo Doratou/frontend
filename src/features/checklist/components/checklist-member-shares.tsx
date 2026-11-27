@@ -42,11 +42,11 @@ export function ChecklistMemberShares({
         </span>
       </header>
 
-      {/* Roughly five rows stay visible; longer lists scroll so the card stays compact. */}
+      {/* Roughly five rows stay visible; longer lists scroll. A thin, light scrollbar with a 10px gap keeps it unobtrusive. */}
       <ul
         tabIndex={0}
         aria-label="سهم اعضا"
-        className="flex max-h-64 flex-col gap-3 overflow-y-auto overscroll-contain pe-1 outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary-60"
+        className="flex max-h-64 [scrollbar-color:var(--color-neutral-30)_transparent] [scrollbar-width:thin] flex-col gap-3 overflow-y-auto overscroll-contain pe-2.5 outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary-60 dark:[scrollbar-color:var(--color-neutral-60)_transparent]"
       >
         {members.map((member) => {
           const share =
