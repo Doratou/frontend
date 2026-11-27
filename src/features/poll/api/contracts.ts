@@ -69,9 +69,7 @@ const voterDtoSchema = z.object({
     // Empty when the voter's account was deleted.
     name: z.string(),
     // Attachment id of the profile picture; null/absent when there is none.
-    avatar_attachment_id: z
-      .union([id, z.string().min(1)])
-      .nullish(),
+    avatar_attachment_id: z.union([id, z.string().min(1)]).nullish(),
   }),
   option_id: id,
   // updated_at is the latest vote write; created_at keeps the first one.

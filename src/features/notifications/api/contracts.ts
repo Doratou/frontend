@@ -99,7 +99,9 @@ function readNumber(
   key: string,
 ): number | undefined {
   const value = data[key];
-  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+  return typeof value === 'number' && Number.isFinite(value)
+    ? value
+    : undefined;
 }
 
 function makeInviter(
@@ -219,9 +221,7 @@ function mapEventContent(
       const winnerSummary =
         winners.length > 0 ? ` گزینه برنده: «${winners.join('، ')}».` : '';
       const votesSummary =
-        totalVotes !== undefined
-          ? ` (${formatNumber(totalVotes)} رأی)`
-          : '';
+        totalVotes !== undefined ? ` (${formatNumber(totalVotes)} رأی)` : '';
       return {
         category: 'poll',
         title: question
@@ -250,9 +250,7 @@ function mapEventContent(
       const winnerName = readString(data, 'winner_name');
       return {
         category: 'lottery',
-        title: title
-          ? `نتیجه قرعه‌کشی «${title}»`
-          : 'نتیجه قرعه‌کشی اعلام شد',
+        title: title ? `نتیجه قرعه‌کشی «${title}»` : 'نتیجه قرعه‌کشی اعلام شد',
         description: winnerName
           ? `برنده قرعه‌کشی: ${winnerName}`
           : 'قرعه‌کشی انجام شد و نتیجه آن ثبت گردید.',
@@ -277,11 +275,8 @@ function mapEventContent(
       const answer = readString(data, 'answer');
       return {
         category: 'announcement',
-        title: subject
-          ? `پاسخ پشتیبانی: ${subject}`
-          : 'پاسخ جدید به گزارش شما',
-        description:
-          answer ?? 'پاسخ تیم پشتیبانی برای گزارش شما ثبت شده است.',
+        title: subject ? `پاسخ پشتیبانی: ${subject}` : 'پاسخ جدید به گزارش شما',
+        description: answer ?? 'پاسخ تیم پشتیبانی برای گزارش شما ثبت شده است.',
         groupName: '',
       };
     }
@@ -378,7 +373,8 @@ export function mapNotificationsListDto(
   return {
     items: dto.items.map(mapNotificationDto),
     unreadCount: dto.unread_count,
-    nextCursor: dto.next_cursor != null && dto.next_cursor > 0 ? dto.next_cursor : null,
+    nextCursor:
+      dto.next_cursor != null && dto.next_cursor > 0 ? dto.next_cursor : null,
     hasMore: dto.has_more,
   };
 }

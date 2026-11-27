@@ -105,7 +105,7 @@ export function PasswordChangedSuccess({
           delay: reduced ? 0 : 0.26,
           ease: EASE_OUT,
         }}
-        className="text-heading-4 font-extrabold text-primary-90 sm:text-heading-3 dark:text-primary-10"
+        className="text-primary-90 text-heading-4 font-extrabold sm:text-heading-3 dark:text-primary-10"
       >
         {title}
       </motion.h2>

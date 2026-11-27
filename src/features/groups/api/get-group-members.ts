@@ -12,6 +12,8 @@ const memberSchema = z
     name: z.string(),
     role: z.string(),
     joined_at: z.iso.datetime({ offset: true }),
+    avatar_attachment_id: z.number().int().positive().nullable().optional(),
+    avatar_url: z.string().nullable().optional(),
   })
   .transform((member) => ({
     memberId: String(member.member_id),
@@ -19,6 +21,11 @@ const memberSchema = z
     name: member.name,
     role: member.role,
     joinedAt: member.joined_at,
+    avatarAttachmentId:
+      member.avatar_attachment_id != null
+        ? String(member.avatar_attachment_id)
+        : undefined,
+    avatarSrc: member.avatar_url ?? undefined,
   }));
 
 export type GroupMember = z.output<typeof memberSchema>;

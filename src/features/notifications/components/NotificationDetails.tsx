@@ -185,7 +185,11 @@ export function NotificationDetails({
               onClick={() => setConfirmDeleteOpen(true)}
               aria-label="حذف اعلان"
               endIcon={
-                <Trash2 aria-hidden="true" className="size-4!" strokeWidth={2} />
+                <Trash2
+                  aria-hidden="true"
+                  className="size-4!"
+                  strokeWidth={2}
+                />
               }
               className="h-9 shrink-0 touch-manipulation gap-1.5 rounded-[10px] border-danger-50 bg-danger-10 px-3 text-button-sm text-danger-50 hover:bg-danger-20/40 max-lg:w-9 max-lg:gap-0 max-lg:px-0 dark:border-danger-30 dark:bg-danger-60/30 dark:text-danger-20 dark:hover:bg-danger-60/50"
             >

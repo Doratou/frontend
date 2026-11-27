@@ -6,10 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 import { formatNumber } from '@/utils/format';
-import {
-  formatNotificationClock,
-  groupNotificationsByDate,
-} from '../format';
+import { formatNotificationClock, groupNotificationsByDate } from '../format';
 import { NOTIFICATION_CATEGORY_META } from '../notifications.config';
 import type { NotificationItem } from '../types';
 

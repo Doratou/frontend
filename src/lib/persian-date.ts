@@ -277,7 +277,6 @@ export function formatPersianDayMonthTime(
   return `${dayMonthFormatter.format(date)} ${clockFormatter.format(date)}`;
 }
 
-
 const longDateFormatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
   timeZone: iranTimeZone,
   day: 'numeric',

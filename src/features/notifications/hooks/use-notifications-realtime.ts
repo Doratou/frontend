@@ -185,7 +185,10 @@ export function useNotificationsRealtime({
       hasConnectedBeforeRef.current = false;
       reconnectAttemptRef.current = 0;
       window.removeEventListener('online', handleVisibilityOrOnline);
-      document.removeEventListener('visibilitychange', handleVisibilityOrOnline);
+      document.removeEventListener(
+        'visibilitychange',
+        handleVisibilityOrOnline,
+      );
       if (reconnectTimer !== null) window.clearTimeout(reconnectTimer);
       if (syncTimer !== null) window.clearTimeout(syncTimer);
       if (socket) {

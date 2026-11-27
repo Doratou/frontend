@@ -1,9 +1,5 @@
 import { apiClient } from '@/lib/api/client';
-import {
-  checklistClaimPath,
-  checklistRequest,
-  unwrap,
-} from './checklist-http';
+import { checklistClaimPath, checklistRequest, unwrap } from './checklist-http';
 
 interface ClaimInput {
   groupId: string;

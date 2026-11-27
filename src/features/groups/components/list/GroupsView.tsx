@@ -442,7 +442,7 @@ export function GroupsView() {
               title={
                 hasArchivedFilters
                   ? 'اکیپی با این فیلترها پیدا نشد'
-                  : 'هنوز اکیپ آرشیوشده‌ای ندارید'
+                  : 'هنوز اکیپ آرشیو شده‌ای ندارید'
               }
               description={
                 hasArchivedFilters

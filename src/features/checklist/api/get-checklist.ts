@@ -1,11 +1,7 @@
 import { queryOptions, useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
 import { checklistPageSchema } from './contracts';
-import {
-  checklistRequest,
-  groupChecklistPath,
-  unwrap,
-} from './checklist-http';
+import { checklistRequest, groupChecklistPath, unwrap } from './checklist-http';
 import { checklistKeys } from './query-keys';
 import type { Checklist } from '@/features/checklist/types';
 

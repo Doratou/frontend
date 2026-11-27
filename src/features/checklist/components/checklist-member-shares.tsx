@@ -46,7 +46,7 @@ export function ChecklistMemberShares({
       <ul
         tabIndex={0}
         aria-label="سهم اعضا"
-        className="flex max-h-64 [scrollbar-color:var(--color-neutral-30)_transparent] [scrollbar-width:thin] flex-col gap-3 overflow-y-auto overscroll-contain pe-2.5 outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary-60 dark:[scrollbar-color:var(--color-neutral-60)_transparent]"
+        className="flex max-h-64 [scrollbar-width:thin] [scrollbar-color:var(--color-neutral-30)_transparent] flex-col gap-3 overflow-y-auto overscroll-contain pe-2.5 outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary-60 dark:[scrollbar-color:var(--color-neutral-60)_transparent]"
       >
         {members.map((member) => {
           const share =
@@ -83,7 +83,10 @@ export function ChecklistMemberShares({
                 className="ms-8 h-1.5 overflow-hidden rounded-full bg-neutral-20"
               >
                 <div
-                  className={cn('h-full rounded-full', getMemberTone(member.userId))}
+                  className={cn(
+                    'h-full rounded-full',
+                    getMemberTone(member.userId),
+                  )}
                   style={{ width: `${share}%` }}
                 />
               </div>

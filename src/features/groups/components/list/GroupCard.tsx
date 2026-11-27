@@ -51,6 +51,8 @@ export function GroupCard({
       : (fetchedMembers ?? []).map((member) => ({
           id: member.userId,
           name: member.name,
+          avatarAttachmentId: member.avatarAttachmentId ?? null,
+          avatarSrc: member.avatarSrc,
         }));
 
   const creatorMember =
@@ -277,14 +279,6 @@ export function GroupCard({
         <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5 px-3 py-1.5 sm:py-2">
           <User className="size-3.5 shrink-0" aria-hidden="true" />
           <span className="shrink-0 text-neutral-60">ایجاد شده توسط</span>
-          {group.creator.avatarSrc && (
-            <img
-              src={group.creator.avatarSrc}
-              alt=""
-              draggable={false}
-              className="size-4 shrink-0 rounded-full object-cover"
-            />
-          )}
           <span className="truncate font-medium">{creatorName}</span>
         </div>
       </footer>

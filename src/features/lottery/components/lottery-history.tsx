@@ -129,10 +129,7 @@ export function LotteryHistory({
     // it really gets (it changes with the sidebar), not the viewport.
     <LotteryFrame className="@container gap-4">
       <h2 className="flex items-center gap-2 text-heading-6 text-primary-80">
-        <span
-          aria-hidden="true"
-          className="size-2 rounded-full bg-accent-50"
-        />
+        <span aria-hidden="true" className="size-2 rounded-full bg-accent-50" />
         تاریخچه‌ی قرعه‌کشی
       </h2>
       {entries.length === 0 ? (
