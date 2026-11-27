@@ -1,9 +1,17 @@
 import { useMemo, useState } from 'react';
 import { CheckSquare, Sparkles } from 'lucide-react';
+import { ErrorState } from '@/components/custom/error-state';
 import { GroupPageHeader } from '@/components/custom/group-page-header';
 import { cn } from '@/lib/utils';
-import { buildMockForecast, getForecastBounds } from '../mock';
-import type { AssistantTab, WeatherForecast, WeatherLocation } from '../types';
+import { useAssistantGroupId } from '../hooks/use-assistant-group-id';
+import { usePopularCities } from '../hooks/use-popular-cities';
+import { useWeatherForecast } from '../hooks/use-weather-forecast';
+import { getForecastBounds } from '../utils';
+import type {
+  AssistantTab,
+  WeatherLocation,
+  WeatherQueryParams,
+} from '../types';
 import { ForecastParamsCard } from './forecast-params-card';
 import { WeatherMapPicker } from './weather-map-picker';
 import { WeatherResults } from './weather-results';
@@ -14,13 +22,18 @@ const ASSISTANT_TABS: { value: AssistantTab; label: string }[] = [
 ];
 
 export function AssistantView() {
+  const groupId = useAssistantGroupId();
   const [activeTab, setActiveTab] = useState<AssistantTab>('weather');
   const [location, setLocation] = useState<WeatherLocation | null>(null);
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
-  const [forecast, setForecast] = useState<WeatherForecast | null>(null);
+  const [queryParams, setQueryParams] = useState<WeatherQueryParams | null>(
+    null,
+  );
 
   const { minDateApi, maxDateApi } = useMemo(() => getForecastBounds(), []);
+  const { cities } = usePopularCities(groupId);
+  const weatherQuery = useWeatherForecast(groupId, queryParams);
 
   const handleStartDateChange = (nextStart: string | null) => {
     setStartDate(nextStart);
@@ -31,8 +44,19 @@ export function AssistantView() {
 
   const handleFetchForecast = () => {
     if (!location || !startDate || !endDate) return;
-    setForecast(buildMockForecast(location, startDate, endDate));
+    setQueryParams({
+      lat: location.latitude,
+      lng: location.longitude,
+      startDate,
+      endDate,
+    });
   };
+
+  if (groupId === null) {
+    return (
+      <ErrorState error={new Error('Missing group id')} title="اکیپ پیدا نشد" />
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -75,6 +99,7 @@ export function AssistantView() {
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
               <div className="lg:col-span-7">
                 <WeatherMapPicker
+                  cities={cities}
                   location={location}
                   onSelectLocation={setLocation}
                 />
@@ -86,6 +111,7 @@ export function AssistantView() {
                   endDate={endDate}
                   minDateApi={minDateApi}
                   maxDateApi={maxDateApi}
+                  isLoading={weatherQuery.isFetching}
                   onStartDateChange={handleStartDateChange}
                   onEndDateChange={setEndDate}
                   onSubmit={handleFetchForecast}
@@ -93,8 +119,14 @@ export function AssistantView() {
               </div>
             </div>
 
-            {/* Lower Row: Empty State or Current Weather + Daily Forecast */}
-            <WeatherResults forecast={forecast} />
+            {/* Lower Row: Empty / Loading / Error / Forecast Results */}
+            <WeatherResults
+              forecast={weatherQuery.data ?? null}
+              isLoading={weatherQuery.isFetching}
+              isError={weatherQuery.isError}
+              error={weatherQuery.error}
+              onRetry={() => void weatherQuery.refetch()}
+            />
           </div>
         ) : (
           <section

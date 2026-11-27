@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { CalendarCheck, CalendarDays, Cloud, Info } from 'lucide-react';
+import { LoadingButton } from '@/components/custom/loading-button';
 import { PersianDatePicker } from '@/components/custom/persian-picker';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { formatJalaliTriggerDate, formatPersianDecimal } from '../mock';
+import { formatJalaliTriggerDate, formatPersianDecimal } from '../utils';
 import type { WeatherLocation } from '../types';
 
 interface ForecastParamsCardProps {
@@ -12,6 +12,7 @@ interface ForecastParamsCardProps {
   endDate: string | null;
   minDateApi: string;
   maxDateApi: string;
+  isLoading?: boolean;
   onStartDateChange: (value: string | null) => void;
   onEndDateChange: (value: string | null) => void;
   onSubmit: () => void;
@@ -23,6 +24,7 @@ export function ForecastParamsCard({
   endDate,
   minDateApi,
   maxDateApi,
+  isLoading = false,
   onStartDateChange,
   onEndDateChange,
   onSubmit,
@@ -210,16 +212,18 @@ export function ForecastParamsCard({
       </div>
 
       {/* Submit Button */}
-      <Button
+      <LoadingButton
         type="button"
         size="lg"
         tone="secondary"
         radius="lg"
+        isLoading={isLoading}
+        loadingText="در حال دریافت پیش‌بینی..."
         onClick={handleSubmit}
         className="w-full bg-secondary-70 text-white hover:bg-secondary-80"
       >
         دریافت پیش‌بینی
-      </Button>
+      </LoadingButton>
     </section>
   );
 }

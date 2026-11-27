@@ -1,12 +1,18 @@
 import { CalendarCheck, Cloud } from 'lucide-react';
+import { ErrorState } from '@/components/custom/error-state';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { toPersianDigits } from '@/utils/format';
-import { formatPersianDecimal } from '../mock';
+import { formatPersianDecimal } from '../utils';
 import type { WeatherCondition, WeatherForecast } from '../types';
 import { WeatherIcon } from './weather-icon';
 
 interface WeatherResultsProps {
   forecast: WeatherForecast | null;
+  isLoading?: boolean;
+  isError?: boolean;
+  error?: unknown;
+  onRetry?: () => void;
 }
 
 const CONDITION_BADGE: Record<WeatherCondition, string> = {
@@ -44,7 +50,51 @@ function ConditionIconBadge({
   );
 }
 
-export function WeatherResults({ forecast }: WeatherResultsProps) {
+export function WeatherResults({
+  forecast,
+  isLoading = false,
+  isError = false,
+  error,
+  onRetry,
+}: WeatherResultsProps) {
+  if (isLoading) {
+    return (
+      <div
+        aria-busy="true"
+        aria-label="در حال بارگذاری پیش‌بینی آب و هوا"
+        className="grid grid-cols-1 gap-4 lg:grid-cols-12"
+      >
+        <div className="flex flex-col gap-3 rounded-2xl border border-neutral-20 bg-white p-4 lg:col-span-5 dark:border-border dark:bg-card">
+          <Skeleton className="h-8 w-36 rounded-lg" />
+          <Skeleton className="h-24 w-full rounded-xl" />
+          <div className="grid grid-cols-2 gap-2.5">
+            {Array.from({ length: 6 }).map((_, idx) => (
+              <Skeleton key={idx} className="h-16 w-full rounded-xl" />
+            ))}
+          </div>
+        </div>
+        <div className="flex flex-col gap-3 rounded-2xl border border-neutral-20 bg-white p-4 lg:col-span-7 dark:border-border dark:bg-card">
+          <Skeleton className="h-8 w-40 rounded-lg" />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, idx) => (
+              <Skeleton key={idx} className="h-36 w-full rounded-xl" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <ErrorState
+        error={error}
+        title="خطا در دریافت پیش‌بینی آب‌وهوا"
+        onRetry={onRetry}
+      />
+    );
+  }
+
   if (!forecast) {
     return (
       <section

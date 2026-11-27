@@ -6,6 +6,15 @@ export interface WeatherLocation {
   name: string;
   latitude: number;
   longitude: number;
+  province?: string;
+  slug?: string;
+}
+
+export interface WeatherQueryParams {
+  lat: number;
+  lng: number;
+  startDate: string;
+  endDate: string;
 }
 
 export interface CurrentWeather {

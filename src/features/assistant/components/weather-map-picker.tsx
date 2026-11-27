@@ -3,14 +3,11 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Cloud, Minus, Plus, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import {
-  formatPersianDecimal,
-  MOCK_CITIES,
-  resolveLocationName,
-} from '../mock';
+import { formatPersianDecimal, resolveLocationName } from '../utils';
 import type { WeatherLocation } from '../types';
 
 interface WeatherMapPickerProps {
+  cities: WeatherLocation[];
   location: WeatherLocation | null;
   onSelectLocation: (location: WeatherLocation) => void;
 }
@@ -57,6 +54,7 @@ function createPinElement(label: string): HTMLElement {
 }
 
 export function WeatherMapPicker({
+  cities,
   location,
   onSelectLocation,
 }: WeatherMapPickerProps) {
@@ -64,18 +62,25 @@ export function WeatherMapPicker({
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
   const onSelectRef = useRef(onSelectLocation);
+  const citiesRef = useRef(cities);
   useEffect(() => {
     onSelectRef.current = onSelectLocation;
   }, [onSelectLocation]);
+  useEffect(() => {
+    citiesRef.current = cities;
+  }, [cities]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const filteredCities = useMemo(() => {
     const query = searchQuery.trim();
-    if (!query) return MOCK_CITIES.slice(0, 6);
-    return MOCK_CITIES.filter((city) => city.name.includes(query));
-  }, [searchQuery]);
+    if (!query) return cities.slice(0, 8);
+    return cities.filter(
+      (city) =>
+        city.name.includes(query) || Boolean(city.province?.includes(query)),
+    );
+  }, [cities, searchQuery]);
 
   // Initialize Leaflet map once
   useEffect(() => {
@@ -99,7 +104,7 @@ export function WeatherMapPicker({
       const latitude = Number(event.latlng.lat.toFixed(4));
       const longitude = Number(event.latlng.lng.toFixed(4));
       onSelectRef.current({
-        name: resolveLocationName(latitude, longitude),
+        name: resolveLocationName(latitude, longitude, citiesRef.current),
         latitude,
         longitude,
       });
@@ -206,7 +211,14 @@ export function WeatherMapPicker({
                     onClick={() => handleCityPick(city)}
                     className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-right text-caption text-foreground transition-colors hover:bg-secondary-10 dark:hover:bg-secondary-80/40"
                   >
-                    <span className="font-medium">{city.name}</span>
+                    <span className="font-medium">
+                      {city.name}
+                      {city.province && city.province !== city.name ? (
+                        <span className="mr-1.5 text-label-md text-neutral-50">
+                          ({city.province})
+                        </span>
+                      ) : null}
+                    </span>
                     <span className="text-label-md text-neutral-50" dir="ltr">
                       {formatPersianDecimal(city.latitude, 2)},{' '}
                       {formatPersianDecimal(city.longitude, 2)}
