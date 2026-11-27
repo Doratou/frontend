@@ -83,13 +83,13 @@ export function GroupHeader({
       <div className="relative flex h-41 w-full items-start overflow-hidden">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 overflow-hidden"
+          className="pointer-events-none absolute inset-0 overflow-hidden bg-white"
         >
           <img
             src={GROUP_HEADER_ASSETS.banner}
             alt=""
             draggable={false}
-            className="h-full w-full object-cover select-none"
+            className="absolute inset-y-0 left-0 h-full w-auto max-w-none select-none"
           />
         </div>
 
