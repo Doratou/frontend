@@ -1,19 +1,19 @@
 @keyframes weather-spin {
   from {
-    transform: rotate(0deg);
+    transform: rotate(0deg) translateZ(0);
   }
   to {
-    transform: rotate(360deg);
+    transform: rotate(360deg) translateZ(0);
   }
 }
 
 @keyframes weather-sun-pulse {
   0%,
   100% {
-    transform: scale(1);
+    transform: scale(1) translateZ(0);
   }
   50% {
-    transform: scale(1.08);
+    transform: scale(1.08) translateZ(0);
   }
 }
 
@@ -51,16 +51,21 @@
   }
 }
 
+.weather-icon-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  contain: layout style paint;
+}
+
 .weather-sun-rays {
-  transform-box: fill-box;
-  transform-origin: center;
   animation: weather-spin 16s linear infinite;
   will-change: transform;
 }
 
 .weather-sun-core {
-  transform-box: fill-box;
-  transform-origin: center;
   animation: weather-sun-pulse 3s ease-in-out infinite;
   will-change: transform;
 }

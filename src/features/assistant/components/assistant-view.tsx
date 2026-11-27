@@ -39,12 +39,12 @@ export function AssistantView() {
       <GroupPageHeader title="همیار" logo={<Sparkles className="size-6" />} />
 
       <div className="flex flex-col gap-4 rounded-2xl border border-secondary-60/30 bg-white p-4 md:p-5 dark:border-border dark:bg-card">
-        {/* Top Row: Segmented Tab Switcher (Right/Start) & Subtitle (Left/End) */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* Segmented Tab Switcher */}
+        <div className="flex items-center">
           <div
             role="tablist"
             aria-label="بخش‌های همیار"
-            className="inline-flex items-center gap-1 rounded-xl border border-secondary-20/70 bg-secondary-10/60 p-1 dark:border-secondary-80/50 dark:bg-secondary-80/25"
+            className="grid w-full grid-cols-2 items-center gap-1 rounded-xl border border-secondary-20/70 bg-secondary-10/60 p-1 sm:inline-flex sm:w-auto dark:border-secondary-80/50 dark:bg-secondary-80/25"
           >
             {ASSISTANT_TABS.map((tab) => {
               const isSelected = activeTab === tab.value;
@@ -56,7 +56,7 @@ export function AssistantView() {
                   aria-selected={isSelected}
                   onClick={() => setActiveTab(tab.value)}
                   className={cn(
-                    'rounded-lg px-4 py-1.5 text-button-sm transition-colors outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary-60',
+                    'rounded-lg px-4 py-2 text-center text-button-sm transition-colors outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary-60 sm:py-1.5',
                     isSelected
                       ? 'bg-secondary-70 text-white shadow-xs'
                       : 'text-secondary-70 hover:bg-secondary-20/50 dark:text-secondary-30',
@@ -67,10 +67,6 @@ export function AssistantView() {
               );
             })}
           </div>
-
-          <p className="text-caption text-neutral-50">
-            دستیار هوشمند سفر و آب‌وهوای اکیپ
-          </p>
         </div>
 
         {activeTab === 'weather' ? (
