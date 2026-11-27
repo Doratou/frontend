@@ -50,10 +50,7 @@ export function projectNotificationPreview(
 ) {
   return items.slice(0, limit).map((item) => ({
     id: item.id,
-    type:
-      item.category === 'join_request' && item.joinRequestStatus === 'pending'
-        ? ('join_request' as const)
-        : ('info' as const),
+    type: 'info' as const,
     title: item.title,
     description: item.description,
     unread: item.unread,

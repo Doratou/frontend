@@ -1,9 +1,9 @@
 import {
   BarChart2,
   Bell,
-  BookHeart,
   CheckSquare,
   Gift,
+  UserPlus,
   Users,
   Wallet,
   type LucideIcon,
@@ -22,10 +22,16 @@ export const NOTIFICATION_CATEGORY_META: Record<
   NotificationCategoryMeta
 > = {
   join_request: {
-    label: 'درخواست عضویت',
+    label: 'دعوت به اکیپ',
     icon: Users,
     tileClass: 'bg-accent-10 dark:bg-accent-80/50',
     iconClass: 'text-accent-60 dark:text-accent-20',
+  },
+  friend_request: {
+    label: 'درخواست دوستی',
+    icon: UserPlus,
+    tileClass: 'bg-secondary-10 dark:bg-secondary-80/50',
+    iconClass: 'text-secondary-70 dark:text-secondary-20',
   },
   lottery: {
     label: 'قرعه‌کشی',
@@ -46,7 +52,7 @@ export const NOTIFICATION_CATEGORY_META: Record<
     iconClass: 'text-primary-70 dark:text-primary-20',
   },
   wallet: {
-    label: 'کیف پول',
+    label: 'تسویه و کیف پول',
     icon: Wallet,
     tileClass: 'bg-secondary-10 dark:bg-secondary-80/50',
     iconClass: 'text-secondary-70 dark:text-secondary-20',
@@ -56,11 +62,5 @@ export const NOTIFICATION_CATEGORY_META: Record<
     icon: Bell,
     tileClass: 'bg-primary-20 dark:bg-primary-70/50',
     iconClass: 'text-primary-70 dark:text-primary-20',
-  },
-  memory: {
-    label: 'خاطرات',
-    icon: BookHeart,
-    tileClass: 'bg-accent-10 dark:bg-accent-80/50',
-    iconClass: 'text-accent-60 dark:text-accent-20',
   },
 };

@@ -141,11 +141,7 @@ export function ProfileMenu({
         startIcon={
           <LogOut
             aria-hidden="true"
-<<<<<<< HEAD
             className="size-4.5! shrink-0 rtl:-scale-x-100"
-=======
-            className="size-4.5 shrink-0 rtl:-scale-x-100"
->>>>>>> develop
             strokeWidth={2}
           />
         }

@@ -1,32 +1,38 @@
 import { useState, type ReactNode } from 'react';
-import {
-  ArrowRight,
-  Bell,
-  Calendar,
-  CheckCircle2,
-  Plus,
-  Trash2,
-  Users,
-  X,
-  XCircle,
-} from 'lucide-react';
+import { ArrowRight, Bell, Calendar, Trash2, Users } from 'lucide-react';
 import { ConfirmDialog } from '@/components/custom/confirm-dialog';
 import { EmptyState } from '@/components/custom/empty-state';
 import { UserAvatar } from '@/components/custom/user-avatar';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { getNotificationAttachmentDownloadUrl } from '../api/notifications-api';
 import { formatNotificationFullDate } from '../format';
+import { useNotificationAttachmentUrl } from '../hooks/use-notifications';
 import { NOTIFICATION_CATEGORY_META } from '../notifications.config';
-import type { JoinRequestStatus, NotificationItem } from '../types';
+import type { NotificationInviter, NotificationItem } from '../types';
 
 export interface NotificationDetailsProps {
   notification: NotificationItem | null;
+  isDeleting?: boolean;
   onBack?: () => void;
   onDelete: (id: string) => void;
-  onRespondJoinRequest: (
-    id: string,
-    decision: Exclude<JoinRequestStatus, 'pending'>,
-  ) => void;
+}
+
+function InviterAvatar({ inviter }: { inviter: NotificationInviter }) {
+  const attachmentId = inviter.avatarAttachmentId ?? null;
+  const { data: resolvedUrl } = useNotificationAttachmentUrl(attachmentId);
+  const fallbackUrl = attachmentId
+    ? getNotificationAttachmentDownloadUrl(attachmentId)
+    : null;
+
+  return (
+    <UserAvatar
+      name={inviter.name}
+      avatarUrl={resolvedUrl}
+      fallbackAvatarUrl={fallbackUrl}
+      size="sm"
+    />
+  );
 }
 
 function MetaCard({
@@ -61,9 +67,9 @@ function MetaCard({
 
 export function NotificationDetails({
   notification,
+  isDeleting = false,
   onBack,
   onDelete,
-  onRespondJoinRequest,
 }: NotificationDetailsProps) {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
@@ -85,8 +91,14 @@ export function NotificationDetails({
 
   const meta = NOTIFICATION_CATEGORY_META[notification.category];
   const CategoryIcon = meta.icon;
-  const isJoinRequest = notification.category === 'join_request';
-  const joinStatus = notification.joinRequestStatus ?? 'pending';
+  const isFriendRequest = notification.category === 'friend_request';
+  const inviterLabel =
+    notification.event === 'friend_request.responded'
+      ? 'پاسخ‌دهنده'
+      : isFriendRequest
+        ? 'ارسال‌کننده'
+        : 'دعوت‌کننده';
+  const hasGroupName = notification.groupName.trim().length > 0;
 
   return (
     <>
@@ -139,6 +151,7 @@ export function NotificationDetails({
             variant="outline"
             size="md"
             radius="lg"
+            disabled={isDeleting}
             onClick={() => setConfirmDeleteOpen(true)}
             aria-label="حذف اعلان"
             endIcon={
@@ -152,10 +165,7 @@ export function NotificationDetails({
 
         {/* Details Body */}
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain p-4 text-start md:p-5">
-          <h2
-            dir="auto"
-            className="text-heading-mobile-4 text-primary-80 md:text-heading-5 dark:text-primary-10"
-          >
+          <h2 className="text-heading-mobile-4 text-primary-80 md:text-heading-5 dark:text-primary-10">
             {notification.title}
           </h2>
 
@@ -163,35 +173,31 @@ export function NotificationDetails({
           <div
             className={cn(
               'grid grid-cols-1 gap-2.5 lg:grid-cols-2',
-              notification.inviter && 'xl:grid-cols-3',
+              notification.inviter && hasGroupName && 'xl:grid-cols-3',
             )}
           >
             {notification.inviter ? (
               <MetaCard
-                label="دعوت‌کننده"
+                label={inviterLabel}
                 value={notification.inviter.name}
-                icon={
-                  <UserAvatar
-                    name={notification.inviter.name}
-                    avatarUrl={notification.inviter.avatarUrl}
-                    size="sm"
-                  />
-                }
+                icon={<InviterAvatar inviter={notification.inviter} />}
               />
             ) : null}
 
-            <MetaCard
-              label="اکیپ ارسال‌کننده"
-              value={notification.groupName}
-              icon={
-                <span
-                  aria-hidden="true"
-                  className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-accent-10 text-accent-60 dark:bg-accent-80/50 dark:text-accent-20"
-                >
-                  <Users className="size-3.5" strokeWidth={2} />
-                </span>
-              }
-            />
+            {hasGroupName ? (
+              <MetaCard
+                label="اکیپ ارسال‌کننده"
+                value={notification.groupName}
+                icon={
+                  <span
+                    aria-hidden="true"
+                    className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-accent-10 text-accent-60 dark:bg-accent-80/50 dark:text-accent-20"
+                  >
+                    <Users className="size-3.5" strokeWidth={2} />
+                  </span>
+                }
+              />
+            ) : null}
 
             <MetaCard
               label="تاریخ و ساعت ارسال"
@@ -208,88 +214,9 @@ export function NotificationDetails({
             />
           </div>
 
-          <p
-            dir="auto"
-            className="text-paragraph-sm leading-7 whitespace-pre-line text-neutral-70 dark:text-neutral-20"
-          >
+          <p className="text-paragraph-sm leading-7 whitespace-pre-line text-neutral-70 dark:text-neutral-20">
             {notification.description}
           </p>
-
-          {/* Join Request Action Box */}
-          {isJoinRequest ? (
-            <div className="flex flex-col gap-3 rounded-2xl border border-accent-20 bg-accent-10 p-4 dark:border-accent-70/60 dark:bg-accent-80/35">
-              <div className="flex flex-col gap-1">
-                <p className="text-heading-mobile-6 text-accent-70 dark:text-accent-20">
-                  پاسخ به درخواست عضویت
-                </p>
-                <p className="text-caption text-accent-70 dark:text-accent-10">
-                  با تایید این درخواست، به عضویت اکیپ «
-                  <bdi>{notification.groupName}</bdi>» درمی‌آیید.
-                </p>
-              </div>
-
-              {joinStatus === 'pending' ? (
-                <div className="flex items-center justify-end gap-2.5">
-                  <Button
-                    type="button"
-                    size="md"
-                    radius="lg"
-                    onClick={() =>
-                      onRespondJoinRequest(notification.id, 'accepted')
-                    }
-                    endIcon={
-                      <Plus
-                        aria-hidden="true"
-                        className="size-4!"
-                        strokeWidth={2}
-                      />
-                    }
-                    className="h-9 touch-manipulation gap-2 rounded-[10px] bg-success-60 px-3.5 text-button-sm text-white hover:bg-success-50 active:bg-success-60"
-                  >
-                    تایید
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="md"
-                    radius="lg"
-                    onClick={() =>
-                      onRespondJoinRequest(notification.id, 'rejected')
-                    }
-                    endIcon={
-                      <X
-                        aria-hidden="true"
-                        className="size-4!"
-                        strokeWidth={2}
-                      />
-                    }
-                    className="h-9 touch-manipulation gap-2 rounded-[10px] border-danger-50 bg-transparent px-3.5 text-button-sm text-danger-50 hover:bg-danger-10 active:bg-danger-10 dark:border-danger-30 dark:text-danger-20 dark:hover:bg-danger-60/30"
-                  >
-                    رد
-                  </Button>
-                </div>
-              ) : joinStatus === 'accepted' ? (
-                <div className="flex items-center gap-2 self-start rounded-xl bg-success-10 px-3 py-1.5 text-caption font-bold text-success-60 dark:bg-success-60/30 dark:text-success-20">
-                  <CheckCircle2
-                    aria-hidden="true"
-                    className="size-4 shrink-0"
-                    strokeWidth={2}
-                  />
-                  <span>درخواست عضویت تایید شد.</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 self-start rounded-xl bg-danger-10 px-3 py-1.5 text-caption font-bold text-danger-50 dark:bg-danger-60/30 dark:text-danger-20">
-                  <XCircle
-                    aria-hidden="true"
-                    className="size-4 shrink-0"
-                    strokeWidth={2}
-                  />
-                  <span>درخواست عضویت رد شد.</span>
-                </div>
-              )}
-            </div>
-          ) : null}
         </div>
       </section>
 

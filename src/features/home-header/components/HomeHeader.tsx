@@ -30,10 +30,12 @@ export function HomeHeader({
   onOpenMobileMenu,
   profileMenu,
   notificationsMenu,
+  onNotificationsOpenChange,
   className,
 }: HomeHeaderProps) {
   const [openMenu, setOpenMenu] = useState<OpenMenu>(null);
   const openMenuRef = useRef<OpenMenu>(null);
+  const onNotificationsOpenChangeRef = useRef(onNotificationsOpenChange);
   const headerRef = useRef<HTMLElement>(null);
   const profileTriggerRef = useRef<HTMLButtonElement>(null);
   const notificationsTriggerRef = useRef<HTMLButtonElement>(null);
@@ -47,8 +49,14 @@ export function HomeHeader({
   const isNotificationsOpen = openMenu === 'notifications';
 
   useEffect(() => {
-    openMenuRef.current = openMenu;
-  }, [openMenu]);
+    onNotificationsOpenChangeRef.current = onNotificationsOpenChange;
+  }, [onNotificationsOpenChange]);
+
+  const updateOpenMenu = (next: OpenMenu) => {
+    openMenuRef.current = next;
+    setOpenMenu(next);
+    onNotificationsOpenChangeRef.current?.(next === 'notifications');
+  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -59,7 +67,7 @@ export function HomeHeader({
         headerRef.current &&
         !headerRef.current.contains(event.target)
       ) {
-        setOpenMenu(null);
+        updateOpenMenu(null);
       }
     };
 
@@ -69,7 +77,7 @@ export function HomeHeader({
         openMenuRef.current === 'profile'
           ? profileTriggerRef.current
           : notificationsTriggerRef.current;
-      setOpenMenu(null);
+      updateOpenMenu(null);
       trigger?.focus();
     };
 
@@ -83,7 +91,7 @@ export function HomeHeader({
 
   const contextValue = useMemo(
     () => ({
-      closeMenu: () => setOpenMenu(null),
+      closeMenu: () => updateOpenMenu(null),
       profileMenuId,
       notificationsMenuId,
     }),
@@ -91,7 +99,7 @@ export function HomeHeader({
   );
 
   const toggleMenu = (menu: Exclude<OpenMenu, null>) => {
-    setOpenMenu((current) => (current === menu ? null : menu));
+    updateOpenMenu(openMenuRef.current === menu ? null : menu);
   };
 
   const activeMenuContent = isProfileOpen ? profileMenu : notificationsMenu;
@@ -110,7 +118,7 @@ export function HomeHeader({
           <button
             type="button"
             onClick={() => {
-              setOpenMenu(null);
+              updateOpenMenu(null);
               onOpenMobileMenu?.();
             }}
             aria-label="باز کردن منو"

@@ -1,6 +1,8 @@
 import { BellOff, CheckCheck } from 'lucide-react';
 import { EmptyState } from '@/components/custom/empty-state';
+import { LoadingButton } from '@/components/custom/loading-button';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 import { formatNumber } from '@/utils/format';
 import { formatNotificationTime } from '../format';
@@ -9,22 +11,41 @@ import type { NotificationItem } from '../types';
 
 export interface NotificationListProps {
   items: NotificationItem[];
+  unreadCount?: number;
   selectedId: string | null;
+  isLoading?: boolean;
+  isError?: boolean;
+  errorMessage?: string;
+  hasMore?: boolean;
+  isFetchingNextPage?: boolean;
+  isMarkingAllRead?: boolean;
   onSelect: (item: NotificationItem) => void;
   onMarkAllRead: () => void;
+  onLoadMore?: () => void;
+  onRetry?: () => void;
 }
 
 export function NotificationList({
   items,
+  unreadCount,
   selectedId,
+  isLoading = false,
+  isError = false,
+  errorMessage,
+  hasMore = false,
+  isFetchingNextPage = false,
+  isMarkingAllRead = false,
   onSelect,
   onMarkAllRead,
+  onLoadMore,
+  onRetry,
 }: NotificationListProps) {
-  let unreadCount = 0;
+  let computedUnread = 0;
   for (const item of items) {
-    if (item.unread) unreadCount += 1;
+    if (item.unread) computedUnread += 1;
   }
-  const hasUnread = unreadCount > 0;
+  const effectiveUnreadCount = unreadCount ?? computedUnread;
+  const hasUnread = effectiveUnreadCount > 0;
 
   return (
     <section
@@ -38,23 +59,34 @@ export function NotificationList({
             همه اعلانات
           </h2>
           <p className="text-caption text-muted-foreground tabular-nums">
-            {hasUnread
-              ? `${formatNumber(unreadCount)} اعلان خوانده‌نشده`
-              : 'همه اعلانات خوانده شده‌اند'}
+            {isLoading
+              ? 'در حال دریافت اعلانات…'
+              : hasUnread
+                ? `${formatNumber(effectiveUnreadCount)} اعلان خوانده‌نشده`
+                : 'همه اعلانات خوانده شده‌اند'}
           </p>
         </div>
 
-        <Button
+        <LoadingButton
           type="button"
           variant="outline"
           size="md"
           radius="lg"
-          disabled={!hasUnread}
+          disabled={!hasUnread || isLoading}
+          isLoading={isMarkingAllRead}
+          loadingText="در حال ثبت…"
           onClick={onMarkAllRead}
-          className="h-8.5 w-full touch-manipulation rounded-[10px] px-2.5 text-caption font-medium lg:text-button-sm"
+          endIcon={
+            <CheckCheck
+              aria-hidden="true"
+              className="size-4!"
+              strokeWidth={2}
+            />
+          }
+          className="h-8.5 w-full touch-manipulation gap-1.5 rounded-[10px] px-2.5 text-caption font-medium lg:text-button-sm"
         >
           علامت‌گذاری همه به‌عنوان خوانده‌شده
-        </Button>
+        </LoadingButton>
       </div>
 
       <div
@@ -63,7 +95,29 @@ export function NotificationList({
       />
 
       {/* Items */}
-      {items.length === 0 ? (
+      {isLoading ? (
+        <div className="flex flex-1 flex-col items-center justify-center gap-2 p-6 text-muted-foreground">
+          <Spinner className="size-6 text-primary-60" />
+          <p className="text-caption">در حال دریافت اعلانات…</p>
+        </div>
+      ) : isError && items.length === 0 ? (
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-center">
+          <p className="text-paragraph-sm text-danger-50">
+            {errorMessage ?? 'دریافت فهرست اعلانات انجام نشد.'}
+          </p>
+          {onRetry ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="md"
+              radius="lg"
+              onClick={onRetry}
+            >
+              تلاش مجدد
+            </Button>
+          ) : null}
+        </div>
+      ) : items.length === 0 ? (
         <div className="flex flex-1 items-center justify-center p-4">
           <EmptyState
             icon={<BellOff strokeWidth={1.8} />}
@@ -107,7 +161,6 @@ export function NotificationList({
 
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5 text-start">
                   <span
-                    dir="auto"
                     className={cn(
                       'w-full truncate text-heading-mobile-6',
                       item.unread
@@ -118,7 +171,6 @@ export function NotificationList({
                     {item.title}
                   </span>
                   <span
-                    dir="auto"
                     className={cn(
                       'w-full truncate text-caption lg:line-clamp-2 lg:whitespace-normal',
                       item.unread
@@ -156,6 +208,23 @@ export function NotificationList({
               </button>
             );
           })}
+
+          {hasMore && onLoadMore ? (
+            <div className="pt-1">
+              <LoadingButton
+                type="button"
+                variant="outline"
+                size="md"
+                radius="lg"
+                isLoading={isFetchingNextPage}
+                loadingText="در حال بارگذاری…"
+                onClick={onLoadMore}
+                className="h-8.5 w-full touch-manipulation rounded-[10px] text-caption font-medium"
+              >
+                بارگذاری بیشتر
+              </LoadingButton>
+            </div>
+          ) : null}
         </div>
       )}
     </section>

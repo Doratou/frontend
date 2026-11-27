@@ -1,19 +1,24 @@
-import { useMemo } from 'react';
-import { useLocation, useNavigate } from 'react-router';
+import { useMemo, useState } from 'react';
+import { useLocation } from 'react-router';
 import { Bell, Home, type LucideIcon } from 'lucide-react';
-import { toast } from '@/components/custom/toast';
-import { useAttachmentUrl } from '@/features/attachments/api/get-attachment-url';
-import { authApi } from '@/features/auth/api/auth-api';
-import { useAuthMutation } from '@/features/auth/hooks/use-auth-mutation';
+import {
+  getAttachmentDownloadUrl,
+  useAttachmentUrl,
+} from '@/features/attachments/api/get-attachment-url';
+import { useLogout } from '@/features/auth/hooks/use-logout';
 import { useAuthStore } from '@/features/auth/stores/auth-store';
 import { HomeHeader } from '@/features/home-header/components/HomeHeader';
 import { NotificationsMenu } from '@/features/home-header/components/NotificationsMenu';
 import { ProfileMenu } from '@/features/home-header/components/ProfileMenu';
 import type { HomeHeaderProps } from '@/features/home-header/types';
 import { projectNotificationPreview } from '@/features/notifications/format';
-import { useNotificationsStore } from '@/features/notifications/stores/notifications-store';
+import {
+  useNotificationsInfiniteQuery,
+  useUnreadNotificationsCount,
+} from '@/features/notifications/hooks/use-notifications';
+import { useNotificationsRealtime } from '@/features/notifications/hooks/use-notifications-realtime';
 import { SIDEBAR_NAV_ITEMS } from '@/features/sidebar/components/sidebar.config';
-import { useSidebarStore } from '@/features/sidebar/stores/sidebar-store';
+import { useSidebarStore } from '@/stores/sidebar-store';
 
 interface RouteHeaderMeta {
   title: string;
@@ -53,15 +58,29 @@ export interface AppHomeHeaderProps {
 
 export function AppHomeHeader({ headerProps }: AppHomeHeaderProps) {
   const location = useLocation();
-  const navigate = useNavigate();
   const authUser = useAuthStore((state) => state.user);
+  const accessToken = useAuthStore(
+    (state) => state.tokens?.accessToken ?? null,
+  );
   const openMobileSidebar = useSidebarStore((state) => state.openMobile);
-  const logout = useAuthMutation((_: void, signal) => authApi.logout(signal));
+  const { logout, isLoggingOut } = useLogout();
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
-  const notificationItems = useNotificationsStore((state) => state.items);
-  const markAsRead = useNotificationsStore((state) => state.markAsRead);
-  const respondJoinRequest = useNotificationsStore(
-    (state) => state.respondJoinRequest,
+  useNotificationsRealtime({
+    accessToken,
+    enabled: Boolean(accessToken),
+  });
+
+  const {
+    items: notificationItems,
+    latestUnreadCount,
+    isLoading: isNotificationsLoading,
+  } = useNotificationsInfiniteQuery({
+    enabled: Boolean(accessToken) && isNotificationsOpen,
+  });
+  const { data: unreadData } = useUnreadNotificationsCount(
+    undefined,
+    Boolean(accessToken),
   );
 
   const avatarAttachmentId =
@@ -70,7 +89,8 @@ export function AppHomeHeader({ headerProps }: AppHomeHeaderProps) {
       : null;
   const { data: avatarUrl } = useAttachmentUrl(avatarAttachmentId);
 
-  const hasUnread = notificationItems.some((item) => item.unread);
+  const hasUnread = (unreadData?.unreadCount ?? latestUnreadCount ?? 0) > 0;
+
   const headerNotifications = useMemo(
     () => projectNotificationPreview(notificationItems, HEADER_PREVIEW_LIMIT),
     [notificationItems],
@@ -79,23 +99,13 @@ export function AppHomeHeader({ headerProps }: AppHomeHeaderProps) {
   const user = {
     displayName: authUser?.displayName ?? 'کاربر دوراتو',
     avatarUrl,
+    fallbackAvatarUrl: avatarAttachmentId
+      ? getAttachmentDownloadUrl(avatarAttachmentId)
+      : null,
     walletBalance: authUser?.wallet ?? 0,
   };
 
   const routeMeta = resolveHomeHeaderMeta(location.pathname);
-
-  const handleJoinResponse = (
-    id: string,
-    decision: 'accepted' | 'rejected',
-  ) => {
-    const target = respondJoinRequest(id, decision);
-    if (!target) return;
-    if (decision === 'accepted') {
-      toast.success(`به اکیپ «${target.groupName}» پیوستید.`);
-    } else {
-      toast.info(`درخواست عضویت اکیپ «${target.groupName}» رد شد.`);
-    }
-  };
 
   return (
     <HomeHeader
@@ -104,27 +114,18 @@ export function AppHomeHeader({ headerProps }: AppHomeHeaderProps) {
       user={user}
       hasUnread={hasUnread}
       onOpenMobileMenu={openMobileSidebar}
+      onNotificationsOpenChange={setIsNotificationsOpen}
       profileMenu={
         <ProfileMenu
           user={user}
-          isLoggingOut={logout.isPending}
-          onLogout={() =>
-            logout.mutate(undefined, {
-              onSettled: () => void navigate('/login', { replace: true }),
-            })
-          }
+          isLoggingOut={isLoggingOut}
+          onLogout={logout}
         />
       }
       notificationsMenu={
         <NotificationsMenu
           notifications={headerNotifications}
-          onNotificationSelect={(item) => markAsRead(item.id)}
-          onAcceptJoinRequest={(item) =>
-            handleJoinResponse(item.id, 'accepted')
-          }
-          onRejectJoinRequest={(item) =>
-            handleJoinResponse(item.id, 'rejected')
-          }
+          isLoading={isNotificationsLoading}
         />
       }
       {...headerProps}

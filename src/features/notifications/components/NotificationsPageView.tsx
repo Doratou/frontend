@@ -1,9 +1,13 @@
-import { useEffect } from 'react';
 import { useSearchParams } from 'react-router';
-import { toast } from '@/components/custom/toast';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { useNotificationsStore } from '../stores/notifications-store';
-import type { JoinRequestStatus, NotificationItem } from '../types';
+import { getApiErrorMessage } from '@/lib/api/error';
+import {
+  useDeleteNotification,
+  useMarkAllNotificationsRead,
+  useNotificationsInfiniteQuery,
+  useUnreadNotificationsCount,
+} from '../hooks/use-notifications';
+import type { NotificationItem } from '../types';
 import { NotificationDetails } from './NotificationDetails';
 import { NotificationList } from './NotificationList';
 
@@ -11,15 +15,23 @@ export function NotificationsPageView() {
   const [searchParams, setSearchParams] = useSearchParams();
   const isDesktop = useMediaQuery('(min-width: 1024px)');
 
-  const items = useNotificationsStore((state) => state.items);
-  const markAsRead = useNotificationsStore((state) => state.markAsRead);
-  const markAllAsRead = useNotificationsStore((state) => state.markAllAsRead);
-  const deleteNotification = useNotificationsStore(
-    (state) => state.deleteNotification,
-  );
-  const respondJoinRequest = useNotificationsStore(
-    (state) => state.respondJoinRequest,
-  );
+  const {
+    items,
+    latestUnreadCount,
+    isLoading,
+    isError,
+    error,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    refetch,
+  } = useNotificationsInfiniteQuery();
+
+  const { data: unreadData } = useUnreadNotificationsCount();
+  const markAllReadMutation = useMarkAllNotificationsRead();
+  const deleteMutation = useDeleteNotification();
+
+  const unreadCount = unreadData?.unreadCount ?? latestUnreadCount;
 
   const paramId = searchParams.get('id');
   const matchedNotification = paramId
@@ -29,20 +41,8 @@ export function NotificationsPageView() {
     matchedNotification ?? (isDesktop ? (items[0] ?? null) : null);
   const showMobileDetails = !isDesktop && matchedNotification !== null;
 
-  useEffect(() => {
-    if (isDesktop && activeNotification?.unread) {
-      markAsRead(activeNotification.id);
-    }
-  }, [
-    isDesktop,
-    activeNotification?.id,
-    activeNotification?.unread,
-    markAsRead,
-  ]);
-
   const handleSelect = (item: NotificationItem) => {
     setSearchParams({ id: item.id });
-    markAsRead(item.id);
   };
 
   const handleBack = () => {
@@ -50,35 +50,22 @@ export function NotificationsPageView() {
   };
 
   const handleMarkAllRead = () => {
-    if (markAllAsRead()) {
-      toast.success('همه اعلانات به‌عنوان خوانده‌شده علامت‌گذاری شدند.');
-    }
+    if (markAllReadMutation.isPending) return;
+    markAllReadMutation.mutate();
   };
 
   const handleDelete = (id: string) => {
     const index = items.findIndex((item) => item.id === id);
     const nextItem = items[index + 1] ?? items[index - 1] ?? null;
-    deleteNotification(id);
-    toast.info('اعلان حذف شد.');
-
-    if (isDesktop && nextItem) {
-      setSearchParams({ id: nextItem.id }, { replace: true });
-    } else {
-      setSearchParams({}, { replace: true });
-    }
-  };
-
-  const handleRespondJoinRequest = (
-    id: string,
-    decision: Exclude<JoinRequestStatus, 'pending'>,
-  ) => {
-    const target = respondJoinRequest(id, decision);
-    if (!target) return;
-    if (decision === 'accepted') {
-      toast.success(`به اکیپ «${target.groupName}» پیوستید.`);
-    } else {
-      toast.info(`درخواست عضویت اکیپ «${target.groupName}» رد شد.`);
-    }
+    deleteMutation.mutate(id, {
+      onSuccess: () => {
+        if (isDesktop && nextItem) {
+          setSearchParams({ id: nextItem.id }, { replace: true });
+        } else {
+          setSearchParams({}, { replace: true });
+        }
+      },
+    });
   };
 
   return (
@@ -92,9 +79,24 @@ export function NotificationsPageView() {
       >
         <NotificationList
           items={items}
+          unreadCount={unreadCount}
           selectedId={activeNotification?.id ?? null}
+          isLoading={isLoading}
+          isError={isError}
+          errorMessage={
+            isError
+              ? getApiErrorMessage(error, {
+                  fallback: 'دریافت فهرست اعلانات انجام نشد.',
+                })
+              : undefined
+          }
+          hasMore={Boolean(hasNextPage)}
+          isFetchingNextPage={isFetchingNextPage}
+          isMarkingAllRead={markAllReadMutation.isPending}
           onSelect={handleSelect}
           onMarkAllRead={handleMarkAllRead}
+          onLoadMore={() => void fetchNextPage()}
+          onRetry={() => void refetch()}
         />
       </div>
 
@@ -107,9 +109,9 @@ export function NotificationsPageView() {
       >
         <NotificationDetails
           notification={activeNotification}
+          isDeleting={deleteMutation.isPending}
           onBack={handleBack}
           onDelete={handleDelete}
-          onRespondJoinRequest={handleRespondJoinRequest}
         />
       </div>
     </div>

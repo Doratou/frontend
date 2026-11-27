@@ -26,5 +26,6 @@ export interface HomeHeaderProps {
   onOpenMobileMenu?: () => void;
   profileMenu?: ReactNode;
   notificationsMenu?: ReactNode;
+  onNotificationsOpenChange?: (open: boolean) => void;
   className?: string;
 }
