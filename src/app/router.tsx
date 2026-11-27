@@ -64,7 +64,11 @@ export const routes: RouteObject[] = [
       },
       {
         path: 'notification',
-        element: <p>نوتیفیکیشن</p>,
+        lazy: () => import('@/app/pages/notifications'),
+      },
+      {
+        path: 'wallet',
+        element: <p>کیف پول</p>,
       },
       {
         path: 'profile',
