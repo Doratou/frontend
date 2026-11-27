@@ -19,6 +19,7 @@ interface ConfirmDialogProps {
   tone?: 'primary' | 'danger';
   isLoading?: boolean;
   onConfirm: () => void;
+  contentClassName?: string;
 }
 
 export function ConfirmDialog({
@@ -31,6 +32,7 @@ export function ConfirmDialog({
   tone = 'primary',
   isLoading = false,
   onConfirm,
+  contentClassName,
 }: ConfirmDialogProps) {
   return (
     <Dialog
@@ -40,7 +42,7 @@ export function ConfirmDialog({
         if (!isLoading) onOpenChange(next);
       }}
     >
-      <DialogContent className="max-w-sm">
+      <DialogContent className={cn('max-w-sm rounded-xl', contentClassName)}>
         <div className="flex flex-col gap-2 p-5">
           <DialogTitle className="text-heading-5 text-primary-80">
             {title}

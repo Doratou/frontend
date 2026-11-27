@@ -34,7 +34,7 @@ export const SIDEBAR_NAV_ITEMS: Record<SidebarPage, SidebarNavItem[]> = {
       href: '/home/',
       icon: LayoutGrid,
     },
-    { id: 'crews', label: 'اکیپ‌ها', href: '/home/crews', icon: Users },
+    { id: 'groups', label: 'اکیپ‌ها', href: '/home/groups', icon: Users },
     {
       id: 'memories',
       label: 'خاطرات',

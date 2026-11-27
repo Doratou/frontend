@@ -18,7 +18,7 @@
     min-height: 100dvh;
     gap: 0.75rem;
     padding-block: calc(1rem + env(safe-area-inset-top))
-      max(0.5rem, env(safe-area-inset-bottom));
+      max(1rem, env(safe-area-inset-bottom));
   }
 
   .auth-backdrop {
@@ -123,13 +123,17 @@
 
   @media (min-width: 64rem) {
     .auth-layout {
-      --auth-gap: 1rem;
-      --auth-form-gap: 1rem;
-      gap: 1.5rem;
-      --auth-brand-size: 6.5625rem;
-      --auth-wordmark-size: 2.875rem;
-      padding: calc(clamp(0.5rem, 2svh, 1.5rem) + env(safe-area-inset-top))
-        var(--auth-inline-space) calc(1rem + env(safe-area-inset-bottom));
+      --auth-gap: 0.875rem;
+      --auth-form-gap: 0.875rem;
+      --auth-action-height: 2.625rem;
+      --auth-tabs-height: 2.75rem;
+      --auth-brand-size: 5.75rem;
+      --auth-wordmark-size: 2.5rem;
+      justify-content: safe center;
+      gap: 1.125rem;
+      padding: calc(clamp(1rem, 3svh, 2rem) + env(safe-area-inset-top))
+        var(--auth-inline-space)
+        calc(clamp(1.25rem, 3.5svh, 2.25rem) + env(safe-area-inset-bottom));
     }
 
     .auth-backdrop {
@@ -148,37 +152,37 @@
     }
 
     .auth-brand {
-      margin-block-start: 0.75rem;
+      margin-block-start: 0;
     }
 
     .auth-card {
-      max-width: 34rem;
+      max-width: 32.25rem;
       width: 100%;
-      padding: 1.25rem 3rem;
+      padding: 1.125rem 2.75rem;
       border-radius: 1rem;
       background: var(--auth-surface);
       box-shadow: var(--auth-card-shadow);
     }
 
     .auth-heading {
-      font-size: var(--text-heading-1);
+      font-size: var(--text-heading-2);
       line-height: 1.5;
     }
   }
 
   @media (min-width: 64rem) and (min-height: 60rem) {
     .auth-layout {
-      --auth-form-gap: 1.25rem;
-      --auth-action-height: 3.5rem;
-      --auth-tabs-height: 3.5rem;
-      --auth-brand-size: 10rem;
-      --auth-wordmark-size: 3.5625rem;
+      --auth-form-gap: 1.125rem;
+      --auth-action-height: 3.25rem;
+      --auth-tabs-height: 3.25rem;
+      --auth-brand-size: 9rem;
+      --auth-wordmark-size: 3.25rem;
       padding-block: 2rem;
     }
 
     .auth-card {
-      max-width: 38rem;
-      padding: 1.5rem 4.25rem;
+      max-width: 36rem;
+      padding: 1.375rem 4rem;
     }
 
     .auth-heading {
@@ -188,17 +192,17 @@
 
   @media (min-width: 64rem) and (max-height: 53rem) {
     .auth-layout {
-      --auth-gap: 0.75rem;
-      --auth-form-gap: 0.75rem;
-      --auth-brand-size: 5rem;
-      --auth-wordmark-size: 2.375rem;
-      gap: 1.25rem;
-      padding-block: calc(0.75rem + env(safe-area-inset-top))
-        calc(0.75rem + env(safe-area-inset-bottom));
+      --auth-gap: 0.625rem;
+      --auth-form-gap: 0.625rem;
+      --auth-brand-size: 4.5rem;
+      --auth-wordmark-size: 2.125rem;
+      gap: 1rem;
+      padding-block: calc(1rem + env(safe-area-inset-top))
+        calc(1.25rem + env(safe-area-inset-bottom));
     }
 
     .auth-card {
-      padding-block: 1rem;
+      padding-block: 0.875rem;
     }
 
     .auth-heading {

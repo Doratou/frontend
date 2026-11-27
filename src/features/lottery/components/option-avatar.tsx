@@ -1,13 +1,6 @@
 import { cn } from '@/lib/utils';
+import { getMemberTone } from '@/features/groups/member-tone';
 import type { LotteryMember } from '@/features/lottery/types';
-
-const TONES = [
-  'bg-primary-50',
-  'bg-secondary-70',
-  'bg-accent-60',
-  'bg-danger-40',
-  'bg-info-50',
-];
 
 const SIZES = {
   xs: 'size-6 text-caption',
@@ -15,13 +8,6 @@ const SIZES = {
   md: 'size-10 text-paragraph-md',
   lg: 'size-14 text-heading-5',
 } as const;
-
-// Stable tone per member, so the same person always gets the same color.
-function toneFor(id: string): string {
-  let hash = 0;
-  for (const char of id) hash += char.codePointAt(0) ?? 0;
-  return TONES[hash % TONES.length] ?? 'bg-primary-50';
-}
 
 interface OptionAvatarProps {
   member: LotteryMember;
@@ -54,8 +40,9 @@ export function OptionAvatar({
   }
 
   const initial = Array.from(member.name.trim())[0] ?? '?';
+  // member.id is the USER ID, so the color matches the same person on other pages.
   return (
-    <span aria-hidden="true" className={cn(base, toneFor(member.id))}>
+    <span aria-hidden="true" className={cn(base, getMemberTone(member.id))}>
       {initial}
     </span>
   );

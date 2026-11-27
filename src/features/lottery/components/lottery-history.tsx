@@ -147,7 +147,7 @@ export function LotteryHistory({
           aria-label="فهرست قرعه‌کشی‌های انجام‌شده"
           tabIndex={0}
           onScroll={handleScroll}
-          className="max-h-[28rem] overflow-y-auto pe-1 outline-none [scrollbar-width:thin] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:max-h-[32rem]"
+          className="max-h-[28rem] [scrollbar-width:thin] overflow-y-auto pe-1 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:max-h-[32rem]"
         >
           {/* Four columns and two buttons need roughly 56rem; narrower cards
               use the card list. */}

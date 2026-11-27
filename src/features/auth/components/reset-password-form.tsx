@@ -1,9 +1,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate } from 'react-router';
 import { PasswordField } from '@/components/custom/password-field';
 import { LoadingButton } from '@/components/custom/loading-button';
-import { toast } from '@/components/custom/toast';
 import { authApi } from '@/features/auth/api/auth-api';
 import type { ResetGrant } from '@/features/auth/api/contracts';
 import {
@@ -19,12 +17,13 @@ import { applyAuthFieldErrors } from './auth-form-errors';
 export function ResetPasswordForm({
   grant,
   disabled,
+  onSuccess,
 }: {
   grant: ResetGrant;
   disabled: boolean;
+  onSuccess: () => void;
 }) {
   const flow = useAuthFlow();
-  const navigate = useNavigate();
   const reset = useAuthMutation(authApi.resetPassword);
   const remaining = useCountdown(grant.expiresAt);
   const form = useForm<ResetPasswordValues>({
@@ -45,10 +44,7 @@ export function ResetPasswordForm({
               form.reset();
               flow.setResetGrant(null);
               flow.setChallenge(null);
-              toast.success('رمز عبور تغییر کرد', {
-                description: 'اکنون وارد حساب شوید.',
-              });
-              void navigate('/login', { replace: true });
+              onSuccess();
             },
             onError: (error) =>
               applyAuthFieldErrors(error, form.setError, [
