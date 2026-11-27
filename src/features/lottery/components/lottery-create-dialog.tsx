@@ -169,6 +169,7 @@ export function LotteryCreateDialog({
           icon={<LoaderPinwheel className="size-6" />}
           title="قرعه‌کشی جدید"
           description="گزینه‌ها و نوع قرعه‌کشی را تنظیم کنید"
+          tone="primary"
           onClose={() => handleOpenChange(false)}
         />
 

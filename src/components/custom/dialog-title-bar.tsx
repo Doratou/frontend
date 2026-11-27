@@ -5,6 +5,12 @@ import { DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
 const TONES = {
+  primary: {
+    header: 'border-primary-20 bg-primary-10',
+    icon: 'bg-primary-70',
+    title: 'text-primary-80',
+    description: 'text-neutral-60',
+  },
   secondary: {
     header: 'border-secondary-20 bg-secondary-10',
     icon: 'bg-secondary-70',
@@ -59,7 +65,9 @@ export function DialogTitleBar({
             {title}
           </DialogTitle>
           {description && (
-            <DialogDescription className={cn('text-caption', classes.description)}>
+            <DialogDescription
+              className={cn('text-caption', classes.description)}
+            >
               {description}
             </DialogDescription>
           )}

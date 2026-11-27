@@ -1,6 +1,5 @@
 import { useId, useState } from 'react';
 import { Check, ChevronDown, Users } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { OptionAvatar } from '@/features/lottery/components/option-avatar';
 import type { LotteryMember } from '@/features/lottery/types';
@@ -40,26 +39,22 @@ export function CreateMembersPicker({
             اعضای انتخاب‌شده به‌عنوان گزینه به گردونه اضافه می‌شوند
           </p>
         </div>
-        {/* TODO: confirm with design whether this is a collapse toggle or a source filter. */}
-        <Button
-          variant="outline"
-          tone="secondary"
-          radius="md"
+        <button
+          type="button"
           aria-expanded={isExpanded}
           aria-controls={panelId}
-          className="shrink-0"
           onClick={() => setIsExpanded((value) => !value)}
-          endIcon={
-            <ChevronDown
-              className={cn(
-                'size-4 transition-transform motion-reduce:transition-none',
-                isExpanded && 'rotate-180',
-              )}
-            />
-          }
+          className="flex shrink-0 items-center gap-2 rounded-lg border border-secondary-60 px-3 py-1.5 text-caption text-secondary-foreground outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           اعضای اکیپ
-        </Button>
+          <ChevronDown
+            aria-hidden="true"
+            className={cn(
+              'size-4 transition-transform motion-reduce:transition-none',
+              isExpanded && 'rotate-180',
+            )}
+          />
+        </button>
       </div>
 
       {isExpanded && status !== 'success' && (
@@ -93,7 +88,7 @@ export function CreateMembersPicker({
                     : undefined
                 }
                 onClick={onToggleAll}
-                className="flex items-center gap-2 rounded-full border border-dashed border-secondary-60 px-3 py-1.5 text-paragraph-sm text-secondary-foreground outline-none transition-colors hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex items-center gap-2 rounded-full border border-dashed border-secondary-60 px-3 py-1.5 text-paragraph-sm text-secondary-foreground transition-colors outline-none hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Users className="size-4" aria-hidden="true" />
                 {allSelected ? 'برداشتن همه' : 'انتخاب همه'}
@@ -109,7 +104,7 @@ export function CreateMembersPicker({
                   aria-pressed={selected}
                   disabled={isFull && !selected}
                   onClick={() => onToggle(member)}
-                  className="flex items-center gap-2 rounded-full border py-1 ps-1 pe-3 text-paragraph-sm outline-none transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50 aria-pressed:border-secondary-60 aria-pressed:bg-secondary aria-pressed:text-secondary-foreground"
+                  className="flex items-center gap-2 rounded-full border py-1 ps-1 pe-3 text-paragraph-sm transition-colors outline-none hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50 aria-pressed:border-secondary-60 aria-pressed:bg-secondary aria-pressed:text-secondary-foreground"
                 >
                   <OptionAvatar member={member} size="xs" />
                   {member.name}

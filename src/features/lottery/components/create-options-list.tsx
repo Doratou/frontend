@@ -96,8 +96,7 @@ export function CreateOptionsList({
                     {row.label}
                   </span>
                   {isAuto && (
-                    <span className="shrink-0 text-caption text-muted-foreground">
-                      خودکار
+                    <span className="shrink-0 text-caption text-muted-foreground">  
                     </span>
                   )}
                   {isWeighted && (
