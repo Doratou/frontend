@@ -1,7 +1,8 @@
 export const pollKeys = {
   all: ['polls'] as const,
-  lists: () => [...pollKeys.all, 'list'] as const,
-  list: (groupId: string) => [...pollKeys.lists(), groupId] as const,
-  detail: (pollId: string) => [...pollKeys.all, 'detail', pollId] as const,
-  voters: (pollId: string) => [...pollKeys.all, 'voters', pollId] as const,
+  // Everything cached for one group; invalidate this after any poll write.
+  group: (groupId: string) => [...pollKeys.all, groupId] as const,
+  list: (groupId: string) => [...pollKeys.group(groupId), 'list'] as const,
+  voters: (groupId: string, pollId: string) =>
+    [...pollKeys.group(groupId), 'voters', pollId] as const,
 };

@@ -15,10 +15,10 @@ export interface Poll {
   createdByMemberId: string;
   /** True while the group is inactive: reads work, every write is rejected. */
   isFrozen: boolean;
-  /** Epoch milliseconds. */
-  createdAt: number;
-  /** Epoch milliseconds; null while the poll is active. */
-  closedAt: number | null;
+  /** ISO 8601 UTC timestamp, exactly as the API returns it. */
+  createdAt: string;
+  /** ISO 8601 UTC timestamp; null while the poll is active. */
+  closedAt: string | null;
   /** Option ids the current user voted for; empty when they have not voted. */
   votedOptionIds: string[];
   /** Sum of active selections (a person choosing two options counts twice). */
@@ -35,8 +35,8 @@ export interface PollVoter {
   name: string;
   /** Resolve with useAttachmentUrl; null when the user has no profile picture. */
   avatarAttachmentId: string | null;
-  /** Epoch milliseconds. */
-  votedAt: number;
+  /** ISO 8601 UTC timestamp of the latest vote write. */
+  votedAt: string;
 }
 
 export interface PollOptionVoters {

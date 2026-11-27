@@ -12,7 +12,9 @@ export function useClosePoll(groupId: string) {
     mutationFn: (pollId: string) => closePoll({ groupId, pollId }),
     onSuccess: () => {
       toast.success('نظرسنجی پایان یافت');
-      void queryClient.invalidateQueries({ queryKey: pollKeys.all });
+      void queryClient.invalidateQueries({
+        queryKey: pollKeys.group(groupId),
+      });
     },
     onError: (error) =>
       toast.error('پایان نظرسنجی انجام نشد', {
@@ -28,7 +30,9 @@ export function useDeletePoll(groupId: string) {
     mutationFn: (pollId: string) => deletePoll({ groupId, pollId }),
     onSuccess: () => {
       toast.success('نظرسنجی حذف شد');
-      void queryClient.invalidateQueries({ queryKey: pollKeys.all });
+      void queryClient.invalidateQueries({
+        queryKey: pollKeys.group(groupId),
+      });
     },
     onError: (error) =>
       toast.error('حذف نظرسنجی انجام نشد', {

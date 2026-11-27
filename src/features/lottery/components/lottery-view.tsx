@@ -14,7 +14,7 @@ import { useActiveLottery } from '@/features/lottery/hooks/use-active-lottery';
 import { useGroupMembers } from '@/features/lottery/hooks/use-group-members';
 import { useLotteryDetail } from '@/features/lottery/hooks/use-lottery-detail';
 import { useLotteryDraftBuilder } from '@/features/lottery/hooks/use-lottery-draft-builder';
-import { useLotteryGroupId } from '@/features/lottery/hooks/use-lottery-group-id';
+import { useGroupId } from '@/features/groups/hooks/use-group-id';
 import { useLotteryHistory } from '@/features/lottery/hooks/use-lottery-history';
 import { useUserProfiles } from '@/features/lottery/hooks/use-user-profiles';
 import type { Lottery, LotteryMember } from '@/features/lottery/types';
@@ -43,13 +43,7 @@ export function LotteryView({
   initialDraft = null,
   onCreatedFromDraft,
 }: LotteryViewProps) {
-  const groupId = useLotteryGroupId();
-
-  if (groupId === null) {
-    return (
-      <ErrorState error={new Error('Missing group id')} title="اکیپ پیدا نشد" />
-    );
-  }
+  const groupId = useGroupId();
   return (
     <LotteryContent
       groupId={groupId}
