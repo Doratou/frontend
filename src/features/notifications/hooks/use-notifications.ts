@@ -99,6 +99,7 @@ export function mergeSyncedNotificationsIntoCache(
 
     const matchingIds = new Set(matching.map((item) => item.id));
     const [firstPage, ...restPages] = old.pages;
+    if (!firstPage) continue;
     const dedupedFirstItems = firstPage.items.filter(
       (item) => !matchingIds.has(item.id),
     );

@@ -58,7 +58,7 @@ export function groupNotificationsByDate(
   const todayStart = startOfLocalDay(now);
   const currentYear = now.getFullYear();
   const groups: NotificationDateGroup[] = [];
-  const groupIndexByKey = new Map<string, number>();
+  const groupByKey = new Map<string, NotificationDateGroup>();
 
   for (const item of items) {
     const date = new Date(item.createdAt);
@@ -86,12 +86,18 @@ export function groupNotificationsByDate(
       }
     }
 
-    const existingIndex = groupIndexByKey.get(key);
-    if (existingIndex !== undefined) {
-      groups[existingIndex].items.push(item);
+    const existingGroup = groupByKey.get(key);
+    if (existingGroup) {
+      existingGroup.items.push(item);
     } else {
-      groupIndexByKey.set(key, groups.length);
-      groups.push({ key, label, isToday, items: [item] });
+      const nextGroup: NotificationDateGroup = {
+        key,
+        label,
+        isToday,
+        items: [item],
+      };
+      groupByKey.set(key, nextGroup);
+      groups.push(nextGroup);
     }
   }
 
