@@ -114,7 +114,9 @@ export function LotteryDetailsDialog({
                 <h3 className="text-heading-mobile-5">
                   همه‌ی گزینه‌ها و شانس‌شان
                 </h3>
-                <ValueChip>{toPersianNumber(entry.optionCount)} گزینه</ValueChip>
+                <ValueChip>
+                  {toPersianNumber(entry.optionCount)} گزینه
+                </ValueChip>
               </div>
 
               {isLoading && (

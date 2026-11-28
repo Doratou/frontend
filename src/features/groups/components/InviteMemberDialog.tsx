@@ -1,12 +1,5 @@
 import { useState } from 'react';
-import {
-  ArrowLeft,
-  Check,
-  Search,
-  UserPlus,
-  Users,
-  X,
-} from 'lucide-react';
+import { ArrowLeft, Check, Search, UserPlus, Users, X } from 'lucide-react';
 import { LoadingButton } from '@/components/custom/loading-button';
 import { TextField } from '@/components/custom/text-field';
 import { Button } from '@/components/ui/button';

@@ -105,7 +105,9 @@ function ProfilePasswordDialogBody({
   if (isSucceeded) {
     return (
       <div className="p-4">
-        <DialogTitle className="sr-only">رمز عبور با موفقیت تغییر کرد</DialogTitle>
+        <DialogTitle className="sr-only">
+          رمز عبور با موفقیت تغییر کرد
+        </DialogTitle>
         <DialogDescription className="sr-only">
           رمز عبور حساب کاربری شما به‌روزرسانی شد.
         </DialogDescription>

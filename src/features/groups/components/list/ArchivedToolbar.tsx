@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { Popover } from '@base-ui/react/popover';
 import {
   ArrowUpDown,
@@ -226,6 +226,81 @@ function FilterPanelContent({
   );
 }
 
+interface SwipeableBottomSheetProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  className?: string;
+  children: ReactNode;
+}
+
+function SwipeableBottomSheet({
+  open,
+  onOpenChange,
+  className,
+  children,
+}: SwipeableBottomSheetProps) {
+  const [dragY, setDragY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const startYRef = useRef<number | null>(null);
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    setDragY(0);
+    setIsDragging(false);
+    startYRef.current = null;
+    onOpenChange(nextOpen);
+  };
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    startYRef.current = event.clientY;
+    setIsDragging(true);
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (startYRef.current === null) return;
+    const delta = Math.max(0, event.clientY - startYRef.current);
+    setDragY(delta);
+  };
+
+  const finishDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (startYRef.current === null) return;
+    const delta = Math.max(0, event.clientY - startYRef.current);
+    startYRef.current = null;
+    setIsDragging(false);
+    setDragY(0);
+    if (delta > 64) {
+      onOpenChange(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent
+        style={{
+          transform: dragY > 0 ? `translateY(${dragY}px)` : undefined,
+          transition: isDragging ? 'none' : 'transform 180ms ease-out',
+        }}
+        className={cn(
+          'top-auto right-0 bottom-0 left-0 w-full max-w-none translate-x-0 translate-y-0 rounded-t-3xl rounded-b-none p-5',
+          className,
+        )}
+      >
+        <div
+          aria-hidden="true"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={finishDrag}
+          onPointerCancel={finishDrag}
+          className="-mx-5 -mt-5 mb-2 flex cursor-grab touch-none justify-center pt-3 pb-2 active:cursor-grabbing"
+        >
+          <span className="h-1.5 w-11 rounded-full bg-primary-20" />
+        </div>
+        {children}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function ArchivedToolbar({
   visibleCount,
   totalFilteredCount,
@@ -295,26 +370,24 @@ export function ArchivedToolbar({
                 )}
               </button>
 
-              <Dialog open={filterOpen} onOpenChange={handleOpenChange}>
-                <DialogContent className="top-auto right-0 bottom-0 left-0 max-h-[85dvh] w-full max-w-none translate-x-0 translate-y-0 rounded-t-3xl rounded-b-none p-5">
-                  <DialogTitle className="sr-only">
-                    فیلتر اکیپ‌های آرشیو
-                  </DialogTitle>
-                  <div
-                    aria-hidden="true"
-                    className="mx-auto mb-3 h-1 w-10 rounded-full bg-primary-20"
-                  />
-                  <FilterPanelContent
-                    draft={draft}
-                    setDraft={setDraft}
-                    availableYears={availableYears}
-                    onApply={handleApply}
-                    onCancel={() => setFilterOpen(false)}
-                    onClearDraft={handleClearDraft}
-                    showCloseButton
-                  />
-                </DialogContent>
-              </Dialog>
+              <SwipeableBottomSheet
+                open={filterOpen}
+                onOpenChange={handleOpenChange}
+                className="max-h-[85dvh]"
+              >
+                <DialogTitle className="sr-only">
+                  فیلتر اکیپ‌های آرشیو
+                </DialogTitle>
+                <FilterPanelContent
+                  draft={draft}
+                  setDraft={setDraft}
+                  availableYears={availableYears}
+                  onApply={handleApply}
+                  onCancel={() => setFilterOpen(false)}
+                  onClearDraft={handleClearDraft}
+                  showCloseButton
+                />
+              </SwipeableBottomSheet>
             </>
           ) : (
             <Popover.Root open={filterOpen} onOpenChange={handleOpenChange}>
@@ -368,62 +441,60 @@ export function ArchivedToolbar({
                 <ChevronDown className="size-4 shrink-0 text-neutral-50" />
               </button>
 
-              <Dialog open={sortSheetOpen} onOpenChange={setSortSheetOpen}>
-                <DialogContent className="top-auto right-0 bottom-0 left-0 max-h-[80dvh] w-full max-w-none translate-x-0 translate-y-0 rounded-t-3xl rounded-b-none p-5">
-                  <div
-                    aria-hidden="true"
-                    className="mx-auto mb-3 h-1 w-10 rounded-full bg-primary-20"
-                  />
-                  <div className="flex items-center justify-between pb-3">
-                    <DialogTitle className="text-heading-6 text-primary-80">
-                      مرتب‌سازی بر اساس
-                    </DialogTitle>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon-md"
-                      radius="lg"
-                      aria-label="بستن"
-                      onClick={() => setSortSheetOpen(false)}
-                      className="size-8 border-neutral-30 text-neutral-70"
-                    >
-                      <X className="size-4" />
-                    </Button>
-                  </div>
+              <SwipeableBottomSheet
+                open={sortSheetOpen}
+                onOpenChange={setSortSheetOpen}
+                className="max-h-[80dvh]"
+              >
+                <div className="flex items-center justify-between pb-3">
+                  <DialogTitle className="text-heading-6 text-primary-80">
+                    مرتب‌سازی بر اساس
+                  </DialogTitle>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon-md"
+                    radius="lg"
+                    aria-label="بستن"
+                    onClick={() => setSortSheetOpen(false)}
+                    className="size-8 border-neutral-30 text-neutral-70"
+                  >
+                    <X className="size-4" />
+                  </Button>
+                </div>
 
-                  <div className="flex flex-col gap-1">
-                    {(Object.keys(SORT_LABELS) as ArchivedSortOption[]).map(
-                      (option) => {
-                        const selected = sortBy === option;
-                        return (
-                          <button
-                            key={option}
-                            type="button"
-                            onClick={() => {
-                              onSortChange(option);
-                              setSortSheetOpen(false);
-                            }}
-                            className={cn(
-                              'flex h-11 w-full cursor-pointer items-center justify-between rounded-xl px-3.5 text-button-sm transition-colors',
-                              selected
-                                ? 'bg-primary-10 font-medium text-primary-80'
-                                : 'text-neutral-70 hover:bg-neutral-10',
-                            )}
-                          >
-                            <span>{SORT_LABELS[option]}</span>
-                            {selected && (
-                              <Check
-                                className="size-4 text-primary-70"
-                                aria-hidden="true"
-                              />
-                            )}
-                          </button>
-                        );
-                      },
-                    )}
-                  </div>
-                </DialogContent>
-              </Dialog>
+                <div className="flex flex-col gap-1">
+                  {(Object.keys(SORT_LABELS) as ArchivedSortOption[]).map(
+                    (option) => {
+                      const selected = sortBy === option;
+                      return (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => {
+                            onSortChange(option);
+                            setSortSheetOpen(false);
+                          }}
+                          className={cn(
+                            'flex h-11 w-full cursor-pointer items-center justify-between rounded-xl px-3.5 text-button-sm transition-colors',
+                            selected
+                              ? 'bg-primary-10 font-medium text-primary-80'
+                              : 'text-neutral-70 hover:bg-neutral-10',
+                          )}
+                        >
+                          <span>{SORT_LABELS[option]}</span>
+                          {selected && (
+                            <Check
+                              className="size-4 text-primary-70"
+                              aria-hidden="true"
+                            />
+                          )}
+                        </button>
+                      );
+                    },
+                  )}
+                </div>
+              </SwipeableBottomSheet>
             </>
           ) : (
             <DropdownMenu>

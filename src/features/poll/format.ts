@@ -12,7 +12,9 @@ export function formatPollPeriod(
   closedAt: string | null,
 ): string {
   const start = formatPersianDayMonth(createdAt);
-  return closedAt === null ? start : `${start} تا ${formatPersianDayMonth(closedAt)}`;
+  return closedAt === null
+    ? start
+    : `${start} تا ${formatPersianDayMonth(closedAt)}`;
 }
 
 /** Day, month and clock time of a vote, in Tehran time. */

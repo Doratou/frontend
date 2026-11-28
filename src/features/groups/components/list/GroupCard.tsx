@@ -4,7 +4,6 @@ import {
   BookHeart,
   Calendar,
   Crown,
-  Ellipsis,
   Leaf,
   ReceiptText,
   User,
@@ -13,12 +12,6 @@ import {
   Wallet,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { useGroupMembers } from '@/features/groups/api/get-group-members';
 import { GROUP_HEADER_ASSETS } from '@/features/groups/components/groupHeaderAssets';
 import { GroupMemberStack } from '@/features/groups/components/MemberAvatar';
@@ -58,7 +51,16 @@ export function GroupCard({
       : (fetchedMembers ?? []).map((member) => ({
           id: member.userId,
           name: member.name,
+          avatarAttachmentId: member.avatarAttachmentId ?? null,
+          avatarSrc: member.avatarSrc,
         }));
+
+  const creatorMember =
+    (group.createdByUserId
+      ? fetchedMembers?.find((m) => m.userId === group.createdByUserId)
+      : undefined) ??
+    fetchedMembers?.find((m) => m.role.toUpperCase() === 'OWNER');
+  const creatorName = creatorMember?.name?.trim() || group.creator.name;
 
   return (
     <article
@@ -72,7 +74,7 @@ export function GroupCard({
       )}
     >
       {/* Top Banner */}
-      <div className="relative h-30 w-full overflow-hidden bg-primary-10 sm:h-36">
+      <div className="relative h-24 w-full overflow-hidden bg-primary-10 sm:h-36">
         <img
           src={group.bannerSrc ?? GROUP_HEADER_ASSETS.banner}
           alt=""
@@ -126,38 +128,13 @@ export function GroupCard({
             </span>
           )}
         </div>
-
-        {/* More Menu Button (Left in RTL) */}
-        <div className="absolute top-3 left-3 z-10">
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              aria-label={`گزینه‌های بیشتر ${group.title}`}
-              className={cn(
-                'grid size-8 cursor-pointer place-items-center rounded-xl border bg-white/95 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-60',
-                group.status === 'ACTIVE'
-                  ? 'border-secondary-60 text-secondary-70 hover:bg-secondary-10'
-                  : isSettling
-                    ? 'border-info-40 text-info-50 hover:bg-info-10'
-                    : 'border-primary-30 text-primary-70 hover:bg-primary-10',
-              )}
-            >
-              <Ellipsis className="size-4" aria-hidden="true" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => onEnterGroup(group)}>
-                <ArrowLeft className="size-4 text-primary-60" />
-                <span>ورود به اکیپ</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
       </div>
 
       {/* Body */}
-      <div className="relative flex flex-1 flex-col gap-3 px-4 pt-3 pb-4">
+      <div className="relative flex flex-1 flex-col gap-2.5 px-3 pt-2.5 pb-3 sm:gap-3 sm:px-4 sm:pt-3 sm:pb-4">
         {/* Header Row: Overlapping Photo on Right + Title/Desc */}
-        <div className="flex items-start gap-3">
-          <div className="-mt-11 grid size-21 shrink-0 place-items-center overflow-hidden rounded-2xl border-2 border-primary-30 bg-white p-0.5 shadow-sm">
+        <div className="flex items-start gap-2.5 sm:gap-3">
+          <div className="-mt-8 grid size-16 shrink-0 place-items-center overflow-hidden rounded-2xl border-2 border-primary-30 bg-white p-0.5 shadow-sm sm:-mt-11 sm:size-21 lg:-mt-13 lg:size-24">
             {photoSrc ? (
               <img
                 src={photoSrc}
@@ -171,7 +148,10 @@ export function GroupCard({
               />
             ) : (
               <div className="grid size-full place-items-center rounded-xl bg-linear-to-br from-primary-10 to-secondary-10 text-primary-60">
-                <Users className="size-8 stroke-[1.6]" aria-hidden="true" />
+                <Users
+                  className="size-8 stroke-[1.6] lg:size-9"
+                  aria-hidden="true"
+                />
               </div>
             )}
           </div>
@@ -228,16 +208,16 @@ export function GroupCard({
         )}
 
         {/* Action Button(s) */}
-        <div className="mt-auto pt-1">
+        <div className="mt-auto pt-0.5 sm:pt-1">
           {group.status === 'ACTIVE' && (
             <Button
               type="button"
               tone="secondary"
-              size="lg"
+              size="md"
               radius="lg"
               onClick={() => onEnterGroup(group)}
               endIcon={<ArrowLeft className="size-4" aria-hidden="true" />}
-              className="w-full justify-center bg-secondary-70 hover:bg-secondary-80"
+              className="h-9.5 w-full justify-center bg-secondary-70 text-button-sm hover:bg-secondary-80 sm:h-10"
             >
               ورود به اکیپ
             </Button>
@@ -246,18 +226,18 @@ export function GroupCard({
           {group.status === 'SETTLING' && (
             <Button
               type="button"
-              size="lg"
+              size="md"
               radius="lg"
               onClick={() => onPayDebts(group)}
               startIcon={<ReceiptText className="size-4" aria-hidden="true" />}
-              className="w-full justify-center bg-info-50 text-white hover:bg-info-60 active:bg-info-60"
+              className="h-9.5 w-full justify-center bg-info-50 text-button-sm text-white hover:bg-info-60 active:bg-info-60 sm:h-10"
             >
               پرداخت دنگ‌ها
             </Button>
           )}
 
           {group.status === 'ARCHIVED' && (
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
               <Button
                 type="button"
                 tone="primary"
@@ -265,7 +245,7 @@ export function GroupCard({
                 radius="lg"
                 onClick={() => onReviewMemories(group)}
                 startIcon={<BookHeart className="size-4" aria-hidden="true" />}
-                className="h-10.5 w-full justify-center gap-1.5 px-2.5 text-button-sm sm:gap-2.5 sm:px-3 sm:text-button-md"
+                className="h-9.5 w-full justify-center gap-1.5 px-2 text-button-sm sm:h-10 sm:gap-2 sm:px-3"
               >
                 مرور خاطرات
               </Button>
@@ -277,7 +257,7 @@ export function GroupCard({
                 radius="lg"
                 onClick={() => onCreateSimilar(group)}
                 startIcon={<UserPlus className="size-4" aria-hidden="true" />}
-                className="h-10.5 w-full justify-center gap-1.5 border-secondary-60 px-2.5 text-button-sm text-secondary-70 hover:bg-secondary-10 sm:gap-2.5 sm:px-3 sm:text-button-md"
+                className="h-9.5 w-full justify-center gap-1.5 border-secondary-60 px-2 text-button-sm text-secondary-70 hover:bg-secondary-10 sm:h-10 sm:gap-2 sm:px-3"
               >
                 <span className="sm:hidden">اکیپ مشابه</span>
                 <span className="hidden sm:inline">ساخت اکیپ مشابه</span>
@@ -289,25 +269,17 @@ export function GroupCard({
 
       {/* Footer Meta Strip */}
       <footer className="flex flex-col border-t border-neutral-20 bg-primary-10/70 text-caption text-primary-70 sm:flex-row sm:items-center">
-        <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5 px-3 py-2">
+        <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5 px-3 py-1.5 sm:py-2">
           <Calendar className="size-3.5 shrink-0" aria-hidden="true" />
           <span className="truncate font-medium">{group.dateRangeLabel}</span>
         </div>
 
         <div className="h-px w-full shrink-0 bg-neutral-20 sm:h-8 sm:w-px" />
 
-        <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5 px-3 py-2">
+        <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5 px-3 py-1.5 sm:py-2">
           <User className="size-3.5 shrink-0" aria-hidden="true" />
           <span className="shrink-0 text-neutral-60">ایجاد شده توسط</span>
-          {group.creator.avatarSrc && (
-            <img
-              src={group.creator.avatarSrc}
-              alt=""
-              draggable={false}
-              className="size-4 shrink-0 rounded-full object-cover"
-            />
-          )}
-          <span className="truncate font-medium">{group.creator.name}</span>
+          <span className="truncate font-medium">{creatorName}</span>
         </div>
       </footer>
     </article>

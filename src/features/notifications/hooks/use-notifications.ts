@@ -90,8 +90,7 @@ export function mergeSyncedNotificationsIntoCache(
   for (const [queryKey, old] of queries) {
     if (!old || old.pages.length === 0) continue;
     const filters = queryKey[2] as
-      | { status?: NotificationFilterStatus; groupId?: string }
-      | undefined;
+      { status?: NotificationFilterStatus; groupId?: string } | undefined;
     const matching = incomingDesc.filter((item) =>
       matchesListFilters(item, filters),
     );
@@ -178,10 +177,7 @@ export function useNotificationsInfiniteQuery(
   };
 }
 
-export function useUnreadNotificationsCount(
-  groupId?: string,
-  enabled = true,
-) {
+export function useUnreadNotificationsCount(groupId?: string, enabled = true) {
   return useQuery({
     queryKey: notificationKeys.unreadCount(groupId),
     queryFn: ({ signal }) => getUnreadNotificationsCount(groupId, signal),
@@ -213,10 +209,7 @@ export function useMarkAllNotificationsRead() {
       toast.success('همه اعلانات به‌عنوان خوانده‌شده علامت‌گذاری شدند.');
     },
     onError: (error) => {
-      showNotificationError(
-        error,
-        'علامت‌گذاری همه اعلانات انجام نشد.',
-      );
+      showNotificationError(error, 'علامت‌گذاری همه اعلانات انجام نشد.');
     },
   });
 }

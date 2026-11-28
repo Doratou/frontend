@@ -69,7 +69,9 @@ export function getUnreadNotificationsCount(
         signal,
       },
     );
-    return mapUnreadCountDto(parseEnvelope(response.data, unreadCountDtoSchema));
+    return mapUnreadCountDto(
+      parseEnvelope(response.data, unreadCountDtoSchema),
+    );
   });
 }
 

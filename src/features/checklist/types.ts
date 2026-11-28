@@ -2,11 +2,7 @@ export type ChecklistItemType = 'GROUP' | 'PERSONAL';
 
 // Tab values double as GET filter names, except that "all" is split into sections.
 export type ChecklistTab =
-  | 'all'
-  | 'claimed'
-  | 'unclaimed'
-  | 'mine'
-  | 'personal';
+  'all' | 'claimed' | 'unclaimed' | 'mine' | 'personal';
 
 export type ChecklistSectionKey = Exclude<ChecklistTab, 'all'>;
 

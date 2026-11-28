@@ -35,7 +35,7 @@ import {
 import { GroupCard } from './GroupCard';
 import { GroupInvitationCard } from './GroupInvitationCard';
 
-const ARCHIVED_PAGE_SIZE = 4;
+const ARCHIVED_PAGE_SIZE = 6;
 
 interface SectionHeaderProps {
   dotClassName: string;
@@ -122,6 +122,10 @@ export function GroupsView() {
   const allTotal = activeTotal + settlingTotal + archivedTotal;
 
   const hasMoreArchived = archivedGroups.length < archivedTotal;
+  const hasArchivedFilters =
+    archivedFilters.plan !== 'ALL' ||
+    archivedFilters.role !== 'ALL' ||
+    archivedFilters.year !== 'ALL';
 
   const availableYears = useMemo(() => {
     const baseYears = [1405, 1404, 1403];
@@ -242,17 +246,17 @@ export function GroupsView() {
   }
 
   return (
-    <div className="flex w-full flex-col gap-5 rounded-2xl border border-primary-70 bg-white p-3.5 sm:gap-6 sm:rounded-3xl sm:p-6">
+    <div className="@container flex w-full flex-col gap-5 rounded-2xl border border-primary-70 bg-white p-3.5 sm:gap-6 sm:rounded-3xl sm:p-6">
       {/* Top Action & Filter Tabs Bar */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <Button
           type="button"
           tone="primary"
-          size="lg"
+          size="md"
           radius="lg"
           onClick={handleOpenCreate}
           startIcon={<Plus className="size-4" aria-hidden="true" />}
-          className="w-full justify-center md:order-2 md:w-auto"
+          className="h-9.5 w-full justify-center text-button-sm md:order-2 md:h-10 md:w-auto md:px-4"
         >
           ایجاد اکیپ جدید
         </Button>
@@ -293,7 +297,7 @@ export function GroupsView() {
             title="دعوت‌های شما"
             countLabel={`${toPersianDigits(invitations.length)} دعوت`}
           />
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 @2xl:grid-cols-2">
             {invitations.map((invitation) => (
               <GroupInvitationCard
                 key={invitation.id}
@@ -315,7 +319,7 @@ export function GroupsView() {
             countLabel={`${toPersianDigits(activeTotal)} اکیپ`}
           />
           {activeGroups.length > 0 ? (
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 @2xl:grid-cols-2 @5xl:grid-cols-3">
               {activeGroups.map((group) => (
                 <GroupCard
                   key={group.id}
@@ -347,7 +351,7 @@ export function GroupsView() {
             countLabel={`${toPersianDigits(settlingTotal)} اکیپ`}
           />
           {settlingGroups.length > 0 ? (
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 @2xl:grid-cols-2 @5xl:grid-cols-3">
               {settlingGroups.map((group) => (
                 <GroupCard
                   key={group.id}
@@ -395,7 +399,7 @@ export function GroupsView() {
             <>
               <div
                 className={cn(
-                  'grid grid-cols-1 gap-4 transition-opacity lg:grid-cols-2',
+                  'grid grid-cols-1 gap-4 transition-opacity @2xl:grid-cols-2 @5xl:grid-cols-3',
                   isArchivedUpdating && 'opacity-60',
                 )}
               >
@@ -435,8 +439,16 @@ export function GroupsView() {
           ) : (
             <EmptyState
               icon={<Users className="size-6" aria-hidden="true" />}
-              title="اکیپی با این فیلترها پیدا نشد"
-              description="فیلترهای انتخاب‌شده را تغییر دهید یا پاک کنید."
+              title={
+                hasArchivedFilters
+                  ? 'اکیپی با این فیلترها پیدا نشد'
+                  : 'هنوز اکیپ آرشیو شده‌ای ندارید'
+              }
+              description={
+                hasArchivedFilters
+                  ? 'فیلترهای انتخاب‌شده را تغییر دهید یا پاک کنید.'
+                  : 'اکیپ‌هایی که به پایان برسند و تسویه شوند به این بخش منتقل می‌شوند.'
+              }
             />
           )}
         </section>

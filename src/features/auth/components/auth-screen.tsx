@@ -88,7 +88,10 @@ function AuthScreen({ view }: { view: AuthView }) {
               variant="link"
               className="min-h-11 text-button-md font-bold text-primary-60 hover:text-primary-70 dark:text-primary-30"
             >
-              <Link to={isChangeView ? '/home' : '/login'} replace={!isChangeView}>
+              <Link
+                to={isChangeView ? '/home' : '/login'}
+                replace={!isChangeView}
+              >
                 {isChangeView ? 'بازگشت به صفحه اصلی' : 'بازگشت به صفحه ورود'}
               </Link>
             </Button>
