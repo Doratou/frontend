@@ -5,10 +5,10 @@ import {
 } from '@tanstack/react-query';
 import type { GroupItem } from '@/features/groups/types';
 import { apiClient } from '@/lib/api/client';
+import { unwrapEnvelope } from '@/lib/api/envelope';
 import {
   groupListResponseSchema,
   mapGroupDtoToItem,
-  unwrapGroupEnvelope,
   type BackendSortBy,
 } from './contracts';
 import { groupKeys } from './query-keys';
@@ -38,9 +38,7 @@ export async function getGroups(
     params,
     signal,
   });
-  const parsed = groupListResponseSchema.parse(
-    unwrapGroupEnvelope(response.data),
-  );
+  const parsed = unwrapEnvelope(response.data, groupListResponseSchema);
   return {
     items: parsed.items.map(mapGroupDtoToItem),
     total: parsed.pagination.total,

@@ -11,7 +11,7 @@ import {
   LOTTERY_TITLE_MAX_LENGTH,
 } from '@/features/lottery/config';
 import { emptyLotteryDraft, type LotteryDraft } from '@/features/lottery/draft';
-import { toPersianNumber } from '@/features/lottery/format';
+import { formatNumber } from '@/utils/format';
 import { useCreateLottery } from '@/features/lottery/hooks/use-create-lottery';
 import { CreateCustomOption } from '@/features/lottery/components/create-custom-option';
 import { CreateMembersPicker } from '@/features/lottery/components/create-members-picker';
@@ -126,7 +126,7 @@ export function LotteryCreateDialog({
 
   const addCustomOption = (label: string): string | null => {
     if (options.length >= LOTTERY_MAX_OPTIONS) {
-      return `حداکثر ${toPersianNumber(LOTTERY_MAX_OPTIONS)} گزینه مجاز است.`;
+      return `حداکثر ${formatNumber(LOTTERY_MAX_OPTIONS)} گزینه مجاز است.`;
     }
     const exists = options.some(
       (option) => option.label.trim().toLowerCase() === label.toLowerCase(),

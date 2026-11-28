@@ -1,6 +1,5 @@
 import axios from 'axios';
-import { z } from 'zod';
-import { ApiError } from '@/lib/api/error';
+import { ApiError, extractApiErrorCode } from '@/lib/api/error';
 
 const messages: Readonly<Record<string, string>> = {
   GROUP_INVALID_ID: 'شناسه اکیپ معتبر نیست.',
@@ -49,8 +48,6 @@ const statusFallbacks: Readonly<Partial<Record<number, string>>> = {
   415: 'فرمت فایل انتخاب‌شده پشتیبانی نمی‌شود.',
 };
 
-const errorBodySchema = z.object({ code: z.string() });
-
 export class GroupError extends ApiError {
   readonly code: string;
 
@@ -70,14 +67,10 @@ export function toGroupError(error: unknown): Error {
   if (!(error instanceof ApiError)) {
     return error instanceof Error ? error : new Error(String(error));
   }
-  const body = axios.isAxiosError(error.cause)
-    ? errorBodySchema.safeParse(error.cause.response?.data)
-    : null;
-  if (body?.success) {
-    const mapped = messages[body.data.code];
-    if (mapped !== undefined) {
-      return new GroupError(body.data.code, mapped, error.status, error.cause);
-    }
+  const code = extractApiErrorCode(error);
+  const mapped = code ? messages[code] : undefined;
+  if (code && mapped !== undefined) {
+    return new GroupError(code, mapped, error.status, error.cause);
   }
   const statusFallback =
     error.status !== undefined ? statusFallbacks[error.status] : undefined;

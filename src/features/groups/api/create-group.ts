@@ -1,11 +1,8 @@
-import { z } from 'zod';
 import type { GroupItem } from '@/features/groups/types';
+import { uploadAttachment } from '@/lib/api/attachments';
 import { apiClient } from '@/lib/api/client';
-import {
-  mapGroupDtoToItem,
-  singleGroupResponseSchema,
-  unwrapGroupEnvelope,
-} from './contracts';
+import { unwrapEnvelope } from '@/lib/api/envelope';
+import { mapGroupDtoToItem, singleGroupResponseSchema } from './contracts';
 
 export interface CreateGroupInput {
   title: string;
@@ -18,32 +15,6 @@ export interface CloneGroupInput {
   sourceGroupId: string;
   title: string;
   description?: string;
-}
-
-const uploadedAttachmentSchema = z.object({
-  id: z.number().int().positive(),
-});
-
-async function uploadGroupCover(
-  groupId: string,
-  file: File,
-  signal?: AbortSignal,
-): Promise<number> {
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('group_id', groupId);
-  formData.append('type', 'GROUP_COVER');
-  formData.append('is_public', 'true');
-
-  const response = await apiClient.post<unknown>(
-    '/attachments/upload',
-    formData,
-    {
-      signal,
-      headers: { 'Content-Type': 'multipart/form-data' },
-    },
-  );
-  return uploadedAttachmentSchema.parse(unwrapGroupEnvelope(response.data)).id;
 }
 
 async function updateGroupCover(
@@ -93,12 +64,20 @@ export async function createGroup(
   );
 
   const created = mapGroupDtoToItem(
-    singleGroupResponseSchema.parse(unwrapGroupEnvelope(response.data)),
+    unwrapEnvelope(response.data, singleGroupResponseSchema),
   );
 
   if (coverFile) {
-    const attachmentId = await uploadGroupCover(created.id, coverFile, signal);
-    await updateGroupCover(created.id, attachmentId, signal);
+    const uploaded = await uploadAttachment(
+      {
+        file: coverFile,
+        type: 'GROUP_COVER',
+        isPublic: true,
+        groupId: created.id,
+      },
+      signal,
+    );
+    await updateGroupCover(created.id, uploaded.id, signal);
   }
 
   if (invitedUserIds && invitedUserIds.length > 0) {
@@ -121,6 +100,6 @@ export async function cloneGroup(
     { signal },
   );
   return mapGroupDtoToItem(
-    singleGroupResponseSchema.parse(unwrapGroupEnvelope(response.data)),
+    unwrapEnvelope(response.data, singleGroupResponseSchema),
   );
 }

@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
 import { CHECKLIST_TABS } from '@/features/checklist/config';
+import { checklistTabId } from '@/features/checklist/utils';
 import { formatNumber } from '@/utils/format';
 import type { ChecklistTab } from '@/features/checklist/types';
 
@@ -9,8 +10,6 @@ interface ChecklistTabsProps {
   onChange: (tab: ChecklistTab) => void;
   panelId: string;
 }
-
-export const checklistTabId = (tab: ChecklistTab) => `checklist-tab-${tab}`;
 
 export function ChecklistTabs({
   value,

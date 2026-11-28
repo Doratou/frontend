@@ -3,7 +3,8 @@ import { DialogTitleBar } from '@/components/custom/dialog-title-bar';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { formatPersianClock, formatPersianLongDate } from '@/lib/persian-date';
-import { formatChance, toPersianNumber } from '@/features/lottery/format';
+import { formatChance } from '@/features/lottery/format';
+import { formatNumber } from '@/utils/format';
 import { ModeBadge } from '@/features/lottery/components/lottery-badges';
 import { OptionAvatar } from '@/features/lottery/components/option-avatar';
 import type { LotteryMode, LotteryOption } from '@/features/lottery/types';
@@ -94,7 +95,7 @@ export function LotteryResultDialog({
               </span>
             )}
             <span className={CHIP_CLASS}>
-              {toPersianNumber(optionCount)} گزینه
+              {formatNumber(optionCount)} گزینه
             </span>
             <ModeBadge
               mode={mode}

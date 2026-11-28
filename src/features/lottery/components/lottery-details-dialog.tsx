@@ -6,7 +6,8 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { formatPersianClock, formatPersianLongDate } from '@/lib/persian-date';
-import { formatChance, toPersianNumber } from '@/features/lottery/format';
+import { formatChance } from '@/features/lottery/format';
+import { formatNumber } from '@/utils/format';
 import {
   ModeBadge,
   ValueChip,
@@ -66,7 +67,7 @@ export function LotteryDetailsDialog({
                 <ModeBadge mode={entry.mode} />
               </InfoTile>
               <InfoTile label="تعداد گزینه‌ها">
-                {toPersianNumber(entry.optionCount)} گزینه
+                {formatNumber(entry.optionCount)} گزینه
               </InfoTile>
               <InfoTile label="تاریخ">
                 <Calendar
@@ -114,9 +115,7 @@ export function LotteryDetailsDialog({
                 <h3 className="text-heading-mobile-5">
                   همه‌ی گزینه‌ها و شانس‌شان
                 </h3>
-                <ValueChip>
-                  {toPersianNumber(entry.optionCount)} گزینه
-                </ValueChip>
+                <ValueChip>{formatNumber(entry.optionCount)} گزینه</ValueChip>
               </div>
 
               {isLoading && (

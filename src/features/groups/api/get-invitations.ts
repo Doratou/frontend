@@ -1,11 +1,8 @@
 import { queryOptions, useQuery } from '@tanstack/react-query';
 import type { GroupInvitation } from '@/features/groups/types';
 import { apiClient } from '@/lib/api/client';
-import {
-  directInvitesResponseSchema,
-  mapDirectInviteDto,
-  unwrapGroupEnvelope,
-} from './contracts';
+import { unwrapEnvelope } from '@/lib/api/envelope';
+import { directInvitesResponseSchema, mapDirectInviteDto } from './contracts';
 import { groupKeys } from './query-keys';
 
 export async function getDirectInvites(
@@ -14,9 +11,7 @@ export async function getDirectInvites(
   const response = await apiClient.get<unknown>('/invites/direct/me', {
     signal,
   });
-  const parsed = directInvitesResponseSchema.parse(
-    unwrapGroupEnvelope(response.data),
-  );
+  const parsed = unwrapEnvelope(response.data, directInvitesResponseSchema);
   return parsed.items
     .filter((item) => item.status === 'PENDING')
     .map(mapDirectInviteDto);

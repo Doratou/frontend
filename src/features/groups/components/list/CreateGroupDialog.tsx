@@ -20,7 +20,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useFriends } from '@/features/groups/api/get-friends';
+import { useFriendsList } from '@/features/groups/hooks/use-group-settings';
 import { cn } from '@/lib/utils';
 
 const createGroupSchema = z.object({
@@ -161,7 +161,7 @@ function CreateGroupForm({
   const [friendSearch, setFriendSearch] = useState('');
 
   const { data: friends = [], isLoading: isFriendsLoading } =
-    useFriends(!isCloning);
+    useFriendsList(!isCloning);
 
   const {
     register,

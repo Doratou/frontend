@@ -2,7 +2,7 @@ import { useId } from 'react';
 import { Check, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useGroupId } from '@/features/groups/hooks/use-group-id';
+import { useGroupId } from '@/hooks/use-group-id';
 import { useToggleClaim } from '@/features/checklist/hooks/use-toggle-claim';
 import { ChecklistAssigneeChip } from './checklist-assignee-chip';
 import type { ChecklistItem } from '@/features/checklist/types';

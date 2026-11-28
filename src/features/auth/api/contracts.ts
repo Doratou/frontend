@@ -6,11 +6,6 @@ import type {
   SystemRole,
 } from '@/features/auth/types';
 
-export const authEnvelopeSchema = z.object({
-  success: z.literal(true),
-  data: z.unknown(),
-});
-
 export function parseDateToMs(
   val: string | number | undefined,
   fallbackMs: number = Date.now() + 3600 * 1000,

@@ -3,8 +3,8 @@ import type { FieldErrors, UseFormRegister } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { formatNumber } from '@/utils/format';
 import { LOTTERY_WEIGHT_TOTAL } from '@/features/lottery/config';
-import { toPersianNumber } from '@/features/lottery/format';
 import { getLastWeight } from '@/features/lottery/utils';
 import { OptionAvatar } from '@/features/lottery/components/option-avatar';
 import { ValueChip } from '@/features/lottery/components/lottery-badges';
@@ -57,7 +57,7 @@ export function CreateOptionsList({
       <div className="flex flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="text-heading-mobile-6">گزینه‌ها</h3>
-          <ValueChip>{toPersianNumber(rows.length)} گزینه</ValueChip>
+          <ValueChip>{formatNumber(rows.length)} گزینه</ValueChip>
           {isWeighted && (
             <span
               className={cn(
@@ -67,7 +67,7 @@ export function CreateOptionsList({
                   : 'border-destructive/40 bg-destructive/10 text-destructive',
               )}
             >
-              مجموع شانس: {toPersianNumber(total)}٪
+              مجموع شانس: {formatNumber(total)}٪
             </span>
           )}
         </div>

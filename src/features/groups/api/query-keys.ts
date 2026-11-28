@@ -15,8 +15,5 @@ export const groupKeys = {
     [...all, 'detail', groupId, 'cover-attachment'] as const,
   coverBlob: (attachmentId: string) =>
     [...all, 'cover-blob', attachmentId] as const,
-  // Matches attachmentKeys.detail so cached attachment URLs are shared across features.
-  attachmentUrl: (attachmentId: string) =>
-    ['attachments', 'detail', attachmentId] as const,
   friends: () => ['friends', 'list'] as const,
 };

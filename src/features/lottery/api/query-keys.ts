@@ -9,12 +9,3 @@ export const lotteryKeys = {
   history: (groupId: string) =>
     [...lotteryKeys.group(groupId), 'history'] as const,
 };
-
-// TODO: move both into the groups / users features once those own the requests.
-export const memberKeys = {
-  group: (groupId: string) => ['group-members', groupId] as const,
-};
-
-export const userKeys = {
-  profile: (userId: string) => ['users', 'profile', userId] as const,
-};

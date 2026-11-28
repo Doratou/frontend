@@ -1,6 +1,6 @@
 import { useGroupMembers } from '@/features/groups/api/get-group-members';
 import { useAuthStore } from '@/features/auth/stores/auth-store';
-import { useGroupId } from '@/features/groups/hooks/use-group-id';
+import { useGroupId } from '@/hooks/use-group-id';
 
 /**
  * The signed-in user's membership id in the current group, or null while it is

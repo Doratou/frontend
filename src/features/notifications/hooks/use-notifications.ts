@@ -12,7 +12,6 @@ import { toast } from '@/components/custom/toast';
 import { getApiErrorMessage } from '@/lib/api/error';
 import {
   deleteNotificationById,
-  getNotificationAttachmentUrl,
   getNotifications,
   getUnreadNotificationsCount,
   markNotificationsRead,
@@ -26,7 +25,6 @@ import type {
 } from '../types';
 
 const DEFAULT_PAGE_LIMIT = 20;
-const ATTACHMENT_URL_STALE_MS = 30 * 60_000;
 
 function showNotificationError(error: unknown, fallback: string) {
   if (axios.isCancel(error)) return;
@@ -251,15 +249,5 @@ export function useDeleteNotification() {
     onError: (error) => {
       showNotificationError(error, 'حذف اعلان انجام نشد.');
     },
-  });
-}
-
-export function useNotificationAttachmentUrl(attachmentId: string | null) {
-  return useQuery({
-    queryKey: notificationKeys.attachmentUrl(attachmentId ?? ''),
-    queryFn: ({ signal }) =>
-      getNotificationAttachmentUrl(attachmentId ?? '', signal),
-    enabled: Boolean(attachmentId),
-    staleTime: ATTACHMENT_URL_STALE_MS,
   });
 }

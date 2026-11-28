@@ -1,6 +1,5 @@
-import axios from 'axios';
-import { z, ZodError } from 'zod';
-import { ApiError, getApiErrorMessage } from '@/lib/api/error';
+import { ZodError } from 'zod';
+import { extractApiErrorCode, getApiErrorMessage } from '@/lib/api/error';
 
 // Backend error codes of the Lucky Draws and Groups endpoints (Bruno docs).
 const MESSAGES: Record<string, string> = {
@@ -24,15 +23,8 @@ const MESSAGES: Record<string, string> = {
   USER_INACTIVE: 'حساب کاربری شما غیرفعال است.',
 };
 
-// Every backend error has the shape `{ success: false, code, error }`. The
-// shared client wraps the AxiosError into an ApiError and keeps it as `cause`.
-const bodySchema = z.object({ code: z.string() });
-
 export function getLotteryErrorCode(error: unknown): string | null {
-  const cause = error instanceof ApiError ? error.cause : error;
-  if (!axios.isAxiosError(cause)) return null;
-  const body = bodySchema.safeParse(cause.response?.data);
-  return body.success ? body.data.code : null;
+  return extractApiErrorCode(error);
 }
 
 export function getLotteryErrorMessage(error: unknown): string {

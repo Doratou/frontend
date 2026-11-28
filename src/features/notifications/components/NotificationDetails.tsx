@@ -5,10 +5,10 @@ import emptyInboxUrl from '@/assets/notifications/empty-inbox.png';
 import { ConfirmDialog } from '@/components/custom/confirm-dialog';
 import { UserAvatar } from '@/components/custom/user-avatar';
 import { Button } from '@/components/ui/button';
+import { useAttachmentUrl } from '@/hooks/use-attachment-url';
+import { getAttachmentDownloadUrl } from '@/lib/api/attachments';
 import { cn } from '@/lib/utils';
-import { getNotificationAttachmentDownloadUrl } from '../api/notifications-api';
 import { formatNotificationFullDate } from '../format';
-import { useNotificationAttachmentUrl } from '../hooks/use-notifications';
 import { NOTIFICATION_CATEGORY_META } from '../notifications.config';
 import type { NotificationInviter, NotificationItem } from '../types';
 
@@ -39,9 +39,9 @@ function NotificationsIdleIllustration() {
 
 function InviterAvatar({ inviter }: { inviter: NotificationInviter }) {
   const attachmentId = inviter.avatarAttachmentId ?? null;
-  const { data: resolvedUrl } = useNotificationAttachmentUrl(attachmentId);
+  const { data: resolvedUrl } = useAttachmentUrl(attachmentId);
   const fallbackUrl = attachmentId
-    ? getNotificationAttachmentDownloadUrl(attachmentId)
+    ? getAttachmentDownloadUrl(attachmentId)
     : null;
 
   return (

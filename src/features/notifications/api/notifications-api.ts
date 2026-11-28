@@ -1,5 +1,5 @@
-import type { z } from 'zod';
 import { apiClient } from '@/lib/api/client';
+import { unwrapEnvelope } from '@/lib/api/envelope';
 import { env } from '@/lib/api/env';
 import type {
   GetNotificationsParams,
@@ -9,24 +9,17 @@ import type {
   UnreadCountResult,
 } from '../types';
 import {
-  attachmentAccessUrlDtoSchema,
   deleteNotificationDtoSchema,
   mapMarkReadDto,
   mapNotificationsListDto,
   mapSyncNotificationsDto,
   mapUnreadCountDto,
   markReadDtoSchema,
-  notificationEnvelopeSchema,
   notificationsListDtoSchema,
   syncNotificationsDtoSchema,
   unreadCountDtoSchema,
 } from './contracts';
 import { toNotificationError } from './notification-error';
-
-function parseEnvelope<T>(payload: unknown, schema: z.ZodType<T>): T {
-  const envelope = notificationEnvelopeSchema.parse(payload);
-  return schema.parse(envelope.data);
-}
 
 async function withNotificationError<T>(run: () => Promise<T>): Promise<T> {
   try {
@@ -52,7 +45,7 @@ export function getNotifications(
       signal,
     });
     return mapNotificationsListDto(
-      parseEnvelope(response.data, notificationsListDtoSchema),
+      unwrapEnvelope(response.data, notificationsListDtoSchema),
     );
   });
 }
@@ -70,7 +63,7 @@ export function getUnreadNotificationsCount(
       },
     );
     return mapUnreadCountDto(
-      parseEnvelope(response.data, unreadCountDtoSchema),
+      unwrapEnvelope(response.data, unreadCountDtoSchema),
     );
   });
 }
@@ -85,7 +78,7 @@ export function syncNotifications(
       signal,
     });
     return mapSyncNotificationsDto(
-      parseEnvelope(response.data, syncNotificationsDtoSchema),
+      unwrapEnvelope(response.data, syncNotificationsDtoSchema),
     );
   });
 }
@@ -100,7 +93,7 @@ export function markNotificationsRead(
       { up_to_id: upToId },
       { signal },
     );
-    return mapMarkReadDto(parseEnvelope(response.data, markReadDtoSchema));
+    return mapMarkReadDto(unwrapEnvelope(response.data, markReadDtoSchema));
   });
 }
 
@@ -113,28 +106,7 @@ export function deleteNotificationById(
       `/notifications/${encodeURIComponent(id)}`,
       { signal },
     );
-    parseEnvelope(response.data, deleteNotificationDtoSchema);
-  });
-}
-
-export function getNotificationAttachmentDownloadUrl(
-  attachmentId: string | number,
-): string {
-  const base = env.VITE_API_BASE_URL.replace(/\/$/, '');
-  return `${base}/attachments/${encodeURIComponent(String(attachmentId))}/download`;
-}
-
-export function getNotificationAttachmentUrl(
-  attachmentId: string,
-  signal?: AbortSignal,
-): Promise<string> {
-  return withNotificationError(async () => {
-    const response = await apiClient.get<unknown>(
-      `/attachments/${encodeURIComponent(attachmentId)}`,
-      { signal },
-    );
-    return parseEnvelope(response.data, attachmentAccessUrlDtoSchema)
-      .access_url;
+    unwrapEnvelope(response.data, deleteNotificationDtoSchema);
   });
 }
 

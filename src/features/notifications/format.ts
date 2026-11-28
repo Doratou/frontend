@@ -25,19 +25,6 @@ function startOfLocalDay(date: Date): number {
   ).getTime();
 }
 
-export function formatNotificationTime(isoDate: string): string {
-  const date = new Date(isoDate);
-  if (Number.isNaN(date.getTime())) return '';
-
-  const diffDays = Math.round(
-    (startOfLocalDay(new Date()) - startOfLocalDay(date)) / 86_400_000,
-  );
-
-  if (diffDays === 0) return timeFormatter.format(date);
-  if (diffDays === 1) return 'دیروز';
-  return shortDateFormatter.format(date);
-}
-
 export interface NotificationDateGroup {
   key: string;
   label: string;

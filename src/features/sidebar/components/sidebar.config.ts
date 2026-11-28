@@ -7,7 +7,6 @@ import {
   UserCheck,
   Wallet,
   User,
-  Bell,
   Coins,
   CheckSquare,
   BarChart2,
@@ -47,7 +46,6 @@ export const SIDEBAR_NAV_ITEMS: Record<SidebarPage, SidebarNavItem[]> = {
   ],
   group: [
     { id: 'dashboard', label: 'داشبورد', href: '', icon: LayoutGrid },
-    { id: 'notification', label: 'اعلانات', href: 'notification', icon: Bell },
     { id: 'coins', label: 'هزینه‌ها و دنگ', href: 'coins', icon: Coins },
     {
       id: 'checklist',

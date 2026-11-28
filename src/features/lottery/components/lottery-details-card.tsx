@@ -1,6 +1,7 @@
 import { Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { formatChance, toPersianNumber } from '@/features/lottery/format';
+import { formatChance } from '@/features/lottery/format';
+import { formatNumber } from '@/utils/format';
 import { getOptionChance } from '@/features/lottery/utils';
 import {
   ModeBadge,
@@ -35,7 +36,7 @@ export function LotteryDetailsCard({
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
           <h3 className="text-heading-mobile-5">گزینه‌ها</h3>
-          <ValueChip>{toPersianNumber(lottery.options.length)} گزینه</ValueChip>
+          <ValueChip>{formatNumber(lottery.options.length)} گزینه</ValueChip>
         </div>
         <p className="text-caption text-muted-foreground">
           {MODE_HINT[lottery.mode]}

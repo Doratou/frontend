@@ -1,12 +1,8 @@
 import { queryOptions } from '@tanstack/react-query';
 import { z } from 'zod';
 import { apiClient } from '@/lib/api/client';
+import { unwrapEnvelope } from '@/lib/api/envelope';
 import { userKeys } from './query-keys';
-
-const envelopeSchema = z.object({
-  success: z.literal(true),
-  data: z.unknown(),
-});
 
 // Public fields only: id, name and a ready-to-use avatar URL.
 const profileSchema = z
@@ -34,7 +30,7 @@ export async function getUserProfile(
     `/users/${encodeURIComponent(userId)}/profile`,
     { signal },
   );
-  return profileSchema.parse(envelopeSchema.parse(response.data).data);
+  return unwrapEnvelope(response.data, profileSchema);
 }
 
 const PROFILE_STALE_MS = 5 * 60_000;

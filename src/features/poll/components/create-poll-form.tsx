@@ -26,7 +26,7 @@ import {
   MIN_POLL_OPTIONS,
 } from '@/features/poll/config';
 import { useCreatePoll } from '@/features/poll/hooks/use-create-poll';
-import { useGroupId } from '@/features/groups/hooks/use-group-id';
+import { useGroupId } from '@/hooks/use-group-id';
 import {
   createPollSchema,
   type CreatePollFormValues,

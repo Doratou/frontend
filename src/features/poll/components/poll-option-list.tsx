@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useVotePoll } from '@/features/poll/hooks/use-vote-poll';
-import { useGroupId } from '@/features/groups/hooks/use-group-id';
+import { useGroupId } from '@/hooks/use-group-id';
 import {
   getOptionPercent,
   isPollVotable,

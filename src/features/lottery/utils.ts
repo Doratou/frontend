@@ -1,6 +1,6 @@
+import { formatNumber } from '@/utils/format';
 import { LOTTERY_WEIGHT_TOTAL } from './config';
 import type { LotteryDraft } from './draft';
-import { toPersianNumber } from './format';
 import type {
   Lottery,
   LotteryHistoryEntry,
@@ -33,7 +33,7 @@ function resolveUser(userId: string, members: LotteryMember[]): LotteryWinner {
   // A user who is no longer in the group has no entry in the members list.
   return member
     ? { label: member.name, member }
-    : { label: `کاربر ${toPersianNumber(Number(userId))}`, member: null };
+    : { label: `کاربر ${formatNumber(Number(userId))}`, member: null };
 }
 
 // USER candidates only carry a user ID, so names and avatars come from the

@@ -1,6 +1,8 @@
 import { z } from 'zod';
-import { apiClient } from '@/lib/api/client';
-import { ApiError } from '@/lib/api/error';
+import { apiClient } from './client';
+import { successEnvelopeSchema, unwrapEnvelope } from './envelope';
+import { env } from './env';
+import { ApiError } from './error';
 
 export type AttachmentType =
   | 'PROFILE_IMAGE'
@@ -22,15 +24,33 @@ export interface UploadedAttachment {
   accessUrl: string | null;
 }
 
-const envelopeSchema = z.object({
-  success: z.literal(true),
-  data: z.unknown(),
-});
+// Only the presigned URL is needed; the other metadata fields are ignored.
+const attachmentSchema = z.object({ access_url: z.url() });
 
 const uploadedAttachmentDtoSchema = z.object({
   id: z.coerce.number().int().positive(),
   access_url: z.url().nullable().optional(),
 });
+
+export function getAttachmentDownloadUrl(
+  attachmentId: string | number,
+): string {
+  const base = env.VITE_API_BASE_URL.replace(/\/$/, '');
+  return `${base}/attachments/${encodeURIComponent(String(attachmentId))}/download`;
+}
+
+/** Resolves an attachment id (for example a profile picture) to a viewable URL. */
+export async function getAttachmentUrl(
+  attachmentId: string,
+  signal?: AbortSignal,
+): Promise<string> {
+  // Relative to VITE_API_BASE_URL, which already includes the /api/v1 prefix.
+  const response = await apiClient.get<unknown>(
+    `/attachments/${encodeURIComponent(attachmentId)}`,
+    { signal },
+  );
+  return unwrapEnvelope(response.data, attachmentSchema).access_url;
+}
 
 /** Uploads a single file via multipart/form-data to POST /attachments/upload. */
 export async function uploadAttachment(
@@ -53,7 +73,7 @@ export async function uploadAttachment(
     { signal },
   );
 
-  const envelope = envelopeSchema.safeParse(response.data);
+  const envelope = successEnvelopeSchema.safeParse(response.data);
   if (!envelope.success) {
     throw new ApiError('پاسخ سرور برای بارگذاری فایل معتبر نیست.');
   }

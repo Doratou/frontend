@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { formatNumber } from '@/utils/format';
 import {
   LOTTERY_MAX_OPTIONS,
   LOTTERY_MIN_OPTIONS,
@@ -6,7 +7,6 @@ import {
   LOTTERY_TITLE_MAX_LENGTH,
   LOTTERY_WEIGHT_TOTAL,
 } from './config';
-import { toPersianNumber } from './format';
 
 const optionSchema = z.object({
   memberId: z.string().nullable(),
@@ -16,7 +16,7 @@ const optionSchema = z.object({
     .min(1, 'نام گزینه را وارد کنید.')
     .max(
       LOTTERY_OPTION_MAX_LENGTH,
-      `نام گزینه نباید بیشتر از ${toPersianNumber(LOTTERY_OPTION_MAX_LENGTH)} کاراکتر باشد.`,
+      `نام گزینه نباید بیشتر از ${formatNumber(LOTTERY_OPTION_MAX_LENGTH)} کاراکتر باشد.`,
     ),
   weight: z.number({ error: 'درصد را وارد کنید.' }),
 });
@@ -29,18 +29,18 @@ export const createLotterySchema = z
       .min(1, 'عنوان قرعه‌کشی را وارد کنید.')
       .max(
         LOTTERY_TITLE_MAX_LENGTH,
-        `عنوان نباید بیشتر از ${toPersianNumber(LOTTERY_TITLE_MAX_LENGTH)} کاراکتر باشد.`,
+        `عنوان نباید بیشتر از ${formatNumber(LOTTERY_TITLE_MAX_LENGTH)} کاراکتر باشد.`,
       ),
     mode: z.enum(['equal', 'weighted']),
     options: z
       .array(optionSchema)
       .min(
         LOTTERY_MIN_OPTIONS,
-        `حداقل ${toPersianNumber(LOTTERY_MIN_OPTIONS)} گزینه لازم است.`,
+        `حداقل ${formatNumber(LOTTERY_MIN_OPTIONS)} گزینه لازم است.`,
       )
       .max(
         LOTTERY_MAX_OPTIONS,
-        `حداکثر ${toPersianNumber(LOTTERY_MAX_OPTIONS)} گزینه مجاز است.`,
+        `حداکثر ${formatNumber(LOTTERY_MAX_OPTIONS)} گزینه مجاز است.`,
       ),
   })
   .superRefine((values, ctx) => {
@@ -62,7 +62,7 @@ export const createLotterySchema = z
           path: ['options', index, 'weight'],
           message: nothingLeft
             ? 'برای گزینه‌ی آخر درصدی باقی نمانده است؛ درصد بقیه را کمتر کنید.'
-            : `درصد باید عددی صحیح بین ۱ تا ${toPersianNumber(LOTTERY_WEIGHT_TOTAL)} باشد.`,
+            : `درصد باید عددی صحیح بین ۱ تا ${formatNumber(LOTTERY_WEIGHT_TOTAL)} باشد.`,
         });
       }
     });
@@ -75,7 +75,7 @@ export const createLotterySchema = z
       ctx.addIssue({
         code: 'custom',
         path: ['options'],
-        message: `مجموع درصدها باید ${toPersianNumber(LOTTERY_WEIGHT_TOTAL)}٪ باشد؛ اکنون ${toPersianNumber(total)}٪ است.`,
+        message: `مجموع درصدها باید ${formatNumber(LOTTERY_WEIGHT_TOTAL)}٪ باشد؛ اکنون ${formatNumber(total)}٪ است.`,
       });
     }
   });

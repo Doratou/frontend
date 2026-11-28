@@ -1,10 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useLocation } from 'react-router';
 import { Bell, Home, type LucideIcon } from 'lucide-react';
-import {
-  getAttachmentDownloadUrl,
-  useAttachmentUrl,
-} from '@/features/attachments/api/get-attachment-url';
+import { useAttachmentUrl } from '@/hooks/use-attachment-url';
+import { getAttachmentDownloadUrl } from '@/lib/api/attachments';
 import { useLogout } from '@/features/auth/hooks/use-logout';
 import { useAuthStore } from '@/features/auth/stores/auth-store';
 import { HomeHeader } from '@/features/home-header/components/HomeHeader';

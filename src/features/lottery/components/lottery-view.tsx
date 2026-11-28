@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { ErrorState } from '@/components/custom/error-state';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useGroupId } from '@/features/groups/hooks/use-group-id';
+import { useGroupId } from '@/hooks/use-group-id';
 import { LotteryCreateDialog } from '@/features/lottery/components/lottery-create-dialog';
 import { LotteryDetailsDialog } from '@/features/lottery/components/lottery-details-dialog';
 import { LotteryEmptyState } from '@/features/lottery/components/lottery-empty-state';

@@ -14,7 +14,3 @@ export const LOTTERY_MODE_LABEL: Record<LotteryMode, string> = {
 export function formatChance(percent: number): string {
   return percentFormatter.format(percent / 100);
 }
-
-export function toPersianNumber(value: number): string {
-  return value.toLocaleString('fa-IR');
-}

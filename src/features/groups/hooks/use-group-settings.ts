@@ -7,6 +7,12 @@ import {
 } from '@tanstack/react-query';
 import axios from 'axios';
 import { toast } from '@/components/custom/toast';
+import {
+  ATTACHMENT_URL_STALE_MS,
+  attachmentUrlKey,
+  useAttachmentUrl,
+} from '@/hooks/use-attachment-url';
+import { getAttachmentDownloadUrl } from '@/lib/api/attachments';
 import { getApiErrorMessage } from '@/lib/api/error';
 import { formatNumber } from '@/utils/format';
 import { GroupError } from '../api/group-error';
@@ -17,8 +23,6 @@ import {
   deactivateGroupInviteLink,
   deleteGroup,
   getFriendsList,
-  getGroupAttachmentDownloadUrl,
-  getGroupAttachmentUrl,
   getGroupInviteLinks,
   getGroupSettings,
   getLatestGroupCoverAttachment,
@@ -111,17 +115,6 @@ export function useFriendsList(enabled = true) {
   });
 }
 
-const ATTACHMENT_URL_STALE_MS = 30 * 60_000;
-
-export function useGroupAttachmentUrl(attachmentId: string | null) {
-  return useQuery({
-    queryKey: groupKeys.attachmentUrl(attachmentId ?? ''),
-    queryFn: ({ signal }) => getGroupAttachmentUrl(attachmentId ?? '', signal),
-    enabled: Boolean(attachmentId),
-    staleTime: ATTACHMENT_URL_STALE_MS,
-  });
-}
-
 export function useGroupCoverImage(
   group:
     | Pick<GroupSettingsData, 'id' | 'groupPhotoSrc' | 'coverAttachmentId'>
@@ -139,14 +132,14 @@ export function useGroupCoverImage(
   });
 
   const effectiveAttachmentId = directAttachmentId ?? latestCover?.id ?? null;
-  const { data: resolvedAccessUrl } = useGroupAttachmentUrl(directAttachmentId);
+  const { data: resolvedAccessUrl } = useAttachmentUrl(directAttachmentId);
 
   const candidates = [
     resolvedAccessUrl,
     latestCover?.accessUrl,
     group?.groupPhotoSrc,
     effectiveAttachmentId
-      ? getGroupAttachmentDownloadUrl(effectiveAttachmentId)
+      ? getAttachmentDownloadUrl(effectiveAttachmentId)
       : undefined,
   ].filter((url): url is string => Boolean(url));
 
@@ -177,7 +170,7 @@ export function useUpdateGroupCover(groupId: string) {
     onSuccess: (updated) => {
       if (updated.coverAttachmentId && updated.groupPhotoSrc) {
         queryClient.setQueryData(
-          groupKeys.attachmentUrl(updated.coverAttachmentId),
+          attachmentUrlKey(updated.coverAttachmentId),
           updated.groupPhotoSrc,
         );
       }

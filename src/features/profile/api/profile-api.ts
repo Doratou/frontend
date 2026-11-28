@@ -1,18 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { z } from 'zod';
 import { apiClient } from '@/lib/api/client';
+import { successEnvelopeSchema } from '@/lib/api/envelope';
 import { ApiError } from '@/lib/api/error';
 import type { UserProfile } from '../types';
 import {
   deleteAccountDtoSchema,
   mapUserDtoToProfile,
-  profileEnvelopeSchema,
   profileUserDtoSchema,
 } from './contracts';
 import { profileKeys } from './query-keys';
 
 function parseEnvelopeData<T>(payload: unknown, schema: z.ZodType<T>): T {
-  const envelope = profileEnvelopeSchema.safeParse(payload);
+  const envelope = successEnvelopeSchema.safeParse(payload);
   if (!envelope.success) {
     throw new ApiError('پاسخ سرور معتبر نیست. دوباره تلاش کنید.');
   }

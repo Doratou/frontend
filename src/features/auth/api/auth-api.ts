@@ -5,6 +5,7 @@ import axios, {
 } from 'axios';
 import type { z } from 'zod';
 import { apiClient } from '@/lib/api/client';
+import { unwrapEnvelope } from '@/lib/api/envelope';
 import { env } from '@/lib/api/env';
 import { useAuthStore } from '@/features/auth/stores/auth-store';
 import type { AuthTokens, SessionUser } from '@/features/auth/types';
@@ -12,7 +13,6 @@ import { AuthError, toAuthError } from './auth-error';
 import { devAuthApi } from './dev-auth-api';
 import { isAuthPreview } from './preview-session';
 import {
-  authEnvelopeSchema,
   authMessageSchema,
   otpDeliverySchema,
   otpVerifiedSchema,
@@ -37,8 +37,7 @@ async function post<T>(
         ? { 'X-Captcha-ID': captcha.id, 'X-Captcha-Code': captcha.code }
         : undefined,
     });
-    const envelope = authEnvelopeSchema.parse(response.data);
-    return schema.parse(envelope.data);
+    return unwrapEnvelope(response.data, schema);
   } catch (error) {
     throw toAuthError(error);
   }
@@ -280,8 +279,7 @@ export async function completeGoogleCallback(
       `/auth/google/callback${query}`,
       { signal },
     );
-    const envelope = authEnvelopeSchema.parse(response.data);
-    return signedInSchema.parse(envelope.data);
+    return unwrapEnvelope(response.data, signedInSchema);
   } catch (error) {
     throw toAuthError(error);
   }

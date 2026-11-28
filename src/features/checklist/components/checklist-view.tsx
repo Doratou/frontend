@@ -7,13 +7,17 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useChecklist } from '@/features/checklist/api/get-checklist';
 import { CHECKLIST_SECTIONS } from '@/features/checklist/config';
 import { useDeleteChecklistItem } from '@/features/checklist/hooks/use-delete-checklist-item';
-import { getTabCounts, groupChecklistItems } from '@/features/checklist/utils';
-import { useGroupId } from '@/features/groups/hooks/use-group-id';
+import {
+  checklistTabId,
+  getTabCounts,
+  groupChecklistItems,
+} from '@/features/checklist/utils';
+import { useGroupId } from '@/hooks/use-group-id';
 import { ChecklistAddForm } from './checklist-add-form';
 import { ChecklistMemberShares } from './checklist-member-shares';
 import { ChecklistSection } from './checklist-section';
 import { ChecklistStatusCard } from './checklist-status-card';
-import { ChecklistTabs, checklistTabId } from './checklist-tabs';
+import { ChecklistTabs } from './checklist-tabs';
 import type {
   ChecklistItem,
   ChecklistSectionKey,

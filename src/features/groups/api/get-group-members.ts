@@ -1,7 +1,7 @@
 import { queryOptions, useQuery } from '@tanstack/react-query';
 import { z } from 'zod';
 import { apiClient } from '@/lib/api/client';
-import { groupEnvelopeSchema } from './contracts';
+import { unwrapEnvelope } from '@/lib/api/envelope';
 import { toGroupError } from './group-error';
 import { groupKeys } from './query-keys';
 
@@ -41,9 +41,7 @@ export async function getGroupMembers(
       `/groups/${encodeURIComponent(groupId)}/members`,
       { signal },
     );
-    return z
-      .array(memberSchema)
-      .parse(groupEnvelopeSchema.parse(response.data).data);
+    return unwrapEnvelope(response.data, z.array(memberSchema));
   } catch (error) {
     throw toGroupError(error);
   }

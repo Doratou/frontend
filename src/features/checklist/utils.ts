@@ -29,6 +29,8 @@ export function groupChecklistItems(
   return groups;
 }
 
+export const checklistTabId = (tab: ChecklistTab) => `checklist-tab-${tab}`;
+
 export function getTabCounts(
   summary: ChecklistSummary,
 ): Record<ChecklistTab, number> {

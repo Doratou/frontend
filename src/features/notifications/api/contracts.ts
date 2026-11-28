@@ -10,11 +10,6 @@ import type {
   UnreadCountResult,
 } from '../types';
 
-export const notificationEnvelopeSchema = z.object({
-  success: z.literal(true),
-  data: z.unknown(),
-});
-
 export const rawNotificationDtoSchema = z.object({
   id: z.number().int().positive(),
   recipient_id: z.number().int().positive().optional(),
@@ -53,10 +48,6 @@ export const markReadDtoSchema = z.object({
 
 export const deleteNotificationDtoSchema = z.object({
   deleted: z.boolean(),
-});
-
-export const attachmentAccessUrlDtoSchema = z.object({
-  access_url: z.string().min(1),
 });
 
 export const wsEnvelopeSchema = z.object({

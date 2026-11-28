@@ -1,6 +1,4 @@
-import axios from 'axios';
-import { z } from 'zod';
-import { ApiError } from '@/lib/api/error';
+import { ApiError, extractApiErrorCode } from '@/lib/api/error';
 
 // Messages for the backend error codes of the polls endpoints.
 const messages: Readonly<Record<string, string>> = {
@@ -22,8 +20,6 @@ const messages: Readonly<Record<string, string>> = {
   BAD_REQUEST: 'اطلاعات واردشده را بررسی کنید.',
 };
 
-const errorBodySchema = z.object({ code: z.string() });
-
 export class PollError extends ApiError {
   readonly code: string;
 
@@ -43,12 +39,9 @@ export function toPollError(error: unknown): Error {
   if (!(error instanceof ApiError)) {
     return error instanceof Error ? error : new Error(String(error));
   }
-  const body = axios.isAxiosError(error.cause)
-    ? errorBodySchema.safeParse(error.cause.response?.data)
-    : null;
-  if (!body?.success) return error;
-  const message = messages[body.data.code];
-  return message === undefined
-    ? error
-    : new PollError(body.data.code, message, error.status, error.cause);
+  const code = extractApiErrorCode(error);
+  const message = code ? messages[code] : undefined;
+  return code && message !== undefined
+    ? new PollError(code, message, error.status, error.cause)
+    : error;
 }

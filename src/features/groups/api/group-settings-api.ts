@@ -1,6 +1,6 @@
-import type { z } from 'zod';
+import { uploadAttachment } from '@/lib/api/attachments';
 import { apiClient } from '@/lib/api/client';
-import { env } from '@/lib/api/env';
+import { unwrapEnvelope as parseEnvelope } from '@/lib/api/envelope';
 import { dateFromApi, dateTimeToApi } from '@/lib/persian-date';
 import type {
   DirectInviteResult,
@@ -9,12 +9,10 @@ import type {
   GroupSettingsData,
 } from '../types';
 import {
-  attachmentAccessUrlDtoSchema,
   directInviteResponseSchema,
   friendsListDtoSchema,
   groupCoverAttachmentListDtoSchema,
   groupDetailDtoSchema,
-  groupEnvelopeSchema,
   groupMessageSchema,
   inviteLinkDtoSchema,
   inviteLinkListDtoSchema,
@@ -22,7 +20,6 @@ import {
   mapFriendDto,
   mapGroupDtoToSettingsData,
   mapInviteLinkDto,
-  uploadedAttachmentDtoSchema,
 } from './contracts';
 import { GroupError, toGroupError } from './group-error';
 
@@ -37,11 +34,6 @@ function inviteLinksPath(
 ): string {
   const base = `/invites/links/groups/${encodeURIComponent(groupId)}`;
   return inviteId ? `${base}/${encodeURIComponent(inviteId)}${suffix}` : base;
-}
-
-function parseEnvelope<T>(payload: unknown, schema: z.ZodType<T>): T {
-  const envelope = groupEnvelopeSchema.parse(payload);
-  return schema.parse(envelope.data);
 }
 
 async function withGroupError<T>(run: () => Promise<T>): Promise<T> {
@@ -85,27 +77,6 @@ export function downloadGroupAttachment(
       { responseType: 'blob', signal },
     );
     return response.data;
-  });
-}
-
-export function getGroupAttachmentDownloadUrl(
-  attachmentId: string | number,
-): string {
-  const base = env.VITE_API_BASE_URL.replace(/\/$/, '');
-  return `${base}/attachments/${encodeURIComponent(String(attachmentId))}/download`;
-}
-
-export function getGroupAttachmentUrl(
-  attachmentId: string,
-  signal?: AbortSignal,
-): Promise<string> {
-  return withGroupError(async () => {
-    const response = await apiClient.get<unknown>(
-      `/attachments/${encodeURIComponent(attachmentId)}`,
-      { signal },
-    );
-    return parseEnvelope(response.data, attachmentAccessUrlDtoSchema)
-      .access_url;
   });
 }
 
@@ -184,20 +155,9 @@ export function updateGroupCover(
   signal?: AbortSignal,
 ): Promise<GroupSettingsData> {
   return withGroupError(async () => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('type', 'GROUP_COVER');
-    formData.append('group_id', groupId);
-    formData.append('is_public', 'true');
-
-    const uploadResponse = await apiClient.post<unknown>(
-      '/attachments/upload',
-      formData,
-      { signal },
-    );
-    const uploaded = parseEnvelope(
-      uploadResponse.data,
-      uploadedAttachmentDtoSchema,
+    const uploaded = await uploadAttachment(
+      { file, type: 'GROUP_COVER', isPublic: true, groupId },
+      signal,
     );
 
     const coverResponse = await apiClient.patch<unknown>(
@@ -207,7 +167,7 @@ export function updateGroupCover(
     );
     const dto = parseEnvelope(coverResponse.data, groupDetailDtoSchema);
     return mapGroupDtoToSettingsData(dto, {
-      url: uploaded.access_url ?? undefined,
+      url: uploaded.accessUrl ?? undefined,
       attachmentId: String(uploaded.id),
     });
   });
@@ -252,7 +212,7 @@ export function transferGroupOwnership(
       { new_owner_id: newOwnerId },
       { signal },
     );
-    groupEnvelopeSchema.parse(response.data);
+    parseEnvelope(response.data);
   });
 }
 

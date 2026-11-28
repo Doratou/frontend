@@ -5,7 +5,7 @@ import { ErrorState } from '@/components/custom/error-state';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { GroupPageHeader } from '@/components/custom/group-page-header';
-import { useGroupId } from '@/features/groups/hooks/use-group-id';
+import { useGroupId } from '@/hooks/use-group-id';
 import { usePolls } from '@/features/poll/api/get-polls';
 import { useMyMemberId } from '@/features/poll/hooks/use-my-member-id';
 import { cn } from '@/lib/utils';

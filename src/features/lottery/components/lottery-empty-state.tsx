@@ -1,7 +1,7 @@
 import { LoaderPinwheel, Plus } from 'lucide-react';
 import { EmptyState } from '@/components/custom/empty-state';
 import { Button } from '@/components/ui/button';
-import { toPersianNumber } from '@/features/lottery/format';
+import { formatNumber } from '@/utils/format';
 
 const STEPS = [
   'عنوان و گزینه‌ها را وارد کنید',
@@ -40,7 +40,7 @@ export function LotteryEmptyState({
                   aria-hidden="true"
                   className="grid size-6 shrink-0 place-items-center rounded-full border border-secondary-60 bg-card text-secondary-foreground"
                 >
-                  {toPersianNumber(index + 1)}
+                  {formatNumber(index + 1)}
                 </span>
                 {step}
               </li>

@@ -5,7 +5,7 @@ import { TextField } from '@/components/custom/text-field';
 import { CHECKLIST_TITLE_MAX_LENGTH } from '@/features/checklist/config';
 import { useCreateChecklistItem } from '@/features/checklist/hooks/use-create-checklist-item';
 import { checklistTitleSchema } from '@/features/checklist/schemas';
-import { useGroupId } from '@/features/groups/hooks/use-group-id';
+import { useGroupId } from '@/hooks/use-group-id';
 import type { ChecklistItemType } from '@/features/checklist/types';
 
 interface ChecklistAddFormProps {

@@ -1,11 +1,6 @@
 import { z } from 'zod';
 import type { UserProfile } from '../types';
 
-export const profileEnvelopeSchema = z.object({
-  success: z.literal(true),
-  data: z.unknown(),
-});
-
 export const profileUserDtoSchema = z.object({
   id: z.union([z.number().int().positive(), z.string().min(1)]),
   name: z.string().nullable().optional(),

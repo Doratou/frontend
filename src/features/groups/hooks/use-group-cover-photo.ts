@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getGroupCoverUrl } from '../api/get-group-cover-url';
+import { getAttachmentUrl } from '@/lib/api/attachments';
 import { downloadGroupAttachment } from '../api/group-settings-api';
 import { groupKeys } from '../api/query-keys';
 
@@ -22,7 +22,7 @@ export function useGroupCoverPhoto(
 
   const { data: accessUrl, isError: isAccessUrlError } = useQuery({
     queryKey: [...groupKeys.all, 'cover', attachmentId] as const,
-    queryFn: ({ signal }) => getGroupCoverUrl(attachmentId, signal),
+    queryFn: ({ signal }) => getAttachmentUrl(attachmentId, signal),
     enabled: shouldFetchAccessUrl,
     staleTime: COVER_STALE_MS,
     retry: false,

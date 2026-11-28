@@ -14,7 +14,7 @@ import {
 import { ConfirmDialog } from '@/components/custom/confirm-dialog';
 import { Button } from '@/components/ui/button';
 import { formatPollPeriod } from '@/features/poll/format';
-import { useGroupId } from '@/features/groups/hooks/use-group-id';
+import { useGroupId } from '@/hooks/use-group-id';
 import { useIsPollOwner } from '@/features/poll/hooks/use-is-poll-owner';
 import {
   useClosePoll,

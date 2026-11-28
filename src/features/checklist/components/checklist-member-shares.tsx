@@ -1,6 +1,6 @@
 import { useId } from 'react';
 import { cn } from '@/lib/utils';
-import { getMemberTone } from '@/features/groups/member-tone';
+import { getMemberTone } from '@/utils/member-tone';
 import {
   formatItemCount,
   formatMemberCount,

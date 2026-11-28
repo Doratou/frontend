@@ -4,12 +4,11 @@ import axios from 'axios';
 import { useNavigate } from 'react-router';
 import { ErrorState } from '@/components/custom/error-state';
 import { toast } from '@/components/custom/toast';
+import { attachmentUrlKey, useAttachmentUrl } from '@/hooks/use-attachment-url';
 import {
   getAttachmentDownloadUrl,
-  useAttachmentUrl,
-} from '@/features/attachments/api/get-attachment-url';
-import { attachmentKeys } from '@/features/attachments/api/query-keys';
-import { uploadAttachment } from '@/features/attachments/api/upload-attachment';
+  uploadAttachment,
+} from '@/lib/api/attachments';
 import { authApi } from '@/features/auth/api/auth-api';
 import { AuthError, authErrorMessage } from '@/features/auth/api/auth-error';
 import { useLogout } from '@/features/auth/hooks/use-logout';
@@ -96,7 +95,7 @@ export function Component() {
     });
     if (uploaded.accessUrl) {
       queryClient.setQueryData(
-        attachmentKeys.detail(String(uploaded.id)),
+        attachmentUrlKey(String(uploaded.id)),
         uploaded.accessUrl,
       );
     }

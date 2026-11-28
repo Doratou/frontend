@@ -14,9 +14,6 @@ export const notificationKeys = {
   ) => [...all, 'list', filters] as const,
   unreadCount: (groupId?: string) =>
     [...all, 'unread-count', groupId ?? 'all'] as const,
-  // Matches attachmentKeys.detail so resolved avatar URLs are shared across features.
-  attachmentUrl: (attachmentId: string) =>
-    ['attachments', 'detail', attachmentId] as const,
   groupsAll: ['groups'] as const,
   friendsAll: ['friends'] as const,
 };

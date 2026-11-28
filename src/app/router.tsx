@@ -94,7 +94,7 @@ export const routes: RouteObject[] = [
       },
       {
         path: 'notification',
-        element: <p>نظرسنجی</p>,
+        element: <p>اعلانات</p>,
       },
       {
         path: 'lottery',

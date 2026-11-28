@@ -1,9 +1,9 @@
 import type React from 'react';
 import { useState } from 'react';
 import { User } from 'lucide-react';
+import { useAttachmentUrl } from '@/hooks/use-attachment-url';
+import { getAttachmentDownloadUrl } from '@/lib/api/attachments';
 import { formatNumber } from '@/utils/format';
-import { getGroupAttachmentDownloadUrl } from '../api/group-settings-api';
-import { useGroupAttachmentUrl } from '../hooks/use-group-settings';
 import type { GroupHeaderMember } from './GroupHeader';
 
 export interface MemberAvatarProps {
@@ -19,13 +19,13 @@ export function MemberAvatar({
 }: MemberAvatarProps) {
   const [failedUrls, setFailedUrls] = useState<string[]>([]);
   const attachmentId = member.avatarAttachmentId ?? null;
-  const { data: resolvedAccessUrl } = useGroupAttachmentUrl(attachmentId);
+  const { data: resolvedAccessUrl } = useAttachmentUrl(attachmentId);
 
   const trimmedName = member.name?.trim() ?? '';
   const candidates = [
     resolvedAccessUrl,
     member.avatarSrc,
-    attachmentId ? getGroupAttachmentDownloadUrl(attachmentId) : undefined,
+    attachmentId ? getAttachmentDownloadUrl(attachmentId) : undefined,
   ].filter((url): url is string => Boolean(url));
 
   const activeUrl = candidates.find((url) => !failedUrls.includes(url));

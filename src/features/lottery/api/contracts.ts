@@ -1,12 +1,7 @@
 import { z } from 'zod';
+import { unwrapEnvelope } from '@/lib/api/envelope';
 import { paginationSchema } from '@/lib/api/pagination';
 import { toLottery, toSummary } from './mappers';
-
-// Lucky draws use the same `{ success: true, data }` envelope as Auth.
-const envelopeSchema = z.object({
-  success: z.literal(true),
-  data: z.unknown(),
-});
 
 const timestamp = z.iso.datetime({ offset: true });
 
@@ -51,5 +46,5 @@ export function parseData<T extends z.ZodType>(
   schema: T,
   body: unknown,
 ): z.output<T> {
-  return schema.parse(envelopeSchema.parse(body).data);
+  return unwrapEnvelope(body, schema);
 }

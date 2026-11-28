@@ -1,4 +1,7 @@
 import axios from 'axios';
+import { z } from 'zod';
+
+const errorCodeBodySchema = z.object({ code: z.string() });
 
 export class ApiError extends Error {
   readonly status: number | undefined;
@@ -26,6 +29,13 @@ export function getApiErrorMessage(
   const mappedMessage =
     error.status === undefined ? undefined : statusMessages?.[error.status];
   return mappedMessage ?? error.message;
+}
+
+export function extractApiErrorCode(error: unknown): string | null {
+  const cause = error instanceof ApiError ? error.cause : error;
+  if (!axios.isAxiosError(cause)) return null;
+  const parsed = errorCodeBodySchema.safeParse(cause.response?.data);
+  return parsed.success ? parsed.data.code : null;
 }
 
 export function toApiError(error: unknown): ApiError {

@@ -17,15 +17,6 @@ import type {
 } from '../types';
 import { getDirectInviteRecipientErrorMessage } from './group-error';
 
-export const groupEnvelopeSchema = z.object({
-  success: z.literal(true),
-  data: z.unknown(),
-});
-
-export function unwrapGroupEnvelope(body: unknown): unknown {
-  return groupEnvelopeSchema.parse(body).data;
-}
-
 export const groupMessageSchema = z.object({
   message: z.string().optional(),
 });
@@ -261,15 +252,6 @@ export function mapDirectInviteResponse(
   };
 }
 
-export const uploadedAttachmentDtoSchema = z.object({
-  id: z.number().int().positive(),
-  access_url: z.string().nullable().optional(),
-});
-
-export const attachmentAccessUrlDtoSchema = z.object({
-  access_url: z.string().min(1),
-});
-
 export const groupCoverAttachmentListDtoSchema = z.object({
   items: z.array(
     z.object({
@@ -334,33 +316,6 @@ export const directInvitesResponseSchema = z.object({
   items: z.array(rawInviteSchema),
   total: z.number().int().nonnegative(),
 });
-
-const rawFriendSchema = z.object({
-  friendship_id: z.number().int().positive(),
-  user: z.object({
-    id: z.number().int().positive(),
-    name: z.string(),
-    avatar_attachment_id: z.number().int().positive().nullish(),
-    avatar_url: z.string().nullish(),
-  }),
-  friends_since: z.string().nullish(),
-  mutual_group_count: z.number().int().nonnegative().optional(),
-});
-
-export const friendsResponseSchema = z.object({
-  items: z.array(rawFriendSchema),
-  pagination: z.object({
-    page: z.number().int().nonnegative(),
-    limit: z.number().int().positive(),
-    total: z.number().int().nonnegative(),
-  }),
-});
-
-export interface FriendSummary {
-  id: string;
-  name: string;
-  avatarSrc?: string;
-}
 
 function toJalaliYear(isoDate: string): number {
   const date = new Date(isoDate);
@@ -446,16 +401,6 @@ export function mapDirectInviteDto(
     memberCount: 1,
     startDateLabel: `از ${startLabel}`,
     invitedAtLabel: startLabel,
-  };
-}
-
-export function mapFriendSummaryDto(
-  dto: z.infer<typeof rawFriendSchema>,
-): FriendSummary {
-  return {
-    id: String(dto.user.id),
-    name: dto.user.name || `کاربر #${dto.user.id}`,
-    avatarSrc: dto.user.avatar_url ?? undefined,
   };
 }
 
