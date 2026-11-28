@@ -14,10 +14,10 @@ Quick-reference map for the User Profile, Home Header, and AppLayout integration
   - Fetches profile via `useMyProfileQuery({ enabled: Boolean(authUser), onData: syncSessionUser })` and syncs `authStore` directly inside `onData` (no `useEffect` loop, guarded by shallow field equality).
   - Owns mutation handlers (`handleAvatarChange`, `handleRefreshFriendCode`, `handleSaveDisplayName`, `handleSendContactOtp`, `handleVerifyAndSaveContact`, `handleChangePassword`, `handleToggleTelegram`, `handleDeleteAccount`).
   - Renders a non-blocking `<ErrorState>` retry banner when `GET /users/me` fails with no cached remote profile data, while still showing session fallback fields.
-- `src/app/layouts/AppLayout.tsx`
+- `src/app/layouts/AppLayout.tsx` & `src/app/layouts/AppHomeHeader.tsx`
   - Full-viewport fixed app shell (`fixed inset-0 h-dvh w-full overflow-hidden overscroll-none bg-[#f3f0ff]`).
-  - Keeps `<Sidebar page="homepage" />` and `<HomeHeader />` fixed in place while only the outlet container below `HomeHeader` scrolls vertically (`min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain` with hidden scrollbars).
-  - Uses `useAttachmentUrl` for header avatar and shared `useLogout` for sign-out.
+  - Keeps `<Sidebar page="homepage" />` and `<AppHomeHeader />` fixed in place while only the outlet container below `AppHomeHeader` scrolls vertically (`min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain` with hidden scrollbars).
+  - `AppHomeHeader.tsx` connects `useAttachmentUrl`, `useLogout`, `useNotificationsInfiniteQuery`, `useUnreadNotificationsCount`, and `useNotificationsRealtime` into `<HomeHeader />`.
 - `src/features/auth/hooks/use-logout.ts`
   - Shared logout hook (`authApi.logout`, `queryClient.clear()`, `clearSession()`, `navigate('/login', { replace: true })`) used by both `AppLayout.tsx` and `profile.tsx`.
 - `src/features/home-header/components/HomeHeader.tsx`, `NotificationsMenu.tsx`, `ProfileMenu.tsx`
@@ -43,7 +43,7 @@ Quick-reference map for the User Profile, Home Header, and AppLayout integration
   - Starry wave banner (`hero-banner.webp`, `object-fill`, `rounded-[24px]`), circular avatar with upload trigger (`5MB` + `image/*` check + optimistic `blob:` preview + `fallbackAvatarUrl` chain), display name `<bdi>`, and glassmorphic role badge (`کاربر` / `مدیر`).
   - Floating cards row directly below the banner:
     - Start side: friendship milestone (`آغاز این دوستی`, memoized Persian month/year from `joinedAtMs`).
-    - End side: friend code card (`کد دوستی شما`, `lg:w-[20.5rem] xl:w-[22rem]` matching `ProfileWalletCard` column width directly underneath) with copy + animated regenerate buttons.
+    - End side: friend code card (`کد دوستی شما`, `lg:w-[20.5rem] xl:w-[22rem]` matching `ProfileWalletCard` column width directly underneath) with copy + animated regenerate button guarded by an above-button Base UI `<Popover>` confirmation bubble.
 - `ProfileWalletCard.tsx`
   - Token balance card (`rounded-[20px]`) with link/button to `/home/wallet`.
 - `ProfileCompletionCard.tsx`
@@ -68,7 +68,7 @@ Quick-reference map for the User Profile, Home Header, and AppLayout integration
 - `types.ts` — `UserProfile`, `ProfileData` (`joinedAtMs: number | null`, `friendCode: string | null`), `ProfilePreferences` (`appNotifications`, `telegramNotifications`), `ContactDialogField`, `ProfileRole`, `ProfileStatus`.
 - `schemas.ts` — `PROFILE_AVATAR_MAX_BYTES` (`5MB`), `PROFILE_ROLE_LABELS`, `normalizeIranPhone`, `formatIranPhone`, `displayNameSchema`, `emailFormSchema`, `phoneFormSchema`, `changePasswordFormSchema`, `ChangePasswordFormValues`.
 - `api/query-keys.ts` — `profileKeys.all` and `profileKeys.me()`.
-- `api/contracts.ts` — `profileEnvelopeSchema`, `profileUserDtoSchema`, `deleteAccountDtoSchema`, `mapUserDtoToProfile` (parses `created_at` to `joinedAtMs`).
+- `api/contracts.ts` — `profileUserDtoSchema`, `deleteAccountDtoSchema`, `mapUserDtoToProfile` (parses `created_at` to `joinedAtMs`; uses `successEnvelopeSchema` from `@/lib/api/envelope`).
 - `api/profile-error.ts` — `ProfileErrorOperation` and `getProfileErrorMessage` (returns `undefined` on `axios.isCancel`).
 - `api/profile-api.ts` — HTTP functions + `useMyProfileQuery`, `useProfileUpdateMutation`, `useDeleteAccountMutation`.
 - `hooks/use-profile-preferences.ts` — Local state for notification toggle preferences.
@@ -78,18 +78,18 @@ Quick-reference map for the User Profile, Home Header, and AppLayout integration
 
 ## 2. Backend Endpoints & Cache Rules
 
-| Action                 | Method & Path                                    | Request Payload                    | Cache / State Effect                                   |
-| ---------------------- | ------------------------------------------------ | ---------------------------------- | ------------------------------------------------------ |
-| Fetch profile          | `GET /users/me`                                  | —                                  | Cached at `profileKeys.me()`; syncs `authStore`        |
-| Update display name    | `PATCH /users/me`                                | `{ name }`                         | Updates `profileKeys.me()` + `authStore`               |
-| Upload avatar file     | `POST /attachments/upload`                       | `PROFILE_IMAGE`, `is_public: true` | Seeds `attachmentKeys.detail(id)` when `accessUrl` set |
-| Save avatar ID         | `PATCH /auth/me/avatar`                          | `{ avatar_attachment_id }`         | Updates `profileKeys.me()` + `authStore`               |
-| Send contact OTP       | `POST /auth/otp/send`                            | `{ identifier, purpose: 'login' }` | Returns `{ codeLength, expiresAt }`                    |
-| Verify contact OTP     | `POST /auth/otp/verify`                          | `{ identifier, code }`             | Must succeed before calling email/phone PATCH          |
-| Update email / phone   | `PATCH /users/me/email`, `PATCH /users/me/phone` | `{ email }` / `{ phone }`          | Updates `profileKeys.me()` + `authStore`               |
-| Change password        | `POST /auth/password/change`                     | `{ old_password, new_password }`   | Both fields required (`new_password` >= 6 chars)       |
-| Regenerate friend code | `POST /users/me/friend-code/regenerate`          | —                                  | Updates `profileKeys.me()` + `authStore`               |
-| Delete account         | `DELETE /users/me`                               | —                                  | Removes `profileKeys.all`, clears query & auth session |
+| Action                 | Method & Path                                    | Request Payload                    | Cache / State Effect                                                             |
+| ---------------------- | ------------------------------------------------ | ---------------------------------- | -------------------------------------------------------------------------------- |
+| Fetch profile          | `GET /users/me`                                  | —                                  | Cached at `profileKeys.me()`; syncs `authStore`                                  |
+| Update display name    | `PATCH /users/me`                                | `{ name }`                         | Updates `profileKeys.me()` + `authStore`                                         |
+| Upload avatar file     | `POST /attachments/upload`                       | `PROFILE_IMAGE`, `is_public: true` | Seeds `attachmentUrlKey(id)` (`@/hooks/use-attachment-url`) when `accessUrl` set |
+| Save avatar ID         | `PATCH /auth/me/avatar`                          | `{ avatar_attachment_id }`         | Updates `profileKeys.me()` + `authStore`                                         |
+| Send contact OTP       | `POST /auth/otp/send`                            | `{ identifier, purpose: 'login' }` | Returns `{ codeLength, expiresAt }`                                              |
+| Verify contact OTP     | `POST /auth/otp/verify`                          | `{ identifier, code }`             | Must succeed before calling email/phone PATCH                                    |
+| Update email / phone   | `PATCH /users/me/email`, `PATCH /users/me/phone` | `{ email }` / `{ phone }`          | Updates `profileKeys.me()` + `authStore`                                         |
+| Change password        | `POST /auth/password/change`                     | `{ old_password, new_password }`   | Both fields required (`new_password` >= 6 chars)                                 |
+| Regenerate friend code | `POST /users/me/friend-code/regenerate`          | —                                  | Updates `profileKeys.me()` + `authStore`                                         |
+| Delete account         | `DELETE /users/me`                               | —                                  | Removes `profileKeys.all`, clears query & auth session                           |
 
 ---
 

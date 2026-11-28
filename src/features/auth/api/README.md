@@ -1,6 +1,6 @@
 # API احراز هویت
 
-- `contracts.ts`: قراردادهای Bruno، schema مربوط به envelope و دادهٔ پاسخ و نگاشت DTO به user و توکن داخلی.
+- `contracts.ts`: قراردادهای Bruno، schemaهای دادهٔ پاسخ و نگاشت DTO به user و توکن داخلی (envelope مشترک از `@/lib/api/envelope` خوانده می‌شود).
 - `auth-api.ts`: endpointهای واقعی، Bearer و refresh مشترک؛ آدرس پایه از env.
 - `dev-auth-api.ts`: adapter نمونه فقط در dev با `VITE_AUTH_API_ENABLED=false`؛ کد پیش‌فرض `12345`، بدون شبکه یا ذخیرهٔ پایدار.
 - `preview-session.ts`: تشخیص حالت preview و دادهٔ مشترک کاربر/توکن نمونه برای `auth-api.ts`، `dev-auth-api.ts` و ورود گوگل در حالت dev.

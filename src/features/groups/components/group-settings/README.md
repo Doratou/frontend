@@ -18,7 +18,7 @@ Quick-reference map for the Group Settings & Group Header feature (`feat/group-s
 
 - `src/features/groups/components/GroupSettingsDialog.tsx`
   - Controlled shell (`section`, `onSectionChange`, `open`, `onOpenChange`, optional `coverImage`).
-  - Renders desktop sidebar nav (`NavItem` with `variant="default" | "danger"`) + mobile header card & tablist from a single memoized `sections` config.
+  - Renders desktop sidebar nav (`NavItem` with `variant="default" | "danger"`, `text-neutral-80` labels/headings) + mobile header card (soft mint gradient `bg-linear-to-bl` + `StatusChip` + member count pill) & tablist from a single memoized `sections` config.
   - Wraps dialog content in a memoized `GroupSettingsContext.Provider` so section components read `group`, `isOwner`, `cover`, `openInvite`, `close`, and `exitGroup` without prop drilling.
   - Eagerly renders `OverviewSection`; **lazily loads** `MembersSection`, `InviteLinkSection`, `DangerZoneSection`, and `InviteMemberDialog` (`React.lazy` + `Suspense`).
   - Tracks `hasOpenedInvite` so `InviteMemberDialog` is not fetched until opened, yet stays mounted once opened so Base UI exit animations work.
@@ -47,7 +47,7 @@ Quick-reference map for the Group Settings & Group Header feature (`feat/group-s
   - Pure presentational headers sharing `formatGroupStorage` (from `constants.ts`) and `GroupMemberStack` (from `MemberAvatar.tsx`).
   - Must **not** import from other features (e.g. `sidebar`, `auth`) or `react-router`.
 - `src/features/groups/components/MemberAvatar.tsx`
-  - Renders `member.avatarSrc` with `onError` fallback -> first-letter initial circle -> `<User />` icon. Also exports `GroupMemberStack`.
+  - Uses shared `useAttachmentUrl` (`@/hooks/use-attachment-url`) and `getAttachmentDownloadUrl` (`@/lib/api/attachments`) with `onError` fallback -> first-letter initial circle -> `<User />` icon. Also exports `GroupMemberStack` (with `overflowSizeClass = 'h-9 w-9'` for the `+N` badge).
 - `src/features/groups/components/groupHeaderAssets.ts`
   - Static imports for `banner.png`, `mobile-banner.png`, `group-photo-sample.png`, `creator-avatar-sample.png`.
 - **No barrel file**: `components/index.ts` was intentionally removed (`bundle-barrel-imports`). Always import components directly from their file path.
@@ -66,24 +66,25 @@ Quick-reference map for the Group Settings & Group Header feature (`feat/group-s
 
 ## 2. Backend Endpoints & Query Cache Map
 
-| Operation            | Method & Path                                                   | API Function                    | Hook                           | Cache Effect                                                                |
-| -------------------- | --------------------------------------------------------------- | ------------------------------- | ------------------------------ | --------------------------------------------------------------------------- |
-| Fetch group detail   | `GET /groups/:groupId`                                          | `getGroupSettings`              | `useGroupSettings`             | `groupKeys.settings(groupId)`                                               |
-| Download cover blob  | `GET /attachments/:id/download`                                 | `downloadGroupAttachment`       | `useGroupCoverImage`           | `groupKeys.coverBlob(id)` (`staleTime: 30m`)                                |
-| Update title / desc  | `PATCH /groups/:groupId`                                        | `updateGroupInfo`               | `useUpdateGroupInfo`           | Invalidates `detail(id)` + `lists()`                                        |
-| Upload & set cover   | `POST /attachments/upload` -> `PATCH /groups/:groupId/cover`    | `updateGroupCover`              | `useUpdateGroupCover`          | Sets `coverBlob(id)` + `settings(id)`, invalidates `detail(id)` + `lists()` |
-| Remove member        | `DELETE /groups/:groupId/members/:memberId`                     | `removeGroupMember`             | `useRemoveGroupMember`         | Invalidates `detail(id)`                                                    |
-| Transfer ownership   | `POST /groups/:groupId/transfer-ownership` (`{ new_owner_id }`) | `transferGroupOwnership`        | `useTransferGroupOwnership`    | Invalidates `detail(id)`                                                    |
-| Leave group          | `DELETE /groups/:groupId/leave`                                 | `leaveGroup`                    | `useLeaveGroup`                | Removes `detail(id)`, invalidates `lists()`                                 |
-| Archive group        | `POST /groups/:groupId/archive`                                 | `archiveGroup`                  | `useArchiveGroup`              | Invalidates `detail(id)` + `lists()`                                        |
-| Delete group         | `DELETE /groups/:groupId`                                       | `deleteGroup`                   | `useDeleteGroup`               | Removes `detail(id)`, invalidates `lists()`                                 |
-| List invite links    | `GET /invites/links/groups/:groupId`                            | `getGroupInviteLinks`           | `useGroupInviteLinks`          | `groupKeys.inviteLinks(groupId)`                                            |
-| Create invite link   | `POST /invites/links/groups/:groupId`                           | `createGroupInviteLink`         | `useSaveGroupInviteLink`       | Invalidates `inviteLinks(id)` on settled                                    |
-| Update link limits   | `PATCH /invites/links/groups/:groupId/:inviteId`                | `updateGroupInviteLinkInfo`     | `useSaveGroupInviteLink`       | Invalidates `inviteLinks(id)` on settled                                    |
-| Change link password | `PATCH /invites/links/groups/:groupId/:inviteId/password`       | `changeGroupInviteLinkPassword` | `useSaveGroupInviteLink`       | Invalidates `inviteLinks(id)` on settled                                    |
-| Deactivate link      | `DELETE /invites/links/groups/:groupId/:inviteId`               | `deactivateGroupInviteLink`     | `useDeactivateGroupInviteLink` | Optimistically filters `inviteLinks(id)` + invalidates                      |
-| List friends         | `GET /friendships?page=1&limit=100`                             | `getFriendsList`                | `useFriendsList`               | `groupKeys.friends()`                                                       |
-| Direct invite        | `POST /invites/direct` (`{ group_id, user_ids }`)               | `inviteGroupMembers`            | `useInviteGroupMembers`        | Invalidates `detail(id)`                                                    |
+| Operation            | Method & Path                                                   | API Function                    | Hook                           | Cache Effect                                                                                 |
+| -------------------- | --------------------------------------------------------------- | ------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------- |
+| Fetch group detail   | `GET /groups/:groupId`                                          | `getGroupSettings`              | `useGroupSettings`             | `groupKeys.settings(groupId)`                                                                |
+| Download cover blob  | `GET /attachments/:id/download`                                 | `downloadGroupAttachment`       | `useGroupCoverPhoto`           | `groupKeys.coverBlob(id)` (`staleTime: 30m`)                                                 |
+| Resolve cover URL    | `GET /attachments/:id`                                          | `getAttachmentUrl` (shared)     | `useAttachmentUrl` (shared)    | `attachmentUrlKey(id)` (`staleTime: 30m`)                                                    |
+| Update title / desc  | `PATCH /groups/:groupId`                                        | `updateGroupInfo`               | `useUpdateGroupInfo`           | Invalidates `detail(id)` + `lists()`                                                         |
+| Upload & set cover   | `POST /attachments/upload` -> `PATCH /groups/:groupId/cover`    | `updateGroupCover`              | `useUpdateGroupCover`          | Sets `attachmentUrlKey(id)` + `coverAttachment` + `settings`, invalidates `detail` + `lists` |
+| Remove member        | `DELETE /groups/:groupId/members/:memberId`                     | `removeGroupMember`             | `useRemoveGroupMember`         | Invalidates `detail(id)`                                                                     |
+| Transfer ownership   | `POST /groups/:groupId/transfer-ownership` (`{ new_owner_id }`) | `transferGroupOwnership`        | `useTransferGroupOwnership`    | Invalidates `detail(id)`                                                                     |
+| Leave group          | `DELETE /groups/:groupId/leave`                                 | `leaveGroup`                    | `useLeaveGroup`                | Removes `detail(id)`, invalidates `lists()`                                                  |
+| Archive group        | `POST /groups/:groupId/archive`                                 | `archiveGroup`                  | `useArchiveGroup`              | Invalidates `detail(id)` + `lists()`                                                         |
+| Delete group         | `DELETE /groups/:groupId`                                       | `deleteGroup`                   | `useDeleteGroup`               | Removes `detail(id)`, invalidates `lists()`                                                  |
+| List invite links    | `GET /invites/links/groups/:groupId`                            | `getGroupInviteLinks`           | `useGroupInviteLinks`          | `groupKeys.inviteLinks(groupId)`                                                             |
+| Create invite link   | `POST /invites/links/groups/:groupId`                           | `createGroupInviteLink`         | `useSaveGroupInviteLink`       | Invalidates `inviteLinks(id)` on settled                                                     |
+| Update link limits   | `PATCH /invites/links/groups/:groupId/:inviteId`                | `updateGroupInviteLinkInfo`     | `useSaveGroupInviteLink`       | Invalidates `inviteLinks(id)` on settled                                                     |
+| Change link password | `PATCH /invites/links/groups/:groupId/:inviteId/password`       | `changeGroupInviteLinkPassword` | `useSaveGroupInviteLink`       | Invalidates `inviteLinks(id)` on settled                                                     |
+| Deactivate link      | `DELETE /invites/links/groups/:groupId/:inviteId`               | `deactivateGroupInviteLink`     | `useDeactivateGroupInviteLink` | Optimistically filters `inviteLinks(id)` + invalidates                                       |
+| List friends         | `GET /friendships?page=1&limit=100`                             | `getFriendsList`                | `useFriendsList`               | `groupKeys.friends()`                                                                        |
+| Direct invite        | `POST /invites/direct` (`{ group_id, user_ids }`)               | `inviteGroupMembers`            | `useInviteGroupMembers`        | Invalidates `detail(id)`                                                                     |
 
 > **Key Prefix Rule**: `groupKeys.detail(groupId)` (`['groups', 'detail', groupId]`) is the prefix for `settings`, `members`, and `inviteLinks`. Invalidating `detail(groupId)` refreshes all three.
 

@@ -4,7 +4,10 @@
 
 - `client.ts`: ساخت Axios instance، آدرس پایه از env، timeout، تنظیم credentials و interceptor مشترک.
 - `env.ts`: خواندن و اعتبارسنجی متغیرهای عمومی مربوط به API.
-- `error.ts`: مدل `ApiError`، تبدیل خطاهای شبکه/HTTP و `getApiErrorMessage` برای پیام امن با نگاشت status اختصاصی هر عملیات. نگاشت‌های مخصوص یک قابلیت کنار همان قابلیت قرار می‌گیرند.
+- `error.ts`: مدل `ApiError`، تبدیل خطاهای شبکه/HTTP، `getApiErrorMessage` برای پیام امن و `extractApiErrorCode` برای استخراج `code` از پاسخ‌های خطای بک‌اند.
+- `envelope.ts`: `successEnvelopeSchema` و helper مشترک `unwrapEnvelope` برای اعتبارسنجی پوشش `{ success: true, data }` در تمام featureها.
+- `attachments.ts`: توابع مشترک `getAttachmentDownloadUrl`، `getAttachmentUrl` و `uploadAttachment` (هوک React Query مرتبط در `@/hooks/use-attachment-url` قرار دارد).
+- `pagination.ts`: `paginationSchema` و `fetchAllPages` برای دریافت صفحه‌بندی‌شدهٔ فهرست‌ها.
 
 درخواست‌های محصول مثل ورود، دریافت اکیپ و ثبت هزینه در این پوشه قرار نمی‌گیرند؛ محل آن‌ها `features/<feature>/api` است. تمام آن درخواست‌ها باید `apiClient` را از `@/lib/api/client` مصرف کنند.
 
@@ -41,11 +44,10 @@ const response = await apiClient.post<unknown>(path, input, {
     ? { 'X-Captcha-ID': captcha.id, 'X-Captcha-Code': captcha.code }
     : undefined,
 });
-const envelope = authEnvelopeSchema.parse(response.data);
-return schema.parse(envelope.data);
+return unwrapEnvelope(response.data, schema);
 ```
 
-در این نمونه، schemaهای envelope و داده در `features/auth/api/contracts.ts` تعریف می‌شوند. helper مربوط به POST در همان Auth می‌ماند؛ تا زمانی که قابلیت دیگری همین رفتار را واقعاً نیاز ندارد، helper مشترک جدیدی لازم نیست.
+در این نمونه، schema داده در `features/auth/api/contracts.ts` تعریف می‌شود و اعتبارسنجی envelope با `unwrapEnvelope` مشترک از `@/lib/api/envelope` انجام می‌گیرد. helper مربوط به POST در همان Auth می‌ماند.
 
 ### خطا و رابط کاربری
 
